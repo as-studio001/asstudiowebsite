@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#ffffff">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <g fill="none" stroke="#1a1a1a" stroke-width="6">
+      <circle cx="600" cy="400" r="230"></circle>
+      <line x1="600" y1="170" x2="380" y2="560"></line>
+      <line x1="600" y1="170" x2="820" y2="560"></line>
+      <line x1="380" y1="560" x2="820" y2="560"></line>
+      <line x1="600" y1="170" x2="600" y2="630"></line>
+    </g>
+    <g fill="#1a1a1a">
+      <circle cx="600" cy="170" r="26"></circle>
+      <circle cx="380" cy="560" r="20"></circle>
+      <circle cx="820" cy="560" r="20"></circle>
+      <circle cx="600" cy="630" r="16"></circle>
+      <circle cx="370" cy="330" r="12"></circle>
+      <circle cx="830" cy="330" r="12"></circle>
+    </g>
+    <circle cx="600" cy="400" r="46" fill="#FFD400" opacity="0.5"></circle>
+  </svg>
+</template>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;600;800&amp;display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: inherit; opacity: 0.6; }
+  @keyframes flashBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.08; } }
+  @keyframes arrowPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+</style>
+</helmet>
+<div style="background:{{ bgColor }}; color:{{ textColor }}; font-family:'Helvetica Neue',Helvetica,Arial,'PingFang TC','Microsoft JhengHei',sans-serif; width:100%; min-height:100vh; transition:background-color 0.3s, color 0.3s;">
+
+  <!-- HEADER -->
+  <header style="position:fixed; top:0; left:0; right:0; z-index:1000; padding:24px 40px; display:flex; justify-content:space-between; align-items:center;">
+    <div style="display:flex; align-items:center; gap:20px;">
+      <button data-menu-box="1" onClick="{{ toggleMaterialMenu }}" style="background:none; border:none; cursor:pointer; padding:8px; display:flex; flex-direction:column; gap:5px; justify-content:center; align-items:center; width:36px; height:36px;">
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+      </button>
+      <sc-if value="{{ showMaterialMenu }}" hint-placeholder-val="{{ false }}">
+        <div data-menu-box="1" style="position:absolute; top:100%; left:40px; margin-top:8px; width:160px; background-color:{{ isDarkMode ? 'oklch(0.12 0 0)' : 'oklch(0.98 0 0)' }}; border:1px solid {{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)' }}; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.2); overflow:hidden;">
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=27070" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">木構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25396" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">竹構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25397" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">RC構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25398" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">鋼構造</a>
+        </div>
+      </sc-if>
+      <a href="https://www.mashup.com.tw/as%20studio/" style="display:flex; align-items:center;">
+        <img src="uploads/logo_20210310101340.png" alt="Logo" style="height:40px; filter:{{ isDarkMode ? 'invert(1)' : 'none' }}; transition:filter 0.3s;">
+      </a>
+    </div>
+    <div data-search-box="1" style="position:absolute; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center;">
+      <div style="display:flex; align-items:center; gap:10px; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:10px 16px; transition:background-color 0.3s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ textColor }}; transition:color 0.3s; flex-shrink:0;">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input type="text" data-search-input="1" placeholder="搜尋此頁面..." onInput="{{ handleSearchInput }}" style="background:none; border:none; outline:none; color:{{ textColor }}; font-size:14px; width:180px; transition:color 0.3s; padding:0;">
+      </div>
+      <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:8px; width:230px; background-color:{{ isDarkMode ? 'oklch(0.12 0 0)' : 'oklch(0.98 0 0)' }}; border:1px solid {{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)' }}; border-radius:8px; max-height:280px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+          <sc-for list="{{ searchResults }}" as="result" hint-placeholder-count="3">
+            <div onClick="{{ result.go }}" style="padding:10px 16px; cursor:pointer; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }}; font-size:13px; color:{{ textColor }}; transition:all 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">{{ result.name }}</div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div style="display:flex; gap:32px; align-items:center; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:16px 24px; transition:background-color 0.3s;">
+      <a href="https://www.mashup.com.tw/as%20studio/?page=service" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Team</a>
+      <a href="https://www.mashup.com.tw/as%20studio/?page=movies" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Film</a>
+      <a href="https://www.mashup.com.tw/as%20studio/?page=contact" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Contact</a>
+      <button onClick="{{ toggleDarkMode }}" style="background:none; border:1px solid {{ textColor }}; border-radius:4px; padding:8px 12px; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.3s; color:{{ textColor }}; display:flex; align-items:center; justify-content:center; width:44px; height:44px;">
+        <sc-if value="{{ isDarkMode }}" hint-placeholder-val="{{ true }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </sc-if>
+        <sc-if value="{{ !isDarkMode }}" hint-placeholder-val="{{ true }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </sc-if>
+      </button>
+    </div>
+  </header>
+
+  <!-- NETWORK DIAGRAM -->
+  <section id="works" style="padding:450px 12px; position:relative; z-index:2;">
+    <div style="width:min(90vw, 86vh); max-width:2000px; margin:0 auto; aspect-ratio:1/1;">
+      
+    <svg viewBox="0 0 900 900" width="100%" height="100%" style="overflow: visible; fill: #930707">
+        <sc-if value="{{ hasSpotlight }}" hint-placeholder-val="{{ false }}">
+          <defs>
+            <linearGradient id="spotlightGrad" gradientUnits="userSpaceOnUse" x1="{{ spotlight.x1 }}" y1="{{ spotlight.y1 }}" x2="{{ spotlight.x2 }}" y2="{{ spotlight.y2 }}">
+              <stop offset="0%" stop-color="{{ spotlight.color }}" stop-opacity="0"></stop>
+              <stop offset="55%" stop-color="{{ spotlight.color }}" stop-opacity="{{ spotlight.peakOpacity }}"></stop>
+              <stop offset="100%" stop-color="{{ spotlight.color }}" stop-opacity="0"></stop>
+            </linearGradient>
+          </defs>
+          <polygon points="{{ spotlight.points }}" fill="url(#spotlightGrad)" style="pointer-events:none;"></polygon>
+        </sc-if>
+        <sc-for list="{{ edges }}" as="edge" hint-placeholder-count="10">
+          <line x1="{{ edge.x1 }}" y1="{{ edge.y1 }}" x2="{{ edge.x2 }}" y2="{{ edge.y2 }}" stroke="{{ lineColor }}" stroke-width="1" style="opacity: {{ edge.opacity }}; transition: opacity 0.25s ease, stroke 0.3s;"></line>
+        </sc-for>
+
+        <sc-for list="{{ nodes }}" as="node" hint-placeholder-count="14">
+          <a href="{{ node.href }}" style="cursor:pointer;">
+            <g data-node="{{ node.id }}" onMouseEnter="{{ node.onEnter }}" onMouseLeave="{{ node.onLeave }}" style="opacity: {{ node.opacity }}; transition: opacity 0.25s ease;">
+              <circle cx="{{ node.cx }}" cy="{{ node.cy }}" r="26" fill="transparent"></circle>
+              <circle data-dot="{{ node.id }}" cx="{{ node.cx }}" cy="{{ node.cy }}" r="{{ node.r }}" fill="{{ node.dotFill }}" style="transition:fill 0.3s;"></circle>
+              <g transform="rotate({{ node.rotateDeg }} {{ node.pivotX }} {{ node.pivotY }})">
+                <foreignObject x="{{ node.boxX }}" y="{{ node.boxY }}" width="{{ node.boxW }}" height="{{ node.boxH }}" style="overflow:visible;">
+                  <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:{{ node.fontSize }}px; font-weight:{{ node.fontWeight }}; line-height:1.4; font-family:'Helvetica Neue',Helvetica,Arial,'PingFang TC','Microsoft JhengHei',sans-serif; color:{{ node.labelColor }}; text-align:{{ node.textAlign }}; white-space:nowrap; pointer-events:auto; transition:color 0.3s;">{{ node.name }}</div>
+                </foreignObject>
+              </g>
+            </g>
+          </a>
+        </sc-for>
+
+        <foreignObject x="240" y="350" width="420" height="200" style="overflow:visible; pointer-events:none;">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;">
+            <div style="font-size:62px; font-weight:600; letter-spacing:0.02em; color:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:color 0.3s;">原型 × 未來</div>
+            <div style="font-size:22px; letter-spacing:0.06em; color:{{ textColor }}; opacity:0.55; margin-top:10px; transition:color 0.3s;">Architecture + Structure</div>
+          </div>
+        </foreignObject>
+      </svg></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="background-color:{{ isDarkMode ? 'oklch(0.12 0 0)' : 'oklch(0.95 0 0)' }}; padding:80px 40px; transition:background-color 0.3s;">
+    <div style="max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:flex-start;">
+      <div style="text-align:left;">
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0 0 8px 0; transition:color 0.3s;">電話：06-2905293</p>
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0 0 8px 0; transition:color 0.3s;">傳真：06-2905493</p>
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0; transition:color 0.3s;">電郵：<a href="mailto:as.studio001@gmail.com" style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; text-decoration:none; transition:opacity 0.3s;" style-hover="opacity:0.7;">as.studio001@gmail.com</a></p>
+      </div>
+      <div style="text-align:center;">
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0; transition:color 0.3s;">台南市東區中華東路三段44巷7號1樓</p>
+      </div>
+      <div style="text-align:right; display:flex; gap:16px; align-items:center;">
+        <a href="https://www.facebook.com/AS.structure" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <path d="M18 2h-3a6 6 0 0 0-6 6v4h-2v4h2v6h4v-6h3l1-4h-4V8a2 2 0 0 1 2-2h1Z"></path>
+          </svg>
+        </a>
+        <a href="https://www.instagram.com/as.futuregroup?igsh=MTRsZXV2dmhnaGdqOQ%3D%3D" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <circle cx="17.5" cy="6.5" r="1.5"></circle>
+          </svg>
+        </a>
+        <a href="https://www.youtube.com/@%E9%99%B3%E5%86%A0%E5%B8%86-z9v" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { hoveredId: null, isDarkMode: false, showSearchModal: false, searchInput: '', searchResults: [], flashId: null, showMaterialMenu: false };
+
+  // Node names and hrefs from uploaded spreadsheet (活頁簿1-24674e73.xlsx):
+  // Column B provides the node names, Column A provides the target URLs.
+  // Category/section-header nodes get a fixed accent color and bold weight
+  // regardless of light/dark mode. Each entry maps a node id to its color.
+  specialIds = ['r1', 'r28', 'r59', 'r100', 'r2', 'r11', 'r22', 'r23', 'r101', 'r109', 'r115'];
+
+  nodeData = [
+    { id: 'r1', name: "章 architecture design", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r2', name: "原型教學", href: "./原型教學.dc.html" },
+    { id: 'r3', name: "實習", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r4', name: "美感教育", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r5', name: "孩童", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r6', name: "文化", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r7', name: "設計方法", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r8', name: "工作文化", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r9', name: "大事記", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r10', name: "工作文化", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r11', name: "原型數位", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r12', name: "ArchiCAD", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r13', name: "midjourney", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r14', name: "midas", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-1" },
+    { id: 'r15', name: "原型原點", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-2" },
+    { id: 'r16', name: "SDG(Structural Design Group)", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-2" },
+    { id: 'r17', name: "1992 海之博物館", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-2" },
+    { id: 'r18', name: "1996 東京國際", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-2" },
+    { id: 'r19', name: "2002橫濱大", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-2" },
+    { id: 'r20', name: "原型三時期", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89-2" },
+    { id: 'r21', name: "一人", href: "https://www.mashup.com.tw/as%20studio/" },
+    { id: 'r22', name: "原型建築+原型結構", href: "https://www.mashup.com.tw/as%20studio/" },
+    { id: 'r23', name: "原型結構", href: "https://www.mashup.com.tw/as%20studio/" },
+    { id: 'r24', name: "木構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=27070" },
+    { id: 'r25', name: "竹構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25396" },
+    { id: 'r26', name: "RC構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25397" },
+    { id: 'r27', name: "鋼構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25398" },
+    { id: 'r28', name: "成 construction", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r29', name: "媒體報導", href: "https://www.mashup.com.tw/as%20studio/?page=one_page&id=4045" },
+    { id: 'r30', name: "2011 媽祖宗教文化園區眺望台雜誌報導", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r31', name: "2012 新營服務區公廁新建工程雜誌報導", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r32', name: "2013雲林縣微笑餐廳雜誌報導", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r33', name: "2021構竹臨帖新銳獎", href: "https://greenmedia.today/article_detail.php?cid=54&mid=452" },
+    { id: 'r34', name: "2024香港大學木構專案", href: "#" },
+    { id: 'r35', name: "2025 X-SITE 「未知質域」獲獎", href: "https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=532" },
+    { id: 'r36', name: "2016 X-SITE「浮光之間」獲獎", href: "https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=584" },
+    { id: 'r37', name: "2020 X-SITE 「膜」獲獎", href: "https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=672" },
+    { id: 'r38', name: "2021 X-SITE 「爆炸容器」獲獎", href: "https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=687" },
+    { id: 'r39', name: "2022 X-SITE 「藍屋」獲獎", href: "https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=707" },
+    { id: 'r40', name: "2023 X-SITE 「途中」獲獎", href: "https://www.tfam.museum/Exhibition/Exhibition_Special.aspx?ddlLang=zh-tw&id=731" },
+    { id: 'r41', name: "2015 左鎮菜寮化石文化園區改建工程競圖獲勝", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=505964" },
+    { id: 'r42', name: "2015 嘉義市立美術館 監造案 競圖獲勝", href: "https://www.youtube.com/watch?v=BHEMBPrB9MM&t=1s" },
+    { id: 'r43', name: "2016 金門水頭港遊客服務中心新建工程 競圖獲勝", href: "https://www.mashup.com.tw/as%20studio/?page=one_page&id=4045" },
+    { id: 'r44', name: "2016 桃園市蘆竹國民運動中心興建工程 競圖獲勝", href: "#" },
+    { id: 'r45', name: "2017 華德福實驗分校第二期校舍新建工程 競圖獲勝", href: "#" },
+    { id: 'r46', name: "2019 故宮南院景觀橋新建工程 競圖獲勝", href: "https://www.mashup.com.tw/as%20studio/?page=movies_list&group_id=1073" },
+    { id: 'r47', name: "2023 嘉義 構竹林鐵 新銳獎 德國IF設計獎", href: "https://astaiwan.wixsite.com/bamboo-newfield" },
+    { id: 'r48', name: "2023 嘉義實驗木場 德國IF設計獎", href: "https://astaiwan.wixsite.com/website-1" },
+    { id: 'r49', name: "2023 台中潭心鐵馬空橋 德國IF設計獎", href: "https://www.youtube.com/watch?v=4rnn7vZpIFo" },
+    { id: 'r50', name: "2016 雲林農博 台灣建築獎首獎", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=503916" },
+    { id: 'r51', name: "2017 宜蘭中山小巨蛋 台灣建築獎佳作", href: "https://www.twarchitect.org.tw/works/%E4%B8%AD%E5%B1%B1%E5%B0%8F%E5%B7%A8%E8%9B%8B%E8%88%87%E5%91%A8%E9%82%8A%E9%80%9A%E5%AD%B8%E5%BB%8A%E9%81%93/" },
+    { id: 'r52', name: "2018 嘉義火車站站前西側廣場 台灣建築獎佳作", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608375" },
+    { id: 'r53', name: "2021 嘉義美術館 台灣建築獎首獎", href: "https://www.youtube.com/watch?v=BHEMBPrB9MM&t=1s" },
+    { id: 'r54', name: "2022 德光教會 台灣建築獎佳作", href: "https://www.youtube.com/watch?v=7fb0ZnGU4gw" },
+    { id: 'r55', name: "2023 基隆太平國小 台灣建築獎建築轉生特別獎", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608372" },
+    { id: 'r56', name: "2018 澎湖ENISHI緣民宿ADA新銳建築獎首獎", href: "https://www.youtube.com/watch?v=YSMaX4ujDQY" },
+    { id: 'r57', name: "2021 嘉義實驗木場 ADA新銳建築獎首獎", href: "https://astaiwan.wixsite.com/website-1" },
+    { id: 'r58', name: "2025舊屋力競賽首獎", href: "https://www.chiayi.gov.tw/News_Content.aspx?n=455&sms=9150&s=916461" },
+    { id: 'r59', name: "法 structure data", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r60', name: "2013雲林農博", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=503916" },
+    { id: 'r61', name: "2013 新營服務區休息站", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=503882" },
+    { id: 'r62', name: "2014 宜蘭中山小巨蛋", href: "https://www.twarchitect.org.tw/works/%E4%B8%AD%E5%B1%B1%E5%B0%8F%E5%B7%A8%E8%9B%8B%E8%88%87%E5%91%A8%E9%82%8A%E9%80%9A%E5%AD%B8%E5%BB%8A%E9%81%93/" },
+    { id: 'r63', name: "2015 X-SITE", href: "https://www.tfam.museum/Exhibition/Exhibition_page.aspx?id=532&ddlLang=zh-tw" },
+    { id: 'r64', name: "2015 德光教會", href: "https://www.youtube.com/watch?v=TDCPw8-Smys" },
+    { id: 'r65', name: "2015 石岡紅屋", href: "#" },
+    { id: 'r66', name: "2016 大溪木構造教堂", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=503874" },
+    { id: 'r67', name: "2016 嘉義美術館", href: "https://www.youtube.com/watch?v=BHEMBPrB9MM&t=1s" },
+    { id: 'r68', name: "2016師大美術館", href: "#" },
+    { id: 'r69', name: "2016 浮光之間", href: "https://www.tfam.museum/Exhibition/Exhibition_page.aspx?id=584&ddlLang=zh-tw" },
+    { id: 'r70', name: "2017 嘉義火車站前雨遮", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608375" },
+    { id: 'r71', name: "2017 台中橋", href: "https://www.youtube.com/watch?v=E6ZyKXVKgWU" },
+    { id: 'r72', name: "2017 橘月民宿", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=505935" },
+    { id: 'r73', name: "2017 ENISHI 澎湖緣宿", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=502815" },
+    { id: 'r74', name: "2018獅甲幼兒園", href: "#" },
+    { id: 'r75', name: "2018威斯汀木構婚禮教堂", href: "#" },
+    { id: 'r76', name: "2019 故宮南院_覽月橋", href: "https://www.youtube.com/watch?v=1tgZcoLCGA4" },
+    { id: 'r77', name: "2019成大游泳池改建", href: "#" },
+    { id: 'r78', name: "2019 札哈木原民會館", href: "#" },
+    { id: 'r79', name: "2020 柳營車站", href: "#" },
+    { id: 'r80', name: "2020 教師會館", href: "#" },
+    { id: 'r81', name: "2020太平國小", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608372" },
+    { id: 'r82', name: "2020台南市安平樹屋2.0", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608374" },
+    { id: 'r83', name: "2021綠美圖帷幕", href: "https://greenmedia.today/article_detail.php?cid=35&mid=1372" },
+    { id: 'r84', name: "2021構竹林鐵Ⅰ", href: "https://greenmedia.today/article_category.php?cid=54" },
+    { id: 'r85', name: "2022X-SITE途中", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609184" },
+    { id: 'r86', name: "2022友愛街立體停車場", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608537" },
+    { id: 'r87', name: "2022新竹慈雲路空橋", href: "#" },
+    { id: 'r88', name: "2022PARK2草悟廣場", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608381" },
+    { id: 'r89', name: "2022嘉義火車站前廣場改建", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608375" },
+    { id: 'r90', name: "2022 馬禮遜美國學校", href: "#" },
+    { id: 'r91', name: "2023 構竹林鐵Ⅱ", href: "https://astaiwan.wixsite.com/bamboo-newfield" },
+    { id: 'r92', name: "2023億載金城入口意象", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609194" },
+    { id: 'r93', name: "2023大阪世博TW館", href: "https://www.ta-mag.net/ta/News.php?id=2515" },
+    { id: 'r94', name: "2023 「弦閣」(KATENARA)", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608538" },
+    { id: 'r95', name: "2023萬大電廠辦公大樓新建工程", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608373" },
+    { id: 'r96', name: "2024繁花之頂", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608376" },
+    { id: 'r97', name: "2024長榮堂 長榮大學竹構集會堂", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=582678" },
+    { id: 'r98', name: "2024國立歷史博物館修復及再利用", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609197" },
+    { id: 'r99', name: "2024大巨蛋公共藝術「雨生光芽」", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609185" },
+    { id: 'r100', name: "構technics", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r101', name: "原型展覽", href: "https://e64872170.wixsite.com/mysite/%E5%89%AF%E6%9C%AC-%E5%B1%95%E8%A6%BD%E6%B4%BB%E5%8B%95" },
+    { id: 'r102', name: "2021構竹林鐵", href: "https://astaiwan.wixsite.com/bamboo-newfield" },
+    { id: 'r103', name: "2023構竹林鐵", href: "https://astaiwan.wixsite.com/bamboo-newfield" },
+    { id: 'r104', name: "2024第七屆ADA新銳建築獎展覽", href: "https://iecosyst.com/news/1260" },
+    { id: 'r105', name: "2025成大建築×信義街咾咕石黃宅展", href: "https://sdg.ncku.edu.tw/product-956.html" },
+    { id: 'r106', name: "2025 台南建築三年展衛星展", href: "https://e64872170.wixsite.com/mysite/%E5%89%AF%E6%9C%AC-%E5%B1%95%E8%A6%BD%E6%B4%BB%E5%8B%95" },
+    { id: 'r107', name: "2025ADA新銳建築獎×信義街咾咕石黃宅", href: "https://e64872170.wixsite.com/mysite/%E5%89%AF%E6%9C%AC-%E5%B1%95%E8%A6%BD%E6%B4%BB%E5%8B%95" },
+    { id: 'r108', name: "2025台南咾咕石×芳宅×原型未來展", href: "https://e64872170.wixsite.com/mysite/%E5%89%AF%E6%9C%AC-%E5%B1%95%E8%A6%BD%E6%B4%BB%E5%8B%95" },
+    { id: 'r109', name: "原型建築", href: "https://www.as-structure.com/%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89" },
+    { id: 'r110', name: "2021嘉義實驗木場", href: "https://astaiwan.wixsite.com/website-1" },
+    { id: 'r111', name: "2021馬祖東莒55光影美術館", href: "https://matsu.kyart.tw/project/%E8%A5%BF%E8%8E%9214%E6%93%9A%E9%BB%9E%E3%80%8115%E6%93%9A%E9%BB%9E-%E7%B9%BC%E5%85%89%E5%B7%A5%E5%8B%99%E6%89%80/" },
+    { id: 'r112', name: "南寧老屋", href: "#" },
+    { id: 'r113', name: "2025原型1號宅", href: "https://asstudio029.wixsite.com/ashouse1" },
+    { id: 'r114', name: "2025台南咾咕石芳宅", href: "https://e64872170.wixsite.com/mysite" },
+    { id: 'r115', name: "原型獲獎", href: "https://www.as-structure.com/%E5%89%AF%E6%9C%AC-%E5%8E%9F%E5%9E%8B%E6%95%99%E5%AD%B8" }
+  ];
+
+  // Relationships derived from columns C onward of the spreadsheet: each row's
+  // column B node connects to whichever other rows' B-names appear across it.
+  edgeData = [
+    ['r2', 'r3'],
+    ['r2', 'r4'],
+    ['r2', 'r5'],
+    ['r2', 'r6'],
+    ['r2', 'r7'],
+    ['r2', 'r8'],
+    ['r2', 'r9'],
+    ['r10', 'r2'],
+    ['r11', 'r12'],
+    ['r11', 'r13'],
+    ['r11', 'r14'],
+    ['r15', 'r23'],
+    ['r15', 'r16'],
+    ['r15', 'r17'],
+    ['r15', 'r18'],
+    ['r15', 'r19'],
+    ['r15', 'r20'],
+    ['r15', 'r21'],
+    ['r15', 'r22'],
+    ['r23', 'r24'],
+    ['r23', 'r25'],
+    ['r23', 'r26'],
+    ['r23', 'r27'],
+    ['r23', 'r61'],
+    ['r23', 'r62'],
+    ['r23', 'r63'],
+    ['r23', 'r64'],
+    ['r23', 'r65'],
+    ['r23', 'r67'],
+    ['r23', 'r69'],
+    ['r23', 'r70'],
+    ['r23', 'r71'],
+    ['r23', 'r72'],
+    ['r23', 'r73'],
+    ['r23', 'r76'],
+    ['r23', 'r78'],
+    ['r23', 'r79'],
+    ['r23', 'r80'],
+    ['r23', 'r86'],
+    ['r23', 'r91'],
+    ['r23', 'r94'],
+    ['r23', 'r95'],
+    ['r24', 'r48'],
+    ['r24', 'r53'],
+    ['r24', 'r54'],
+    ['r24', 'r55'],
+    ['r24', 'r57'],
+    ['r24', 'r64'],
+    ['r24', 'r67'],
+    ['r24', 'r71'],
+    ['r25', 'r90'],
+    ['r25', 'r91'],
+    ['r25', 'r92'],
+    ['r26', 'r46'],
+    ['r26', 'r56'],
+    ['r26', 'r72'],
+    ['r26', 'r76'],
+    ['r27', 'r37'],
+    ['r27', 'r38'],
+    ['r27', 'r40'],
+    ['r27', 'r43'],
+    ['r27', 'r44'],
+    ['r27', 'r51'],
+    ['r27', 'r61'],
+    ['r27', 'r63'],
+    ['r27', 'r69'],
+    ['r27', 'r70'],
+    ['r27', 'r79'],
+    ['r27', 'r80'],
+    ['r27', 'r94'],
+    ['r30', 'r115'],
+    ['r31', 'r115'],
+    ['r32', 'r115'],
+    ['r33', 'r115'],
+    ['r34', 'r115'],
+    ['r35', 'r27'],
+    ['r35', 'r115'],
+    ['r36', 'r27'],
+    ['r36', 'r115'],
+    ['r37', 'r115'],
+    ['r38', 'r115'],
+    ['r39', 'r24'],
+    ['r39', 'r115'],
+    ['r40', 'r115'],
+    ['r41', 'r24'],
+    ['r41', 'r115'],
+    ['r42', 'r24'],
+    ['r42', 'r115'],
+    ['r43', 'r115'],
+    ['r44', 'r115'],
+    ['r45', 'r24'],
+    ['r45', 'r115'],
+    ['r46', 'r115'],
+    ['r47', 'r25'],
+    ['r47', 'r115'],
+    ['r48', 'r115'],
+    ['r48', 'r109'],
+    ['r49', 'r24'],
+    ['r49', 'r115'],
+    ['r50', 'r25'],
+    ['r50', 'r115'],
+    ['r51', 'r115'],
+    ['r52', 'r27'],
+    ['r52', 'r115'],
+    ['r53', 'r115'],
+    ['r54', 'r115'],
+    ['r55', 'r115'],
+    ['r56', 'r115'],
+    ['r56', 'r109'],
+    ['r57', 'r115'],
+    ['r57', 'r109'],
+    ['r58', 'r115'],
+    ['r60', 'r25'],
+    ['r60', 'r23'],
+    ['r62', 'r27'],
+    ['r65', 'r24'],
+    ['r66', 'r24'],
+    ['r66', 'r23'],
+    ['r68', 'r27'],
+    ['r68', 'r23'],
+    ['r70', 'r109'],
+    ['r73', 'r26'],
+    ['r74', 'r24'],
+    ['r74', 'r23'],
+    ['r75', 'r24'],
+    ['r75', 'r23'],
+    ['r77', 'r26'],
+    ['r77', 'r23'],
+    ['r78', 'r24'],
+    ['r81', 'r24'],
+    ['r81', 'r23'],
+    ['r82', 'r27'],
+    ['r82', 'r23'],
+    ['r83', 'r27'],
+    ['r83', 'r23'],
+    ['r84', 'r25'],
+    ['r85', 'r23'],
+    ['r85', 'r27'],
+    ['r86', 'r27'],
+    ['r87', 'r23'],
+    ['r87', 'r26'],
+    ['r88', 'r23'],
+    ['r88', 'r27'],
+    ['r89', 'r27'],
+    ['r89', 'r23'],
+    ['r90', 'r23'],
+    ['r92', 'r23'],
+    ['r93', 'r23'],
+    ['r93', 'r27'],
+    ['r95', 'r24'],
+    ['r96', 'r25'],
+    ['r96', 'r23'],
+    ['r97', 'r25'],
+    ['r97', 'r23'],
+    ['r98', 'r23'],
+    ['r98', 'r27'],
+    ['r99', 'r27'],
+    ['r99', 'r23'],
+    ['r101', 'r105'],
+    ['r101', 'r106'],
+    ['r101', 'r107'],
+    ['r101', 'r108'],
+    ['r101', 'r111'],
+    ['r101', 'r113'],
+    ['r101', 'r114'],
+    ['r101', 'r57'],
+    ['r109', 'r110'],
+    ['r109', 'r111'],
+    ['r109', 'r113'],
+    ['r109', 'r114'],
+    ['r112', 'r109'],
+    ['r112', 'r101'],
+    ['r114', 'r24']
+  ];
+
+  setHover(id) {
+    this.setState({ hoveredId: id });
+  }
+
+  clearHover() {
+    this.setState({ hoveredId: null });
+  }
+
+  toggleDarkMode() {
+    this.setState(s => ({ isDarkMode: !s.isDarkMode }));
+  }
+
+  toggleMaterialMenu() {
+    this.setState(s => ({ showMaterialMenu: !s.showMaterialMenu }));
+  }
+
+  toggleSearchModal() {
+    this.setState(s => ({ showSearchModal: !s.showSearchModal, searchInput: '', searchResults: [] }));
+  }
+
+  componentDidMount() {
+    this._onDocMouseDown = (e) => {
+      const inBox = e.target && e.target.closest && e.target.closest('[data-search-box]');
+      // Clicking anywhere except the search box closes the suggestion list.
+      if (!inBox && this.state.searchResults.length) this.setState({ searchResults: [] });
+      // ...and dismisses (fades out) an active flash highlight.
+      if (!inBox && this.state.flashId != null) this.dismissFlash();
+      const inMenu = e.target && e.target.closest && e.target.closest('[data-menu-box]');
+      if (!inMenu && this.state.showMaterialMenu) this.setState({ showMaterialMenu: false });
+    };
+    document.addEventListener('mousedown', this._onDocMouseDown);
+  }
+
+  componentWillUnmount() {
+    if (this._onDocMouseDown) document.removeEventListener('mousedown', this._onDocMouseDown);
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._fadeTimer) clearTimeout(this._fadeTimer);
+    if (this._flash) this._flash.remove();
+    if (this._tri) this._tri.remove();
+  }
+
+  goToNode(id) {
+    if (this._fadeTimer) { clearTimeout(this._fadeTimer); this._fadeTimer = null; }
+    this._dismissing = false;
+    this.setState({ flashId: id, hoveredId: id, searchResults: [] });
+    this.ensureFlash();
+    this.ensureTriangle();
+    this.startFlash(id);
+    if (this._raf) cancelAnimationFrame(this._raf);
+    this._raf = requestAnimationFrame(() => this.tick());
+  }
+
+  ensureFlash() {
+    // Solid yellow circle. Body-appended (outside the DC template) so the
+    // runtime's per-frame re-render can't reset its inline styles. z-index:1
+    // sits ABOVE the opaque page background but BELOW the diagram (the #works
+    // section is given z-index:2), so it never covers any graph element.
+    if (this._flash && document.body.contains(this._flash)) return this._flash;
+    const f = document.createElement('div');
+    f.style.cssText = 'position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); border-radius:50%; pointer-events:none; z-index:1; display:none; opacity:0; transition:opacity 0.45s ease; filter:blur(4px);';
+    document.body.appendChild(f);
+    this._flash = f;
+    return f;
+  }
+
+  ensureTriangle() {
+    // Flat isosceles triangle that points at an off-screen target. Sits above
+    // the graph (but below the header) so it's always visible at the edge.
+    if (this._tri && document.body.contains(this._tri)) return this._tri;
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:950; opacity:0; pointer-events:none; transition:opacity 0.45s ease;';
+    const rot = document.createElement('div');
+    rot.style.transform = 'rotate(0deg)';
+    const pulse = document.createElement('div');
+    pulse.style.cssText = 'animation: arrowPulse 0.9s ease-in-out infinite;';
+    const tri = document.createElement('div');
+    // Wide, short isosceles triangle pointing right.
+    tri.style.cssText = 'width:52px; height:26px; background:#FFD400; clip-path:polygon(0% 0%, 0% 100%, 100% 50%); filter:drop-shadow(0 2px 5px rgba(0,0,0,0.35));';
+    pulse.appendChild(tri);
+    rot.appendChild(pulse);
+    wrap.appendChild(rot);
+    document.body.appendChild(wrap);
+    this._tri = wrap;
+    this._triRot = rot;
+    return wrap;
+  }
+
+  startFlash(id) {
+    const f = this._flash;
+    const dot = document.querySelector('[data-dot="' + id + '"]');
+    if (!f || !dot) return;
+    const dr = dot.getBoundingClientRect();
+    const clickedR = Math.max(dr.width, dr.height) / 2;
+    let maxR = clickedR;
+    document.querySelectorAll('[data-dot]').forEach(d => {
+      const w = d.getBoundingClientRect().width / 2;
+      if (w > maxR) maxR = w;
+    });
+    // Solid disc a bit larger than the biggest dot; soft edge via a radial
+    // gradient that stays solid then fades right at the rim.
+    const flashR = Math.max(clickedR * 2.2, maxR + 16);
+    f.style.width = f.style.height = (flashR * 2) + 'px';
+    f.style.webkitMaskImage = 'none';
+    f.style.maskImage = 'none';
+    f.style.background = 'radial-gradient(circle, rgba(255,208,0,0.95) 22%, rgba(255,208,0,0.6) 48%, rgba(255,208,0,0.25) 70%, rgba(255,208,0,0) 100%)';
+    f.style.display = 'block';
+  }
+
+  dismissFlash() {
+    this._dismissing = true;
+    const f = this._flash, t = this._tri;
+    if (f) f.style.opacity = '0';
+    if (t) t.style.opacity = '0';
+    if (this._fadeTimer) clearTimeout(this._fadeTimer);
+    this._fadeTimer = setTimeout(() => {
+      if (this._raf) cancelAnimationFrame(this._raf);
+      this._raf = null;
+      if (f) f.style.display = 'none';
+      this.setState({ flashId: null, hoveredId: null });
+    }, 480);
+  }
+
+  tick() {
+    const id = this.state.flashId;
+    if (id == null) return;
+    const dot = document.querySelector('[data-dot="' + id + '"]');
+    if (dot) {
+      const dr = dot.getBoundingClientRect();
+      const cxp = dr.left + dr.width / 2;
+      const cyp = dr.top + dr.height / 2;
+      const vw = window.innerWidth, vh = window.innerHeight, margin = 52;
+      const inView = cxp >= margin && cxp <= vw - margin && cyp >= margin && cyp <= vh - margin;
+      // Circle rides the dot.
+      if (this._flash) {
+        this._flash.style.left = cxp + 'px';
+        this._flash.style.top = cyp + 'px';
+      }
+      // Triangle clamps to the screen edge, rotated toward the dot.
+      if (this._tri) {
+        const angle = Math.atan2(cyp - vh / 2, cxp - vw / 2);
+        this._tri.style.left = Math.max(margin, Math.min(vw - margin, cxp)) + 'px';
+        this._tri.style.top = Math.max(margin, Math.min(vh - margin, cyp)) + 'px';
+        this._triRot.style.transform = 'rotate(' + (angle * 180 / Math.PI) + 'deg)';
+      }
+      // Cross-fade triangle <-> circle as the dot enters/leaves the viewport.
+      if (!this._dismissing) {
+        if (this._flash) this._flash.style.opacity = inView ? '1' : '0';
+        if (this._tri) this._tri.style.opacity = inView ? '0' : '1';
+      }
+    }
+    this._raf = requestAnimationFrame(() => this.tick());
+  }
+
+  handleSearchInput(e) {
+    const query = e.target.value;
+    this.setState({ searchInput: query });
+    if (query.trim()) {
+      const results = this.nodeData.filter(n => n.name.toLowerCase().includes(query.toLowerCase()));
+      this.setState({ searchResults: results });
+    } else {
+      this.setState({ searchResults: [] });
+    }
+  }
+
+
+
+  renderVals() {
+    // Coordinate system is chosen to be ~1 viewBox unit ≈ 1 rendered CSS px
+    // for the container's typical size, so font-size / radius values below
+    // read as their literal px sizes on screen (not scaled down by the SVG).
+    const cx = 450, cy = 450;
+    const hoveredId = this.state.hoveredId;
+    const isDarkMode = this.state.isDarkMode;
+    const bgColor = isDarkMode ? 'oklch(0.15 0 0)' : 'oklch(0.99 0 0)';
+    const textColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
+    const lineColor = isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)';
+    const dotColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
+
+    // Every node from column B sits on a single ring around the center
+    // ("原型 x 未來"), in spreadsheet row order — matching the reference
+    // site's circular layout. Node size scales with its connection count
+    // (degree), and nodes are spaced so the gap between adjacent circles
+    // stays a constant ~0.5mm regardless of each node's size.
+    const ordered = this.nodeData;
+    const n = ordered.length;
+
+    const degree = {};
+    ordered.forEach(d => { degree[d.id] = 0; });
+    this.edgeData.forEach(([a, b]) => {
+      if (a in degree) degree[a]++;
+      if (b in degree) degree[b]++;
+    });
+    const maxDegree = Math.max(1, ...Object.values(degree));
+    // Measured: this container renders the 900-unit viewBox at roughly a
+    // 0.54 px-per-unit ratio (min(96vw,90vh) container / 900 viewBox), so
+    // these constants are sized ~1.85x their literal on-screen target to
+    // land in a legible range after that scale-down.
+    const rMin = 4, rMax = 24;
+    const nodeRadius = {};
+    ordered.forEach(d => {
+      const deg = degree[d.id];
+      nodeRadius[d.id] = rMin + (deg / maxDegree) * (rMax - rMin);
+    });
+    // Slightly larger dots for visual weight, WITHOUT moving the ring layout,
+    // label positions, or label sizing — those all keep using nodeRadius above.
+    const dotScale = 1.18;
+
+    const gapVB = 2.5;
+
+    const diameterSum = ordered.reduce((sum, d) => sum + 2 * nodeRadius[d.id], 0);
+    const circumference = diameterSum + n * gapVB;
+    // Keep the ring well clear of the center "原型 × 未來" title regardless
+    // of how tightly the nodes would otherwise pack.
+    const radius = Math.max(circumference / (2 * Math.PI), 420);
+    // Once radius is clamped up, re-derive the per-node gap so the arc walk
+    // below still sums to exactly 2π·radius — otherwise the ring doesn't close.
+    const effectiveGapVB = (2 * Math.PI * radius - diameterSum) / n;
+
+    const positions = {};
+    let arcPos = 0;
+    ordered.forEach(d => {
+      const r = nodeRadius[d.id];
+      const angle = ((arcPos + r) / radius) - Math.PI / 2;
+      positions[d.id] = {
+        x: cx + radius * Math.cos(angle),
+        y: cy + radius * Math.sin(angle),
+        angle
+      };
+      arcPos += 2 * r + effectiveGapVB;
+    });
+
+    // Soft "spotlight" glow cast from the 原型結構 dot toward the center
+    // title — same visual read as the existing connecting lines, just an
+    // added faint glow layer. Narrow at the dot, widening as it reaches the
+    // title so it reads as light spreading over distance.
+    let spotlight = null;
+    const spotlightSrc = positions['r23'];
+    if (spotlightSrc) {
+      const dirX = cx - spotlightSrc.x, dirY = cy - spotlightSrc.y;
+      const len = Math.hypot(dirX, dirY) || 1;
+      const ux = dirX / len, uy = dirY / len;
+      const perpX = -uy, perpY = ux;
+      const coneLen = len + 170;
+      const halfWidth = 230;
+      const baseX = spotlightSrc.x + ux * coneLen, baseY = spotlightSrc.y + uy * coneLen;
+      const leftX = baseX + perpX * halfWidth, leftY = baseY + perpY * halfWidth;
+      const rightX = baseX - perpX * halfWidth, rightY = baseY - perpY * halfWidth;
+      spotlight = {
+        points: spotlightSrc.x + ',' + spotlightSrc.y + ' ' + leftX + ',' + leftY + ' ' + rightX + ',' + rightY,
+        x1: spotlightSrc.x, y1: spotlightSrc.y, x2: baseX, y2: baseY,
+        color: isDarkMode ? '#FFFFFF' : '#EDEDED',
+        peakOpacity: isDarkMode ? 0.045 : 0.55
+      };
+    }
+
+    const relatedIds = new Set();
+    if (hoveredId) {
+      relatedIds.add(hoveredId);
+      this.edgeData.forEach(([a, b]) => {
+        if (a === hoveredId) relatedIds.add(b);
+        if (b === hoveredId) relatedIds.add(a);
+      });
+    }
+
+    const boxH = 20;
+    const nodes = ordered.map(d => {
+      const pos = positions[d.id];
+      const r = nodeRadius[d.id];
+      const gap = 20;
+      const isRight = Math.cos(pos.angle) >= 0;
+      const labelPointX = pos.x + Math.cos(pos.angle) * (r + gap);
+      const labelPointY = pos.y + Math.sin(pos.angle) * (r + gap);
+      const angleDeg = pos.angle * 180 / Math.PI;
+      const rotateDeg = isRight ? angleDeg : angleDeg + 180;
+      const dimmed = hoveredId && !relatedIds.has(d.id);
+      const fontSize = 15;
+      const isSpecial = this.specialIds.includes(d.id);
+      const fontWeight = isSpecial ? 700 : 400;
+      const isHoveredSelf = hoveredId === d.id;
+      const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : '#9B9B9B');
+      const dotFill = isSpecial ? specialColor : dotColor;
+      const labelColor = isSpecial ? specialColor : textColor;
+      // Size the box to comfortably fit the text (worst-case full-width CJK
+      // glyphs) so nowrap text never overflows its box — overflow can shift
+      // where the text-align anchor edge (the end nearest the node) actually
+      // lands, breaking the otherwise-uniform node-to-label gap.
+      const boxW = Math.max(160, d.name.length * fontSize + 20);
+      return {
+        id: d.id,
+        name: d.name,
+        href: d.href,
+        cx: pos.x,
+        cy: pos.y,
+        r: r * dotScale,
+        boxX: isRight ? labelPointX : labelPointX - boxW,
+        boxY: labelPointY - boxH / 2,
+        boxW,
+        boxH,
+        textAlign: isRight ? 'left' : 'right',
+        fontSize,
+        fontWeight,
+        dotFill,
+        labelColor,
+        rotateDeg,
+        pivotX: labelPointX,
+        pivotY: labelPointY,
+        opacity: dimmed ? 0.3 : 1,
+        onEnter: () => this.setHover(d.id),
+        onLeave: () => this.clearHover()
+      };
+    });
+
+    const edges = this.edgeData.map(([a, b], i) => {
+      const pa = positions[a], pb = positions[b];
+      const dimmed = hoveredId && !(hoveredId === a || hoveredId === b);
+      return {
+        id: 'e' + i,
+        x1: pa.x, y1: pa.y,
+        x2: pb.x, y2: pb.y,
+        opacity: dimmed ? 0.3 : 1
+      };
+    });
+
+    return {
+      nodes, edges, bgColor, textColor, lineColor, dotColor, isDarkMode,
+      spotlight, hasSpotlight: !!spotlight,
+      toggleDarkMode: () => this.toggleDarkMode(),
+      showMaterialMenu: this.state.showMaterialMenu,
+      toggleMaterialMenu: () => this.toggleMaterialMenu(),
+      searchResults: this.state.searchResults.map(r => ({ id: r.id, name: r.name, go: () => this.goToNode(r.id) })),
+      hasResults: this.state.searchResults.length > 0,
+      searchInput: this.state.searchInput,
+      handleSearchInput: (e) => this.handleSearchInput(e),
+      setHover: (id) => this.setHover(id),
+      goToNode: (id) => this.goToNode(id)
+    };
+  }
+}
+
+</script>
+
+<!-- PAGE TRANSITION PRELOADER (homepage -> subpage) -->
+<script>
+(function () {
+  // 快速跳字詞彙池（活頁簿1 C 欄粗體字，不含目的頁標題，由點擊的節點動態決定終點文字）
+  var WORD_POOL = [
+    '章architecturedesign', '原型原點', '原型結構', '木構造', '竹構造',
+    'RC構造', '鋼構造', '成construction', '法structuredata', '構technics',
+    '原型建築', '原型獲獎'
+  ];
+  var FLICKER_MS = 130;
+  var LANDING_HOLD_MS = 550;
+  var OVERLAY_BG = '#0a0a0a';
+  var TEXT_COLOR = '#ffffff';
+  var FADE_IN_MS = 250;
+
+  var overlay, wordEl, navigating = false;
+
+  function ensureOverlay() {
+    if (overlay) return;
+    overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:' + OVERLAY_BG + ';display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transform:translateY(0);transition:opacity ' + FADE_IN_MS + 'ms ease;';
+    wordEl = document.createElement('span');
+    wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:15px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
+    overlay.appendChild(wordEl);
+    document.body.appendChild(overlay);
+  }
+
+  function playAndNavigate(destinationWord, href) {
+    ensureOverlay();
+    overlay.style.pointerEvents = 'auto';
+    wordEl.textContent = WORD_POOL[0];
+    requestAnimationFrame(function () { overlay.style.opacity = '1'; });
+
+    var sequence = WORD_POOL.concat([destinationWord]);
+    var i = 0;
+    function flicker() {
+      wordEl.textContent = sequence[i];
+      i++;
+      if (i < sequence.length) {
+        setTimeout(flicker, FLICKER_MS);
+      } else {
+        setTimeout(function () {
+          try { sessionStorage.setItem('scTransitionIn', '1'); } catch (err) {}
+          window.location.href = href;
+        }, LANDING_HOLD_MS);
+      }
+    }
+    flicker();
+  }
+
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest && e.target.closest('a[href$=".dc.html"]');
+    if (!a || navigating) return;
+    var href = a.getAttribute('href');
+    if (!href || /^https?:\/\//i.test(href)) return;
+    e.preventDefault();
+    navigating = true;
+    var labelEl = a.querySelector('div');
+    var destinationWord = labelEl ? labelEl.textContent.trim() : '';
+    playAndNavigate(destinationWord || '原型教學', href);
+  });
+})();
+</script>
+</body>
+</html>
