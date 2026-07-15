@@ -41,4 +41,8 @@
 若沒有顯示程式碼可以用網頁版vs code更改程式碼  
 <img width="1034" height="238" alt="螢幕擷取畫面 2026-07-15 165443" src="https://github.com/user-attachments/assets/3eb529dc-a2a1-4167-ab75-beba0725cbc3" />
 <small> ↑ 如圖所示 </small>之後直接全選替換新的網頁代碼，然後退出即可
-<img width="1279" height="734" alt="螢幕擷取畫面 2026-07-15 165549" src="https://github.com/user-attachments/assets/89b0a9b2-5a33-44d6-8620-9dc186b2347d" />
+<img width="1279" height="734" alt="螢幕擷取畫面 2026-07-15 165549" src="https://github.com/user-attachments/assets/89b0a9b2-5a33-44d6-8620-9dc186b2347d" />  
+## **6.參考內容**  
+https://skiper-ui.com/  
+https://animmasterlib.dev/scroll  
+https://kinetics.colorion.co/
