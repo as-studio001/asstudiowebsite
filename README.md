@@ -38,7 +38,7 @@
 ### **5.1主網頁**  
 檔案為index.html(保險起見更新的同時也更新-建築事務所首頁.dc.html)  
 若用AI協助編寫網站，請先請您的AI讀「待填入...」檔案，他會提供既定的格式  
-因為初始是直接貼上code所以進入編輯畫面後須藉由網頁版vs code更改程式碼  
-<img width="1034" height="238" alt="螢幕擷取畫面 2026-07-15 165443" src="https://github.com/user-attachments/assets/6888a059-84ad-4fe3-82ae-6c671e3f391f" />
+若沒有顯示程式碼可以用網頁版vs code更改程式碼  
+<img width="569" height="152" alt="螢幕擷取畫面 2026-07-15 174549" src="https://github.com/user-attachments/assets/7fb85dd5-e5dc-4788-a8c3-85d1d2818e5e" />
 <small> ↑ 如圖所示 </small>之後直接全選替換新的網頁代碼，然後退出即可
-<img width="1279" height="734" alt="image" src="https://github.com/user-attachments/assets/21deb902-0894-4470-93db-8e4a04470c33" />
+<img width="1279" height="734" alt="螢幕擷取畫面 2026-07-15 165549" src="https://github.com/user-attachments/assets/89b0a9b2-5a33-44d6-8620-9dc186b2347d" />
