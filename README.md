@@ -11,11 +11,11 @@
 **Step1:** 登入wix選擇網頁→原型結構工程顧問有限公司: A.S studio  
 **Step2:** 點選左側設定→選擇網域  
 **Step3:** 找到一個‧‧‧三個點的圖示  
-<img width="680" height="155" alt="螢幕擷取畫面 2026-07-14 185148" src="https://github.com/user-attachments/assets/fe3f5cd6-93b3-4f58-b333-2ea5f0049de8" /> 
+<img width="680" height="155" alt="螢幕擷取畫面 2026-07-14 185148" src="https://github.com/user-attachments/assets/f41812fc-5662-4be9-83ef-d5f5f549775e" />
 <small> ←如圖所示 </small>  
 **Step4:** 選擇 管理DNS紀錄  
 **Step5:** 逐一編輯A、CNAME(若依樣用as-studio001這個github發布則維持原樣)  
-<img width="740" height="565" alt="image" src="https://github.com/user-attachments/assets/37355705-5e87-42a5-988a-6d231f66ec0e" />
+<img width="740" height="565" alt="螢幕擷取畫面 2026-07-14 185846" src="https://github.com/user-attachments/assets/c70d389e-ed26-4cf7-9b5e-809310f53035" />
 <small> ←如圖所示 </small>  
 ## **3.關於網站**  
 ### **3.1固定格式**  
