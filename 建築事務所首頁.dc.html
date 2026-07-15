@@ -871,7 +871,7 @@ class Component extends DCLogic {
 (function () {
   // 快速跳字詞彙池（活頁簿1 C 欄粗體字，不含目的頁標題，由點擊的節點動態決定終點文字）
   var WORD_POOL = [
-    '章architecturedesign', '原型原點', '原型結構', '木構造', '竹構造',
+    '章architecturedesign', '原型教學', '原型原點', '原型結構', '木構造', '竹構造',
     'RC構造', '鋼構造', '成construction', '法structuredata', '構technics',
     '原型建築', '原型獲獎'
   ];
@@ -926,6 +926,19 @@ class Component extends DCLogic {
     var labelEl = a.querySelector('div');
     var destinationWord = labelEl ? labelEl.textContent.trim() : '';
     playAndNavigate(destinationWord || '原型教學', href);
+  });
+
+  // 瀏覽器上一頁按鈕修正：從子頁按「上一頁」回到首頁時，瀏覽器常會直接從
+  // bfcache 還原這個頁面當時「即將跳轉」的畫面快照——也就是遮罩還蓋在畫面上、
+  // 還沒滑開的那個瞬間，導致看起來像卡在前導動畫。用 pageshow 偵測 bfcache
+  // 還原（event.persisted），還原時直接把遮罩清掉、重置狀態，讓首頁正常顯示。
+  window.addEventListener('pageshow', function (e) {
+    if (!e.persisted) return;
+    navigating = false;
+    if (overlay) {
+      overlay.remove();
+      overlay = null;
+    }
   });
 })();
 </script>
