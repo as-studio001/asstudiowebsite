@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<!-- PAGE TRANSITION PRELOADER (arriving from homepage) -->
+<script>
+(function () {
+  var flag;
+  try { flag = sessionStorage.getItem('scTransitionIn'); } catch (err) { flag = null; }
+  if (flag !== '1') return;
+  try { sessionStorage.removeItem('scTransitionIn'); } catch (err) {}
+
+  // 本頁的大標題文字，需與 <h1> 內容一致
+  var ARRIVAL_WORD = '原型原點';
+  var HOLD_AFTER_NAV_MS = 450;
+  var EXIT_SLIDE_MS = 700;
+  var OVERLAY_BG = '#0a0a0a';
+  var TEXT_COLOR = '#ffffff';
+
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:' + OVERLAY_BG + ';display:flex;align-items:center;justify-content:center;opacity:1;transform:translateY(0);';
+  var wordEl = document.createElement('span');
+  wordEl.textContent = ARRIVAL_WORD;
+  wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:15px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
+  overlay.appendChild(wordEl);
+  document.body.appendChild(overlay);
+
+  setTimeout(function () {
+    overlay.style.transition = 'transform ' + EXIT_SLIDE_MS + 'ms cubic-bezier(.76,0,.24,1)';
+    overlay.style.transform = 'translateY(-100%)';
+    setTimeout(function () { overlay.remove(); }, EXIT_SLIDE_MS);
+  }, HOLD_AFTER_NAV_MS);
+})();
+</script>
+<x-dc>
+<helmet>
+<link rel="icon" type="image/png" href="uploads/favicon.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: inherit; opacity: 0.6; }
+</style>
+</helmet>
+<div style="background:{{ bgColor }}; color:{{ textColor }}; font-family:'Helvetica Neue',Helvetica,Arial,'PingFang TC','Microsoft JhengHei',sans-serif; width:100%; min-height:100vh; transition:background-color 0.3s, color 0.3s;">
+
+  <!-- HEADER -->
+  <header style="position:fixed; top:0; left:0; right:0; z-index:1000; padding:24px 40px; display:flex; justify-content:space-between; align-items:center;">
+    <div style="display:flex; align-items:center; gap:20px;">
+      <button data-menu-box="1" onClick="{{ toggleMaterialMenu }}" style="background:none; border:none; cursor:pointer; padding:8px; display:flex; flex-direction:column; gap:5px; justify-content:center; align-items:center; width:36px; height:36px;">
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+      </button>
+      <sc-if value="{{ showMaterialMenu }}" hint-placeholder-val="{{ false }}">
+        <div data-menu-box="1" style="position:absolute; top:100%; left:40px; margin-top:8px; width:160px; background-color:{{ isDarkMode ? 'oklch(0.12 0 0)' : 'oklch(0.98 0 0)' }}; border:1px solid {{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)' }}; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.2); overflow:hidden;">
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=27070" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">木構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25396" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">竹構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25397" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">RC構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25398" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">鋼構造</a>
+        </div>
+      </sc-if>
+      <a href="./index.html" style="display:flex; align-items:center;">
+        <img src="uploads/logo_20210310101340.png" alt="Logo" style="height:40px; filter:{{ isDarkMode ? 'invert(1)' : 'none' }}; transition:filter 0.3s;">
+      </a>
+    </div>
+    <div style="display:flex; gap:32px; align-items:center; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:16px 24px; transition:background-color 0.3s;">
+      <a href="https://www.mashup.com.tw/as%20studio/?page=service" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Team</a>
+      <a href="https://www.mashup.com.tw/as%20studio/?page=movies" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Film</a>
+      <a href="https://www.mashup.com.tw/as%20studio/?page=contact" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Contact</a>
+      <button onClick="{{ toggleDarkMode }}" style="background:none; border:1px solid {{ textColor }}; border-radius:4px; padding:8px 12px; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.3s; color:{{ textColor }}; display:flex; align-items:center; justify-content:center; width:44px; height:44px;">
+        <sc-if value="{{ isDarkMode }}" hint-placeholder-val="{{ true }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </sc-if>
+        <sc-if value="{{ !isDarkMode }}" hint-placeholder-val="{{ true }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </sc-if>
+      </button>
+    </div>
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <section style="padding:220px 40px 160px; max-width:900px; margin:0 auto;">
+
+    <!-- HOVER-EXPAND GALLERY (skiper35 效果的替代版，來自「活頁簿1／原型原點」工作表，7 欄，圖片尚未匯入，暫用佔位圖示) -->
+    <style>
+      .sc-gallery { position:relative; display:flex; height:328px; margin-bottom:56px; }
+      /* 游標彗星尾巴：容器包住整個圖片列（contained area），dot 只在滑鼠停留在列內時顯示，
+         每個 dot 用 JS 逐格 lerp 追前一個 dot（第一個追游標），做出拖尾效果；
+         點大小/透明度依序遞減，尺寸/透明度用 JS 建立時算好、位置每幀用 transform 更新 */
+      .sc-cursor-chain {
+        position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:50;
+        opacity:0; transition:opacity 0.25s ease;
+      }
+      .sc-cursor-chain.sc-visible { opacity:1; }
+      .sc-chain-dot {
+        position:absolute; left:0; top:0; border-radius:50%; background:currentColor;
+        pointer-events:none; will-change:transform;
+      }
+      .sc-gallery-panel {
+        position:relative; flex:1; min-width:0; overflow:hidden; cursor:pointer;
+        transition:flex 0.55s cubic-bezier(.16,1,.3,1);
+      }
+      .sc-gallery-panel:hover { flex:4; }
+      /* 有照片的滑塊左右各留 1px 空隙，不讓照片緊貼分隔線：
+         padding 1px + background-clip/origin:content-box，照片只畫在 padding 以內，
+         左右各 1px 露出滑塊底色（等於視覺上裁掉照片左右各 1px） */
+      .sc-gallery-panel[data-photo="true"] {
+        padding:0 1px;
+        background-clip:content-box;
+        background-origin:content-box;
+      }
+      .sc-gallery-icon {
+        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+        width:28px; height:28px; opacity:0.25; transition:opacity 0.4s ease;
+      }
+      .sc-gallery-panel:hover .sc-gallery-icon { opacity:0.4; }
+
+      /* 編號與大標題在收合/展開之間互換角度：
+         收合：編號 0 度（橫式）／大標題 -90 度（直式，貼合窄版面不超出滑塊）
+         展開：編號轉為 -90 度／大標題轉回 0 度（橫式可讀）
+         兩者都用絕對定位固定各自的 left/bottom 基準點旋轉（不透過 flex gap），
+         避免 transform 不影響版位計算導致的重疊或跑位過遠 */
+      .sc-gallery-caption {
+        position:absolute; left:16px; bottom:16px; height:44px; right:16px;
+      }
+      .sc-gallery-num {
+        position:absolute; left:0; bottom:0; transform-origin:left bottom;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:15px; letter-spacing:0.05em;
+        white-space:nowrap; transform:translateY(-280px) rotate(0deg);
+        transition:transform 0.5s cubic-bezier(.65,0,.35,1);
+      }
+      .sc-gallery-panel:hover .sc-gallery-num { transform:translateY(0) rotate(-90deg); }
+
+      .sc-gallery-titles {
+        position:absolute; left:1px; bottom:0;
+        display:flex; flex-direction:column; justify-content:flex-end;
+      }
+      .sc-gallery-sub {
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:13px; line-height:1.3;
+        margin:0; white-space:nowrap; overflow:hidden;
+        max-height:0; transform:scaleY(0); transform-origin:bottom;
+        transition:max-height 0.4s ease, transform 0.4s ease;
+      }
+      .sc-gallery-panel:hover .sc-gallery-sub { max-height:20px; transform:scaleY(1); }
+      .sc-gallery-main {
+        display:inline-block; transform-origin:left bottom;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:16px; line-height:1.2;
+        margin:0; white-space:nowrap;
+        transform:rotate(-90deg);
+        transition:transform 0.5s cubic-bezier(.65,0,.35,1);
+      }
+      .sc-gallery-panel:hover .sc-gallery-main { transform:rotate(0deg); }
+    </style>
+    <div class="sc-gallery" id="sc-gallery">
+      <sc-for list="{{ galleryItems }}" as="item" hint-placeholder-count="7">
+        <div class="sc-gallery-panel" data-photo="{{ item.hasPhoto }}" onClick="{{ item.goTo }}" style="background-color:{{ item.bg }}; border-left:{{ item.borderLeft }}; background-image:{{ item.bgImage }}; background-repeat:no-repeat; background-position:{{ item.bgPosition }}; background-size:{{ item.bgSize }};">
+          <sc-if value="{{ !item.hasPhoto }}" hint-placeholder-val="{{ true }}">
+            <svg class="sc-gallery-icon" viewBox="0 0 24 24" fill="none" stroke="{{ item.text }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <path d="M21 15l-5-5L5 21"></path>
+            </svg>
+          </sc-if>
+          <div class="sc-gallery-caption">
+            <span class="sc-gallery-num" style="color:{{ item.text }};">{{ item.num }}</span>
+            <div class="sc-gallery-titles">
+              <p class="sc-gallery-sub" style="color:{{ item.text }};">{{ item.en }}</p>
+              <p class="sc-gallery-main" style="color:{{ item.text }};">{{ item.zh }}</p>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+      <div class="sc-cursor-chain" id="sc-cursor-chain" style="color:#B4A249;"></div>
+    </div>
+
+    <div style="font-size:14px; letter-spacing:0.1em; opacity:0.5; margin-bottom:16px;">
+      <a href="./index.html">首頁</a> / 原型原點
+    </div>
+    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:15px; font-weight:800; letter-spacing:0.02em; margin:0 0 40px 0;">原型原點</h1>
+    <div style="display:flex; flex-direction:column; gap:72px;">
+
+      <div id="sc-section-origin">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">原點：SDG 與原型結構的對話</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">在建築與結構之間，存在一個被不斷追問的起點——那個尚未被命名的「原點」。它是材料被發現的瞬間、力被感知的方向，也是建築思考的源頭。SDG（構造設計集團）正是在這樣的原點上，重新定義了「結構」的意義，讓構造成為設計的核心語言，也啟發了台灣原型結構的誕生。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Origin: SDG and the Prototype Structure</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Between architecture and structure lies a point that is constantly questioned—an unnamed origin. It is the moment when material is discovered, when force is first perceived, and when architectural thought begins to take shape. At this origin, SDG (Structural Design Group) redefined the meaning of "structure," turning construction into a core language of design and inspiring the emergence of Taiwan's Prototype Structure movement.</p>
+      </div>
+
+      <div id="sc-section-sdg-spirit">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">SDG 的精神：結構即設計</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">在 SDG 的實踐中，設計與結構從不分離。渡邊邦夫強調：「沒有什麼材料不能被設計，沒有什麼構造不能被想像。」他要求設計師以建築師的眼光提問，讓力學成為理解形體的語言。結構因此不再隱身，而以線條與力的節奏，參與空間的生成，成為建築詩學的一部分。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">The Spirit of SDG: Structure as Design</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Within SDG's practice, design and structure are never separate. Kunio Watanabe emphasized: "There is no material that cannot be designed, and no structure that cannot be imagined." He encouraged designers to ask questions through the eyes of architects—why this system, and how would space transform if the forces changed? Through such inquiry, mechanics became more than calculation; it became a language for understanding form. Structure no longer hides behind architecture but joins the rhythm of lines and forces, shaping space and becoming part of its poetic expression.</p>
+      </div>
+
+      <div id="sc-section-from-sdg">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">從 SDG 到原型結構</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">回到台灣後，陳冠帆將這份精神化為實踐，創立「原型結構工程顧問有限公司」，主張結構與建築本為一體。他將 SDG 的自由思維延伸至竹構與木構研究，讓材料成為思考的起點，而非形式的裝飾。SDG 對原型結構最深遠的影響，正是在於讓結構回到設計的原點，讓材料回到自然的秩序。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">From SDG to Prototype Structure</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Upon returning to Taiwan, Kuan-Fan Chen transformed this spirit into practice, founding Prototype Structural Engineers to advocate that structure and architecture are inherently one. To him, structure is not a technical afterthought but the first line written in the act of design. He extended SDG's freedom of thought into explorations of bamboo and timber construction, treating material not as ornament but as the origin of inquiry. SDG's most profound influence on Prototype Structure lies in bringing structure back to the origin of design, and material back to the order of nature.</p>
+      </div>
+
+      <!-- INFO CARD ACCORDION：海之博物館案例資訊，彈簧感開合 + 箭頭旋轉，皆為 CSS transition，
+           JS 只負責點擊時加/減 .open class 與量測面板高度（面板高度不能寫死，跟 sc-gallery 正方形量測同一原則） -->
+      <div id="sc-section-sea-museum-card">
+        <style>
+          /* 卡片本體：圓角＋左右留白，讓它從一條分隔線變成一張獨立的卡；
+             開啟時輕輕放大（像被拿起）＋浮現金色光暈陰影，做出「打開」的儀式感 */
+          .sc-accordion {
+            border-width:1px; border-style:solid; border-radius:14px;
+            padding:4px 24px; margin:0 -24px;
+            box-shadow:0 0 0 0 rgba(180,162,73,0);
+            transition:box-shadow 0.6s cubic-bezier(.16,1,.3,1), transform 0.55s cubic-bezier(.34,1.56,.64,1), border-color 0.4s ease;
+          }
+          .sc-accordion.open {
+            transform:scale(1.008);
+            box-shadow:0 12px 32px -12px rgba(180,162,73,0.4), 0 0 0 1px rgba(180,162,73,0.3);
+          }
+          .sc-accordion-header {
+            display:flex; align-items:center; justify-content:space-between; gap:16px;
+            width:100%; background:none; border:none; cursor:pointer; padding:20px 0;
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:15px; font-weight:800; letter-spacing:0.02em;
+            text-align:left;
+          }
+          .sc-accordion-chevron {
+            flex-shrink:0; transition:transform 0.5s cubic-bezier(.34,1.56,.64,1);
+          }
+          .sc-accordion.open .sc-accordion-chevron { transform:rotate(180deg); }
+          /* 游標光源陰影：文字本身完全不用 CSS 動畫，text-shadow 由 JS 依游標位置即時計算並寫成 inline style
+             （見 componentDidMount 的 animateTitleLightShadow），這裡只設 display，方便量測文字位置 */
+          .sc-accordion-title { display:inline-block; }
+          .sc-accordion-panel {
+            max-height:0; overflow:hidden;
+            transition:max-height 0.6s cubic-bezier(.16,1,.3,1);
+          }
+          /* 金色分隔線：卡片展開時才從 0 拉開到滿版，像布幕拉開，跟內容淡入錯開一點時間差 */
+          .sc-accordion-panel::before {
+            content:''; display:block; height:1px; width:0; background:#B4A249;
+            margin-bottom:16px;
+            transition:width 0.6s cubic-bezier(.16,1,.3,1) 0.08s;
+          }
+          .sc-accordion.open .sc-accordion-panel::before { width:100%; }
+          /* 內容分兩段登場：卡片先展開＋分隔線先拉開，內容再淡入＋輕輕上浮，做出前後有序的儀式感 */
+          .sc-accordion-panel-inner {
+            padding:0 0 24px 0;
+            opacity:0; transform:translateY(-8px);
+            transition:opacity 0.5s ease 0.18s, transform 0.5s cubic-bezier(.16,1,.3,1) 0.18s;
+          }
+          .sc-accordion.open .sc-accordion-panel-inner { opacity:1; transform:translateY(0); }
+        </style>
+        <div class="sc-accordion" style="border-color:{{ isDarkMode ? 'oklch(0.3 0 0)' : 'oklch(0.85 0 0)' }};">
+          <button type="button" class="sc-accordion-header" style="color:{{ textColor }};">
+            <span class="sc-accordion-title">海之博物館</span>
+            <svg class="sc-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="sc-accordion-panel">
+            <div class="sc-accordion-panel-inner">
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};">
+                建築類型 / 博物館<br>
+                項目狀態 / 已完工（1992 年竣工）<br>
+                構造系統 / 層壓木桁架＋鋼筋混凝土<br>
+                基地位置 / 日本三重縣鳥羽市<br>
+                攝影 / Satoru Mishima<br>
+                合作團隊 /<br>
+                建築設計｜內藤廣（Hiroshi Naitō）<br>
+                結構設計｜構造設計集團 SDG（渡邊邦夫 Kunio Watanabe）
+              </p>
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};">
+                Building Type / Museum<br>
+                Project Status / Completed (1992)<br>
+                Structural System / Laminated timber truss + reinforced concrete hybrid structure with a central skylight emphasizing the rhythm of the wooden frame<br>
+                Location / Toba, Mie Prefecture, Japan<br>
+                Photography / Satoru Mishima<br>
+                Collaborating Team /<br>
+                Architectural Design｜Hiroshi Naitō<br>
+                Structural Design｜Structural Design Group (SDG) / Kunio Watanabe
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="sc-section-sea-museum">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">海之博物館</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">海之民博物館由建築師內藤廣設計，結構設計由渡邊邦夫率領的構造設計集團（SDG）負責，1992 年於三重縣鳥羽市完工。建築以 18.5 公尺寬的層壓木桁架屋頂為核心，結合木構與鋼筋混凝土複合結構，形成溫潤而堅實的展覽空間。中央天窗引入自然光，映照海洋文物，使空間充滿光影流動的節奏。起伏的屋頂呼應海浪的韻律，蜿蜒的動線如潮汐般引導參觀者在空間中移動。博物館收藏木船、海女器具與漁具，展現人與海的共生歷史。此案以結構詩學與材料誠實著稱，既是文化的容器，也是海岸線上一座靜謐的地景建築。</p>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">The Toba Sea-Folk Museum, designed by Hiroshi Naitō with structural design by Kunio Watanabe of SDG, was completed in 1992 in Toba, Mie Prefecture. The 18.5-meter-wide laminated timber truss roof, supported by a hybrid system of wood and reinforced concrete, defines a warm and expansive exhibition space. A central skylight introduces natural light, creating shifting patterns of illumination over maritime artifacts. The undulating roof and meandering circulation echo the rhythm of waves, guiding visitors through a calm, fluid spatial experience. Exhibiting wooden boats, Ama diving tools, and fishing implements, the museum captures the enduring relationship between people and the sea—an architectural expression of restraint, structure, and poetic continuity.</p>
+      </div>
+
+      <!-- INFO CARD ACCORDION：東京國際會議中心案例資訊，套用「案例資訊卡元件」共用 CSS/JS
+           （見 維護手冊_案例資訊卡元件.md），同頁第二張卡，不用再貼一次 <style> 或 componentDidMount 邏輯 -->
+      <div id="sc-section-tokyo-forum-card">
+        <div class="sc-accordion" style="border-color:{{ isDarkMode ? 'oklch(0.3 0 0)' : 'oklch(0.85 0 0)' }};">
+          <button type="button" class="sc-accordion-header" style="color:{{ textColor }};">
+            <span class="sc-accordion-title">東京國際會議中心</span>
+            <svg class="sc-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="sc-accordion-panel">
+            <div class="sc-accordion-panel-inner">
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};">
+                建築類型 / 會議與文化中心<br>
+                項目狀態 / 已完工（1996 年竣工，1997 年開幕）<br>
+                構造系統 / 鋼結構 + 鋼骨玻璃結構<br>
+                基地位置 / 日本東京都千代田區丸之內地區<br>
+                攝影 / Kawasumi Architectural Photography<br>
+                合作團隊 /<br>
+                建築設計｜Rafael Viñoly Architects<br>
+                結構設計｜Structural Design Group (SDG) / 渡邊邦夫（Kunio Watanabe）
+              </p>
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};">
+                Building Type / Convention and Cultural Center<br>
+                Project Status / Completed (Constructed in 1996, Opened in 1997)<br>
+                Structural System / Steel structure with glass and steel-framed components<br>
+                Location / Marunouchi District, Chiyoda-ku, Tokyo, Japan<br>
+                Photography / Kawasumi Architectural Photography<br>
+                Collaborating Team /<br>
+                Architectural Design｜Rafael Viñoly Architects<br>
+                Structural Design｜Structural Design Group (SDG) / Kunio Watanabe
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="sc-section-tokyo-forum">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">東京國際會議中心</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">東京國際論壇於 1996 年竣工、1997 年開幕，位於東京丸之內地區，是一座融合會議、展演與公共活動的文化地標。由 Rafael Viñoly Architects 設計，結構設計由構造設計集團（SDG）的渡邊邦夫負責，展現建築與工程的精準協奏。其核心為標誌性的玻璃大廳，形似船艙，橫跨約 230 公尺，兩側以高達 60 公尺的鋼索懸吊玻璃牆支撐於優雅的鋼拱之間。大廳作為整體動線的中樞，串連多座表演廳、會議室與展覽空間，透過橋梁與坡道交織出流動的公共體驗。外立面以花崗岩包覆，構築城市邊界；內部則以透明結構引光入室。白日如晶體般透亮，夜晚化為東京天際線上的光之艦。二十多年來，論壇舉辦數千場活動、迎接數以百萬計訪客，成為城市開放精神與建築美學的象徵。2024 年，該建築榮獲美國建築師學會（AIA）「二十五年獎」，肯定其持續的設計價值與文化影響力。</p>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">The Tokyo International Forum, completed in 1996 and opened in 1997, is a convention and cultural complex in Tokyo's Marunouchi district. Designed by Rafael Viñoly Architects with structural design by Kunio Watanabe (SDG), it integrates architecture and engineering through its iconic Glass Hall—a vast, ship-like atrium framed by steel arches and cable-supported glass walls. The hall connects multiple theaters, exhibition spaces, and meeting rooms, serving as both circulation core and civic plaza. By day, the building shines as a crystalline vessel of light; by night, it glows as a lantern on Tokyo's skyline. Honored with the 2024 AIA Twenty-Five Year Award, it remains a timeless symbol of structural elegance and urban openness.</p>
+      </div>
+
+      <!-- INFO CARD ACCORDION：橫濱大棧橋案例資訊，套用「案例資訊卡元件」共用 CSS/JS
+           （見 維護手冊_案例資訊卡元件.md），同頁第三張卡，不用再貼一次 <style> 或 componentDidMount 邏輯 -->
+      <div id="sc-section-yokohama-pier-card">
+        <div class="sc-accordion" style="border-color:{{ isDarkMode ? 'oklch(0.3 0 0)' : 'oklch(0.85 0 0)' }};">
+          <button type="button" class="sc-accordion-header" style="color:{{ textColor }};">
+            <span class="sc-accordion-title">橫濱大棧橋</span>
+            <svg class="sc-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="sc-accordion-panel">
+            <div class="sc-accordion-panel-inner">
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};">
+                建築類型 / 海運客運碼頭<br>
+                項目狀態 / 已完工（2002 年竣工）<br>
+                構造系統 / 鋼構＋鋼筋混凝土複合結構，採折板與箱型梁系統形成無柱大跨空間<br>
+                基地位置 / 日本神奈川縣橫濱市中區<br>
+                攝影 / Satoru Mishima / FOA<br>
+                合作團隊 /<br>
+                建築設計｜Foreign Office Architects (FOA)<br>
+                結構設計｜構造設計集團 SDG（渡邊邦夫 Kunio Watanabe）
+              </p>
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};">
+                Building Type / International Passenger Terminal<br>
+                Project Status / Completed (2002)<br>
+                Structural System / Steel and reinforced concrete hybrid structure with folded-plate and box-girder system creating a column-free long span<br>
+                Location / Naka Ward, Yokohama, Kanagawa, Japan<br>
+                Photography / Satoru Mishima / FOA<br>
+                Collaborating Team /<br>
+                Architectural Design｜Foreign Office Architects (FOA)<br>
+                Structural Design｜Structural Design Group (SDG) / Kunio Watanabe
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="sc-section-yokohama-pier">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">橫濱大棧橋</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">橫濱國際客運碼頭於 2002 年完工，由 Foreign Office Architects（FOA） 設計，構造設計集團（SDG） 的 渡邊邦夫 負責結構設計。此案以「流動的地景」取代傳統碼頭，將建築、結構與都市動線融合為連續的公共地形。總樓地板面積約 48,000 平方公尺，屋頂以起伏的折板形態延展成海邊步道，使城市與港灣之間無縫銜接。下方的鋼構與鋼筋混凝土複合折板系統形成無柱大跨空間，容納旅客候船廳與多功能展演區。其結構形式以折板與箱型梁協同受力，使屋頂既為結構亦為表皮，最小化支撐，展現連續與運動的張力。設計將公共步行層與功能層整合，將基礎設施轉化為可親近的市民平台。橫濱大棧橋以其創新的建築與結構語彙，成為日本城市濱水設計的里程碑與象徵。</p>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">The Yokohama International Passenger Terminal, completed in 2002, transforms the pier into a continuous public landscape. Designed by Foreign Office Architects (FOA) with structural design by Kunio Watanabe (SDG), it merges architecture and engineering into a fluid, civic form. The 48,000 m² terminal features an undulating folded-plate roof that serves as both structure and promenade, connecting city and sea. Its hybrid steel-and-concrete system creates a vast column-free hall beneath, combining function and openness. The project stands as a landmark of structural innovation and urban integration on Japan's waterfront.</p>
+      </div>
+
+      <!-- 橫向時間軸：資料來源活頁簿1.xlsx「原型三時期」工作表（時期／事件／說明，目前是佔位文字）。
+           這個區塊在頁面最底部，不能用「進入視野」判斷（一進頁面底部整排就已經在視野內了）。
+           預設只顯示第一個時間點（一人），使用者要先把頁面捲到底，之後「繼續」往下滾滑鼠滾輪——這時
+           頁面已經無法再捲動、不會再有新的 scroll 事件，所以監聽 wheel 事件本身偵測「已到底部仍持續
+           往下滾」。每個 wheel 事件的 deltaY 直接、連續地累加成一個 0～2（三個點兩段距離）的進度值，
+           點的透明度／位移、連接線的長度都即時對應這個進度值即時設定 inline style（不用 CSS transition
+           或分階段跳一段的 class 切換），滾多少、顯示多少，才會是真的漸進，不是滾一下就整個跳出來。
+           連接線只有一個 DOM 元素，不是每個點各自一段：兩個端點（第一點中心／最後一點中心）跟中間點
+           中心都用 JS 在 mount 當下＋resize 時即時量測（.sc-h-timeline-dot 實際位置，不寫死 px），
+           確保線永遠精準碰到第一個點，並隨進度值一路延伸到第二、第三個點。 -->
+      <div id="sc-section-three-periods">
+        <style>
+          .sc-h-timeline-scroll { overflow-x:auto; overflow-y:hidden; padding-bottom:4px; }
+          .sc-h-timeline { position:relative; min-width:600px; }
+          .sc-h-timeline-track { position:relative; display:flex; justify-content:space-between; gap:32px; }
+          .sc-h-timeline-line { position:absolute; top:5px; left:0; height:1px; width:0; background:#B4A249; z-index:0; }
+          /* 超出第三個點的尾段最後一小截改虛線收尾：6px 線段＋5px 間隔（11px 一個循環），顏色跟圓點同色 */
+          .sc-h-timeline-line-dash {
+            position:absolute; top:5px; left:0; height:1px; width:0; z-index:0;
+            background-image:repeating-linear-gradient(to right, #B4A249 0, #B4A249 6px, transparent 6px, transparent 11px);
+          }
+          .sc-h-timeline-step {
+            position:relative; flex:1; min-width:180px; display:flex; flex-direction:column; align-items:center; text-align:center;
+            opacity:0; transform:translateY(14px);
+          }
+          .sc-h-timeline-dot {
+            position:relative; z-index:1; width:10px; height:10px; border-radius:50%; margin-bottom:24px; flex-shrink:0;
+          }
+          .sc-h-timeline-period {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:15px;
+            letter-spacing:0.02em; margin:0 0 8px 0;
+          }
+          .sc-h-timeline-event {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:700; font-size:13px;
+            letter-spacing:0.05em; opacity:0.55; margin:0 0 10px 0;
+          }
+          .sc-h-timeline-desc {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:13px;
+            line-height:1.8; opacity:0.85; margin:0; max-width:220px;
+          }
+        </style>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 24px 0;">原型三時期</h2>
+        <div class="sc-h-timeline-scroll">
+          <div class="sc-h-timeline">
+            <div class="sc-h-timeline-track">
+              <div class="sc-h-timeline-line"></div>
+              <div class="sc-h-timeline-line-dash"></div>
+              <sc-for list="{{ threePeriodItems }}" as="item" hint-placeholder-count="3">
+                <div class="sc-h-timeline-step">
+                  <span class="sc-h-timeline-dot" style="background:#B4A249;"></span>
+                  <p class="sc-h-timeline-period" style="color:{{ textColor }};">{{ item.period }}</p>
+                  <p class="sc-h-timeline-event" style="color:{{ textColor }};">{{ item.event }}</p>
+                  <p class="sc-h-timeline-desc" style="color:{{ textColor }};">{{ item.desc }}</p>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="background-color:{{ isDarkMode ? 'oklch(0.12 0 0)' : 'oklch(0.95 0 0)' }}; padding:80px 40px; transition:background-color 0.3s;">
+    <div style="max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:flex-start;">
+      <div style="text-align:left;">
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0 0 8px 0; transition:color 0.3s;">電話：06-2905293</p>
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0 0 8px 0; transition:color 0.3s;">傳真：06-2905493</p>
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0; transition:color 0.3s;">電郵：<a href="mailto:as.studio001@gmail.com" style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; text-decoration:none; transition:opacity 0.3s;" style-hover="opacity:0.7;">as.studio001@gmail.com</a></p>
+      </div>
+      <div style="text-align:center;">
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0; transition:color 0.3s;">台南市東區中華東路三段44巷7號1樓</p>
+      </div>
+      <div style="text-align:right; display:flex; gap:16px; align-items:center;">
+        <a href="https://www.facebook.com/AS.structure" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <path d="M18 2h-3a6 6 0 0 0-6 6v4h-2v4h2v6h4v-6h3l1-4h-4V8a2 2 0 0 1 2-2h1Z"></path>
+          </svg>
+        </a>
+        <a href="https://www.instagram.com/as.futuregroup?igsh=MTRsZXV2dmhnaGdqOQ%3D%3D" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <circle cx="17.5" cy="6.5" r="1.5"></circle>
+          </svg>
+        </a>
+        <a href="https://www.youtube.com/@%E9%99%B3%E5%86%A0%E5%B8%86-z9v" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { isDarkMode: false, showMaterialMenu: false };
+
+  // 資料來源：活頁簿1.xlsx「原型原點」工作表（編號／大標／小標，小標欄目前空白）
+  // 02/03/04 已匯入照片（uploads/）；01-04 已指定 target（見下方對應段落 id），05-07 尚未指定，先留空，點擊無動作
+  galleryItems = [
+    { num: '01', zh: 'SDG(StructuralDesignGroup)', en: '', target: 'sc-section-origin' },
+    { num: '02', zh: '1992海之博物館', en: '', photo: 'uploads/海之博物館.jpg', textOverride: '#ffffff', target: 'sc-section-sea-museum-card' },
+    { num: '03', zh: '1996東京國際會議中心', en: '', photo: 'uploads/東京國際會議中心.jpg', textOverride: '#ffffff', target: 'sc-section-tokyo-forum-card' },
+    { num: '04', zh: '2002橫濱大棧橋', en: '', photo: 'uploads/橫濱大棧橋.jpg', textOverride: '#ffffff', target: 'sc-section-yokohama-pier-card' },
+    { num: '05', zh: '原型三時期', en: '', target: 'sc-section-three-periods' },
+    { num: '06', zh: '一人', en: '' },
+    { num: '07', zh: '原型建築+原型結構', en: '' }
+  ];
+
+  // 資料來源：活頁簿1.xlsx「原型三時期」工作表（時期／事件／說明，第一列標題，目前是佔位文字）
+  threePeriodItems = [
+    { period: '一人', event: '佔位文字', desc: '很多佔位文字' },
+    { period: '原型結構', event: '佔位文字', desc: '很多佔位文字' },
+    { period: '原型結構+原型建築', event: '佔位文字', desc: '很多佔位文字' }
+  ];
+
+  scrollToSection(id) {
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  toggleDarkMode() {
+    this.setState(s => ({ isDarkMode: !s.isDarkMode }));
+  }
+
+  toggleMaterialMenu() {
+    this.setState(s => ({ showMaterialMenu: !s.showMaterialMenu }));
+  }
+
+  componentDidMount() {
+    this._onDocMouseDown = (e) => {
+      const inMenu = e.target && e.target.closest && e.target.closest('[data-menu-box]');
+      if (!inMenu && this.state.showMaterialMenu) this.setState({ showMaterialMenu: false });
+    };
+    document.addEventListener('mousedown', this._onDocMouseDown);
+
+    // 畫廊滑塊展開後要是正方形：實際可用寬度會隨瀏覽器/預覽視窗大小改變，
+    // 不能寫死固定 px（那樣只在特定視窗寬度下才會剛好是正方形）。
+    // 改成即時量測 .sc-gallery 的實際寬度，換算「展開後應有的寬度」，
+    // 直接設成滑塊高度，並同步更新照片的 background-size 與編號的位移量。
+    this._sizeGallerySquare = () => {
+      const gallery = document.getElementById('sc-gallery');
+      if (!gallery) return;
+      const totalWidth = gallery.clientWidth;
+      if (!totalWidth) return;
+      // 通用公式，不寫死滑塊數量：懸停中的滑塊 flex:HOVER_FLEX，其餘每個都是 flex:1。
+      // HOVER_FLEX 要跟 CSS 的 .sc-gallery-panel:hover { flex:__; } 保持一致（目前是 4）。
+      // 不管這個版面以後套用在哪個子頁面、放幾個滑塊，都會自動算出正確的展開正方形尺寸。
+      const HOVER_FLEX = 4;
+      const panelCount = document.querySelectorAll('.sc-gallery-panel').length;
+      if (!panelCount) return;
+      const totalFlexUnits = HOVER_FLEX + (panelCount - 1);
+      const squareSize = Math.round(totalWidth * HOVER_FLEX / totalFlexUnits);
+      gallery.style.height = squareSize + 'px';
+
+      const numOffset = -(squareSize - 48);
+      let styleEl = document.getElementById('sc-gallery-dynamic-style');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'sc-gallery-dynamic-style';
+        document.body.appendChild(styleEl);
+      }
+      styleEl.textContent =
+        '.sc-gallery-num { transform: translateY(' + numOffset + 'px) rotate(0deg); }' +
+        '.sc-gallery-panel:hover .sc-gallery-num { transform: translateY(0) rotate(-90deg); }';
+
+      document.querySelectorAll('.sc-gallery-panel[data-photo="true"]').forEach((panel) => {
+        panel.style.backgroundSize = squareSize + 'px ' + squareSize + 'px';
+      });
+    };
+    this._sizeGallerySquare();
+    window.addEventListener('resize', this._sizeGallerySquare);
+
+    // 游標彗星尾巴：容器是 #sc-cursor-chain（絕對定位、蓋滿 #sc-gallery、pointer-events:none，
+    // 不擋滑塊的 hover/click）。dot 只建立一次；每幀用 lerp 讓每個 dot 往「前一個 dot」靠近
+    // 35%（第一個 dot 追游標本身），越後面的 dot 越小越淡，形成拖尾。滑鼠離開容器就淡出隱藏。
+    (() => {
+      const container = document.getElementById('sc-cursor-chain');
+      const gallery = document.getElementById('sc-gallery');
+      if (!container || !gallery) return;
+
+      const CHAIN_LENGTH = 7;
+      const LERP = 0.35;
+      const dots = [];
+      for (let i = 0; i < CHAIN_LENGTH; i++) {
+        const size = Math.max(3, 14 - i * 1.6);
+        const opacity = Math.max(0.06, 0.9 - i * 0.13);
+        const dotEl = document.createElement('span');
+        dotEl.className = 'sc-chain-dot';
+        dotEl.style.width = size + 'px';
+        dotEl.style.height = size + 'px';
+        dotEl.style.opacity = String(opacity);
+        container.appendChild(dotEl);
+        dots.push({ el: dotEl, x: 0, y: 0 });
+      }
+
+      let targetX = 0, targetY = 0;
+      let active = false;
+
+      this._onGalleryMouseMove = (e) => {
+        const rect = gallery.getBoundingClientRect();
+        targetX = e.clientX - rect.left;
+        targetY = e.clientY - rect.top;
+        if (!active) {
+          active = true;
+          dots.forEach((d) => { d.x = targetX; d.y = targetY; });
+          container.classList.add('sc-visible');
+        }
+      };
+      this._onGalleryMouseLeave = () => {
+        active = false;
+        container.classList.remove('sc-visible');
+      };
+      gallery.addEventListener('mousemove', this._onGalleryMouseMove);
+      gallery.addEventListener('mouseleave', this._onGalleryMouseLeave);
+
+      const animateChain = () => {
+        if (active) {
+          let prevX = targetX, prevY = targetY;
+          dots.forEach((d) => {
+            d.x += (prevX - d.x) * LERP;
+            d.y += (prevY - d.y) * LERP;
+            d.el.style.transform = 'translate(' + d.x + 'px,' + d.y + 'px) translate(-50%,-50%)';
+            prevX = d.x; prevY = d.y;
+          });
+        }
+        this._chainRAF = requestAnimationFrame(animateChain);
+      };
+      animateChain();
+    })();
+
+    // 資訊卡手風琴：class 一律用 JS 直接對真實 DOM 節點加/減（跟時間軸/游標拖尾同一原則，
+    // 不透過樣板綁定 class）。展開高度不能寫死 px（內容行數以後可能增減），改成點擊當下
+    // 即時量測面板內容的 scrollHeight，設成 max-height，CSS transition 負責動畫本身；
+    // 箭頭旋轉純靠 CSS 的 .open class 觸發，JS 只負責切換這個 class。
+    this._onAccordionHeaderClick = (e) => {
+      const header = e.currentTarget;
+      const accordion = header.closest('.sc-accordion');
+      if (!accordion) return;
+      const panel = accordion.querySelector('.sc-accordion-panel');
+      const inner = accordion.querySelector('.sc-accordion-panel-inner');
+      if (!panel || !inner) return;
+      const isOpen = accordion.classList.toggle('open');
+      panel.style.maxHeight = isOpen ? inner.scrollHeight + 'px' : '0px';
+    };
+    this._accordionHeaders = Array.from(document.querySelectorAll('.sc-accordion-header'));
+    this._accordionHeaders.forEach((header) => header.addEventListener('click', this._onAccordionHeaderClick));
+
+    // 資訊卡標題「游標光源陰影」：把游標當成唯一光源，文字依游標與文字中心的相對位置，
+    // 即時算出陰影該往哪個方向、多長、多深——游標越靠近文字，陰影越長越明顯；越遠陰影越短越淡。
+    // 只套用在 .sc-accordion-title，不影響頁面其他文字。用 rAF 逐幀更新、每幀對目標值做 lerp
+    // 平滑，避免游標移動太快時陰影瞬間跳動（跟游標拖尾 dots 同一個平滑手法）。
+    this._lightMouseX = -9999;
+    this._lightMouseY = -9999;
+    this._onDocMouseMoveLight = (e) => {
+      this._lightMouseX = e.clientX;
+      this._lightMouseY = e.clientY;
+    };
+    document.addEventListener('mousemove', this._onDocMouseMoveLight);
+
+    this._lightShadowState = new Map();
+    const LIGHT_MAX_DIST = 480;
+    const LIGHT_MAX_LEN = 16;
+    const LIGHT_MIN_LEN = 2;
+    const LIGHT_LERP = 0.18;
+
+    const animateTitleLightShadow = () => {
+      document.querySelectorAll('.sc-accordion-title').forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = cx - this._lightMouseX;
+        const dy = cy - this._lightMouseY;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const clamped = Math.min(dist, LIGHT_MAX_DIST);
+        const strength = 1 - clamped / LIGHT_MAX_DIST; // 0 = 光源很遠，1 = 光源就在文字上
+        const len = LIGHT_MIN_LEN + strength * (LIGHT_MAX_LEN - LIGHT_MIN_LEN);
+        const targetX = (dx / dist) * len;
+        const targetY = (dy / dist) * len;
+        const targetOpacity = 0.12 + strength * 0.45;
+        const targetBlur = 3 + strength * 5;
+
+        let state = this._lightShadowState.get(el);
+        if (!state) {
+          state = { x: 0, y: 0, opacity: 0.12, blur: 3 };
+          this._lightShadowState.set(el, state);
+        }
+        state.x += (targetX - state.x) * LIGHT_LERP;
+        state.y += (targetY - state.y) * LIGHT_LERP;
+        state.opacity += (targetOpacity - state.opacity) * LIGHT_LERP;
+        state.blur += (targetBlur - state.blur) * LIGHT_LERP;
+
+        // 淺色模式：背景亮，文字暗，陰影用黑色才看得出「被投射」的暗部；
+        // 深色模式：背景本身接近全黑，黑色陰影會直接融進背景消失，改用白色做出「發光」而非「投影」，
+        // 兩種模式都要讀即時的 this.state.isDarkMode（不能只在掛載當下判斷一次，使用者隨時可能切換）
+        const shadowRGB = this.state.isDarkMode ? '255,255,255' : '0,0,0';
+        el.style.textShadow = state.x.toFixed(2) + 'px ' + state.y.toFixed(2) + 'px ' + state.blur.toFixed(1) + 'px rgba(' + shadowRGB + ',' + state.opacity.toFixed(2) + ')';
+      });
+      this._lightShadowRAF = requestAnimationFrame(animateTitleLightShadow);
+    };
+    animateTitleLightShadow();
+
+    // 橫向時間軸：這個區塊在頁面最底部，不能用「進入視野」判斷（一到頁面底部整排早就在視野內了）。
+    // 預設只顯示第一個時間點；使用者要先把頁面捲到底，之後「繼續」往下滾滑鼠滾輪才逐漸顯示下一個——
+    // 頁面到底之後已經無法再捲動、不會再有新的 scroll 事件，所以改監聽 wheel 事件本身（deltaY>0 代表
+    // 還在往下滾），而不是監聽 scroll。實際顯示的進度分成「目標值」跟「顯示值」兩層：wheel 事件只更新
+    // 目標值（滾一整格滑鼠可能一次跳一大段 deltaY，物理滑鼠尤其明顯，不像觸控板會連續送很多小事件），
+    // 顯示值則透過 rAF 每一幀對目標值做 lerp 平滑追近（跟游標拖尾、標題光源陰影同一手法），這樣不管單一
+    // wheel 事件跳多大，畫面上都會是連續的緩動，不會「一格就整塊跳出來」的生硬感。
+    this._threePeriodStepEls = Array.from(document.querySelectorAll('.sc-h-timeline-step'));
+    this._threePeriodLineEl = document.querySelector('.sc-h-timeline-line');
+    this._threePeriodLineDashEl = document.querySelector('.sc-h-timeline-line-dash');
+    this._threePeriodStepsToReveal = Math.max(this._threePeriodStepEls.length - 1, 0);
+    this._threePeriodTargetProgress = 0;
+    this._threePeriodDisplayProgress = 0;
+    const THREE_PERIOD_REVEAL_DISTANCE = 220; // 每一段需要累積多少 wheel deltaY 才會完全顯示下一個點
+    const THREE_PERIOD_LERP = 0.05; // 顯示值追近目標值的平滑係數，越小越滑順但反應越慢
+    const CM_TO_PX = 96 / 2.54; // CSS 規格 1in=96px=2.54cm，固定換算，不受螢幕實際 DPI 影響
+    const THREE_PERIOD_DASH_PX = 1 * CM_TO_PX; // 超出第三個點的部分，最後 1 公分（約 37.8px）改虛線
+    const THREE_PERIOD_SOLID_OVERSHOOT_PX = 1 * CM_TO_PX; // 超出第三個點的部分，前面 1 公分維持實線，實線+虛線共 2 公分
+
+    // 量測每個點的實際水平中心（相對於 .sc-h-timeline-track），不寫死 px，跟畫廊正方形量測同一原則；
+    // mount 當下量一次，視窗改變寬度時（響應式）重新量一次
+    this._threePeriodDotCenters = [];
+    this._measureThreePeriodDots = () => {
+      const track = document.querySelector('.sc-h-timeline-track');
+      if (!track) return;
+      const trackRect = track.getBoundingClientRect();
+      this._threePeriodDotCenters = Array.from(document.querySelectorAll('.sc-h-timeline-dot')).map((dot) => {
+        const r = dot.getBoundingClientRect();
+        return (r.left + r.width / 2) - trackRect.left;
+      });
+    };
+
+    this._applyThreePeriodProgress = () => {
+      const progress = this._threePeriodDisplayProgress;
+      this._threePeriodStepEls.forEach((el, idx) => {
+        if (idx === 0) { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; return; }
+        const local = Math.min(Math.max(progress - (idx - 1), 0), 1);
+        el.style.opacity = String(local);
+        el.style.transform = 'translateY(' + (14 * (1 - local)) + 'px)';
+      });
+      const centers = this._threePeriodDotCenters;
+      if (!this._threePeriodLineEl || centers.length < 2) return;
+      const first = centers[0];
+      const clamped = Math.min(progress, this._threePeriodStepsToReveal);
+      const lastSeg = centers.length - 2;
+      const seg = Math.min(Math.floor(clamped), lastSeg);
+      const segProgress = clamped - seg;
+      const segStart = centers[seg];
+      const segEnd = centers[seg + 1] !== undefined ? centers[seg + 1] : segStart;
+      const rawEndX = segStart + (segEnd - segStart) * segProgress;
+      // 線段最後一段（連到第三個點）要順勢多延伸 2 公分，超出點的中心一小截，不是精準停在點上；
+      // 這 2 公分裡，靠近點的前 1 公分維持實線，最後 1 公分改成虛線收尾
+      let solidEndX = rawEndX;
+      let dashWidth = 0;
+      if (seg === lastSeg) {
+        solidEndX = rawEndX + THREE_PERIOD_SOLID_OVERSHOOT_PX * segProgress;
+        dashWidth = THREE_PERIOD_DASH_PX * segProgress;
+      }
+      this._threePeriodLineEl.style.left = first + 'px';
+      this._threePeriodLineEl.style.width = Math.max(0, solidEndX - first) + 'px';
+      if (this._threePeriodLineDashEl) {
+        this._threePeriodLineDashEl.style.left = solidEndX + 'px';
+        this._threePeriodLineDashEl.style.width = Math.max(0, dashWidth) + 'px';
+      }
+    };
+
+    this._measureThreePeriodDots();
+    window.addEventListener('resize', this._measureThreePeriodDots);
+
+    const animateThreePeriodProgress = () => {
+      this._threePeriodDisplayProgress += (this._threePeriodTargetProgress - this._threePeriodDisplayProgress) * THREE_PERIOD_LERP;
+      this._applyThreePeriodProgress();
+      this._threePeriodRAF = requestAnimationFrame(animateThreePeriodProgress);
+    };
+    animateThreePeriodProgress();
+
+    this._onThreePeriodWheel = (e) => {
+      if (this._threePeriodTargetProgress >= this._threePeriodStepsToReveal) return;
+      if (e.deltaY <= 0) return;
+      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+      if (!atBottom) return;
+      this._threePeriodTargetProgress = Math.min(this._threePeriodTargetProgress + e.deltaY / THREE_PERIOD_REVEAL_DISTANCE, this._threePeriodStepsToReveal);
+    };
+    window.addEventListener('wheel', this._onThreePeriodWheel, { passive: true });
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this._onDocMouseDown);
+    window.removeEventListener('resize', this._sizeGallerySquare);
+    if (this._chainRAF) cancelAnimationFrame(this._chainRAF);
+    const gallery = document.getElementById('sc-gallery');
+    if (gallery && this._onGalleryMouseMove) gallery.removeEventListener('mousemove', this._onGalleryMouseMove);
+    if (gallery && this._onGalleryMouseLeave) gallery.removeEventListener('mouseleave', this._onGalleryMouseLeave);
+    if (this._accordionHeaders) {
+      this._accordionHeaders.forEach((header) => header.removeEventListener('click', this._onAccordionHeaderClick));
+    }
+    document.removeEventListener('mousemove', this._onDocMouseMoveLight);
+    if (this._lightShadowRAF) cancelAnimationFrame(this._lightShadowRAF);
+    window.removeEventListener('wheel', this._onThreePeriodWheel);
+    window.removeEventListener('resize', this._measureThreePeriodDots);
+    if (this._threePeriodRAF) cancelAnimationFrame(this._threePeriodRAF);
+  }
+
+  renderVals() {
+    const isDarkMode = this.state.isDarkMode;
+    return {
+      isDarkMode,
+      bgColor: isDarkMode ? '#0a0a0a' : '#ffffff',
+      textColor: isDarkMode ? '#ffffff' : '#1a1a1a',
+      showMaterialMenu: this.state.showMaterialMenu,
+      toggleMaterialMenu: () => this.toggleMaterialMenu(),
+      toggleDarkMode: () => this.toggleDarkMode(),
+      galleryItems: this.galleryItems.map((it, idx) => {
+        const lineColor = isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(136,136,136,0.8)';
+        const hasPhoto = !!it.photo;
+        return {
+          ...it,
+          bg: isDarkMode ? '#0a0a0a' : '#ffffff',
+          // 有照片的滑塊用固定文字色（不隨深/淺色模式變動，因為照片本身也不會變）；
+          // 沒照片的維持跟著 isDarkMode 走
+          text: it.textOverride || (isDarkMode ? '#ffffff' : '#1a1a1a'),
+          borderLeft: '0.5px solid ' + lineColor,
+          goTo: () => this.scrollToSection(it.target),
+          hasPhoto,
+          // 展開後面板約 360x340px，圖片固定用這個尺寸鋪滿、靠左定位，
+          // 收合/展開之間圖片本身完全不變，只是面板變寬露出更多，不是切換圖片
+          bgImage: hasPhoto ? "url('" + it.photo + "')" : 'none',
+          bgPosition: hasPhoto ? 'left center' : '0 0',
+          bgSize: hasPhoto ? '328px 328px' : 'auto'
+        };
+      }),
+      threePeriodItems: this.threePeriodItems
+    };
+  }
+}
+</script>
+</body>
+</html>
