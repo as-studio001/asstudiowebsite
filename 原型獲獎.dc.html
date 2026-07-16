@@ -376,14 +376,16 @@ class Component extends DCLogic {
   state = { isDarkMode: false, showMaterialMenu: false };
 
   // 資料來源：活頁簿1.xlsx「原型獲獎」工作表（編號／大標／小小標，C 欄目前有資料填的是年份）
-  // 6 個滑塊已依大標名稱對應 media/原型獲獎/ 資料夾的照片（複製進 uploads/，白字 textOverride）；target 未指定（不確定的話先留空，點擊無動作，之後再補）
+  // 6 個滑塊已依大標名稱對應 media/原型獲獎/ 資料夾的照片，檔名維持原始（複製進 uploads/原型獲獎/
+  // 子資料夾，跟下面 awardListItems 用同一個資料夾、同一套「檔名不改」的規則，見該處註解），
+  // 白字 textOverride；target 未指定（不確定的話先留空，點擊無動作，之後再補）
   galleryItems = [
-    { num: '01', zh: '舊屋力競賽', en: '2025', photo: 'uploads/舊屋力競賽.png', textOverride: '#ffffff' },
-    { num: '02', zh: 'ADA新銳建築獎', en: '2018、2021', photo: 'uploads/ADA新銳建築獎.jpg', textOverride: '#ffffff' },
-    { num: '03', zh: '台灣建築獎', en: '2015、2017', photo: 'uploads/台灣建築獎.jpg', textOverride: '#ffffff' },
-    { num: '04', zh: '德國IF設計獎', en: '2023', photo: 'uploads/德國IF設計獎.jpg', textOverride: '#ffffff' },
-    { num: '05', zh: '競圖', en: '', photo: 'uploads/競圖.jpg', textOverride: '#ffffff' },
-    { num: '06', zh: 'X-SITE', en: '2015、2016、2020、2021、2023', photo: 'uploads/X-SITE.jpg', textOverride: '#ffffff' }
+    { num: '01', zh: '舊屋力競賽', en: '2025', photo: 'uploads/原型獲獎/舊屋力.png', textOverride: '#ffffff' },
+    { num: '02', zh: 'ADA新銳建築獎', en: '2018、2021', photo: 'uploads/原型獲獎/ADA.jpg', textOverride: '#ffffff' },
+    { num: '03', zh: '台灣建築獎', en: '2015、2017', photo: 'uploads/原型獲獎/台灣建築獎.jpg', textOverride: '#ffffff' },
+    { num: '04', zh: '德國IF設計獎', en: '2023', photo: 'uploads/原型獲獎/IF設計獎.jpg', textOverride: '#ffffff' },
+    { num: '05', zh: '競圖', en: '', photo: 'uploads/原型獲獎/競圖.jpg', textOverride: '#ffffff' },
+    { num: '06', zh: 'X-SITE', en: '2015、2016、2020、2021、2023', photo: 'uploads/原型獲獎/X-SITE.jpg', textOverride: '#ffffff' }
   ];
 
   // 資料來源：活頁簿1.xlsx「獲獎清單」工作表（年分／清單／獎項／連結，第一列標題，共 24 筆；
