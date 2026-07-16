@@ -1,4 +1,4 @@
-# **網頁更新操作手冊**
+# **網頁更新操作手冊(使用Claude編寫)**
 ## **1.關於github**  
 帳號:as.studio001@gmail.com  
 密碼:Petermax2026  
