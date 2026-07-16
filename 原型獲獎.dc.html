@@ -391,37 +391,41 @@ class Component extends DCLogic {
   // 這裡是照最新的活頁簿重新整批帶入）。連結欄用 openpyxl 讀出來的儲存格超連結（cell.hyperlink），
   // 不是欄位文字本身，markitdown 轉出來的表格不會帶超連結，同步這欄要另外用 openpyxl 讀。
   // 14/15/16 這三筆該欄是空的，link 留空字串，清單題渲染成純文字、不做成連結（見樣板的 sc-if）。
-  // photo：01-13、17-24 共 21 筆已從 media/原型獲獎/ 複製進 uploads/ 並依項目命名
-  // （檔名前綴「獲獎-」跟上面畫廊滑塊用的 uploads/X-SITE.jpg 等分類縮圖區隔開，避免同名衝突）。
+  // photo：01-13、17-24 共 21 筆放在 uploads/原型獲獎/ 這個子資料夾裡，檔名維持跟
+  // media/原型獲獎/ 本機來源資料夾一樣的原始檔名，不要加前綴或改名——維護者是直接把
+  // media/原型獲獎/ 裡的檔案原封不動拖到 GitHub 網頁上的 uploads/原型獲獎/ 資料夾，
+  // 兩邊檔名要逐字一致（含副檔名大小寫，例如「實驗木場ADA.JPG」是大寫 JPG，GitHub Pages
+  // 底層是 Linux，路徑大小寫敏感，本機 Windows 測試不出來但部署後會 404，之前就因為
+  // 改成扁平放在 uploads/ 底下、又加了「獲獎-」前綴而兜不起來，才會圖片整批失效）。
   // 06「嘉義美術館台灣建築獎」跟 17「嘉義市立美術館設計監造案競圖」是同一棟建築的兩個不同
-  // 獎項紀錄，各自有自己的照片（獲獎-嘉美台灣建築獎.jpg／獲獎-嘉義美術館.jpg），不要看名稱像
-  // 就合併成同一張。14、15、16 這 3 筆目前沒有對應照片，之後補齊直接填 uploads/ 路徑
-  // 即可自動換成真實照片，不用改版型或 CSS
+  // 獎項紀錄，各自有自己的照片（嘉美台灣建築獎.jpg／嘉義美術館.jpg），不要看名稱像就合併成
+  // 同一張。14、15、16 這 3 筆目前沒有對應照片，之後補齊一樣要放進 uploads/原型獲獎/、
+  // 檔名跟本機來源一致，不用改版型或 CSS
   awardListItems = [
-    { num: '01', year: '2025', name: '舊屋力競賽', tier: '首獎', photo: 'uploads/獲獎-舊屋力剖面.png', link: 'https://drive.google.com/file/d/1luGDATcXj7FvjQ_h9uHDZUG-NqNW68Px/view' },
-    { num: '02', year: '2021', name: '嘉義實驗木場ADA新銳建築獎', tier: '首獎', photo: 'uploads/獲獎-實驗木場ADA.jpg', link: 'https://astaiwan.wixsite.com/website-1' },
-    { num: '03', year: '2018', name: '澎湖ENISHI緣民宿ADA新銳建築獎', tier: '首獎', photo: 'uploads/獲獎-緣宿.jpg', link: 'https://www.shoppingdesign.com.tw/post/view/6414?' },
-    { num: '04', year: '2023', name: '基隆太平國小台灣建築獎', tier: '建築轉生特別獎', photo: 'uploads/獲獎-太平國小.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608372' },
-    { num: '05', year: '2022', name: '德光教會台灣建築獎', tier: '佳作', photo: 'uploads/獲獎-德光教會.jpg', link: 'https://ct.org.tw/html/news/3-3.php?cat=26&article=1392838' },
-    { num: '06', year: '2021', name: '嘉義美術館台灣建築獎', tier: '首獎', photo: 'uploads/獲獎-嘉美台灣建築獎.jpg', link: 'https://www.chiayi.gov.tw/News_Content.aspx?n=455&s=628227' },
-    { num: '07', year: '2018', name: '嘉義火車站站前西側廣場台灣建築獎', tier: '佳作', photo: 'uploads/獲獎-嘉火西側.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608375' },
-    { num: '08', year: '2017', name: '宜蘭中山小巨蛋台灣建築獎', tier: '佳作', photo: 'uploads/獲獎-宜蘭小巨蛋.jpg', link: 'https://www.twarchitect.org.tw/works/%E4%B8%AD%E5%B1%B1%E5%B0%8F%E5%B7%A8%E8%9B%8B%E8%88%87%E5%91%A8%E9%82%8A%E9%80%9A%E5%AD%B8%E5%BB%8A%E9%81%93/' },
-    { num: '09', year: '2015', name: '雲林農博台灣建築獎', tier: '首獎', photo: 'uploads/獲獎-雲林農博.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=503916' },
-    { num: '10', year: '2023', name: '台中潭心鐵馬空橋德國IF設計獎', tier: '獲獎', photo: 'uploads/獲獎-台中橋.jpg', link: 'https://www.youtube.com/watch?v=E6ZyKXVKgWU' },
-    { num: '11', year: '2023', name: '嘉義實驗木場德國IF設計獎', tier: '獲獎', photo: 'uploads/獲獎-實驗木場.jpg', link: 'https://astaiwan.wixsite.com/website-1' },
-    { num: '12', year: '2023', name: '嘉義構竹林鐵新銳展德國IF設計獎', tier: '獲獎', photo: 'uploads/獲獎-構竹林鐵.png', link: 'https://astaiwan.wixsite.com/bamboo-newfield' },
-    { num: '13', year: '2019', name: '故宮南院景觀橋新建工程競圖', tier: '獲勝', photo: 'uploads/獲獎-故宮南院攬月橋.png', link: 'https://www.mashup.com.tw/as%20studio/?page=movies_list&group_id=1073' },
+    { num: '01', year: '2025', name: '舊屋力競賽', tier: '首獎', photo: 'uploads/原型獲獎/舊屋力剖面.png', link: 'https://drive.google.com/file/d/1luGDATcXj7FvjQ_h9uHDZUG-NqNW68Px/view' },
+    { num: '02', year: '2021', name: '嘉義實驗木場ADA新銳建築獎', tier: '首獎', photo: 'uploads/原型獲獎/實驗木場ADA.JPG', link: 'https://astaiwan.wixsite.com/website-1' },
+    { num: '03', year: '2018', name: '澎湖ENISHI緣民宿ADA新銳建築獎', tier: '首獎', photo: 'uploads/原型獲獎/緣宿.jpg', link: 'https://www.shoppingdesign.com.tw/post/view/6414?' },
+    { num: '04', year: '2023', name: '基隆太平國小台灣建築獎', tier: '建築轉生特別獎', photo: 'uploads/原型獲獎/太平國小.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608372' },
+    { num: '05', year: '2022', name: '德光教會台灣建築獎', tier: '佳作', photo: 'uploads/原型獲獎/德光教會.jpg', link: 'https://ct.org.tw/html/news/3-3.php?cat=26&article=1392838' },
+    { num: '06', year: '2021', name: '嘉義美術館台灣建築獎', tier: '首獎', photo: 'uploads/原型獲獎/嘉美台灣建築獎.jpg', link: 'https://www.chiayi.gov.tw/News_Content.aspx?n=455&s=628227' },
+    { num: '07', year: '2018', name: '嘉義火車站站前西側廣場台灣建築獎', tier: '佳作', photo: 'uploads/原型獲獎/嘉火西側.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608375' },
+    { num: '08', year: '2017', name: '宜蘭中山小巨蛋台灣建築獎', tier: '佳作', photo: 'uploads/原型獲獎/宜蘭小巨蛋.jpg', link: 'https://www.twarchitect.org.tw/works/%E4%B8%AD%E5%B1%B1%E5%B0%8F%E5%B7%A8%E8%9B%8B%E8%88%87%E5%91%A8%E9%82%8A%E9%80%9A%E5%AD%B8%E5%BB%8A%E9%81%93/' },
+    { num: '09', year: '2015', name: '雲林農博台灣建築獎', tier: '首獎', photo: 'uploads/原型獲獎/雲林農博.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=503916' },
+    { num: '10', year: '2023', name: '台中潭心鐵馬空橋德國IF設計獎', tier: '獲獎', photo: 'uploads/原型獲獎/台中橋.jpg', link: 'https://www.youtube.com/watch?v=E6ZyKXVKgWU' },
+    { num: '11', year: '2023', name: '嘉義實驗木場德國IF設計獎', tier: '獲獎', photo: 'uploads/原型獲獎/實驗木場.jpg', link: 'https://astaiwan.wixsite.com/website-1' },
+    { num: '12', year: '2023', name: '嘉義構竹林鐵新銳展德國IF設計獎', tier: '獲獎', photo: 'uploads/原型獲獎/構竹林鐵.png', link: 'https://astaiwan.wixsite.com/bamboo-newfield' },
+    { num: '13', year: '2019', name: '故宮南院景觀橋新建工程競圖', tier: '獲勝', photo: 'uploads/原型獲獎/故宮南院攬月橋.png', link: 'https://www.mashup.com.tw/as%20studio/?page=movies_list&group_id=1073' },
     { num: '14', year: '2017', name: '華德福實驗分校第二期校舍新建工程競圖', tier: '獲勝', photo: '', link: '' },
     { num: '15', year: '2016', name: '桃園市蘆竹國民運動中心興建工程競圖', tier: '獲勝', photo: '', link: '' },
     { num: '16', year: '2016', name: '金門水頭港遊客服務中心新建工程競圖', tier: '獲勝', photo: '', link: '' },
-    { num: '17', year: '2015', name: '嘉義市立美術館設計監造案競圖', tier: '獲勝', photo: 'uploads/獲獎-嘉義美術館.jpg', link: 'https://www.youtube.com/watch?v=BHEMBPrB9MM&t=1s' },
-    { num: '18', year: '2015', name: '左鎮菜寮化石文化園區改建工程競圖', tier: '獲勝', photo: 'uploads/獲獎-化石文化園區.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=505964' },
-    { num: '19', year: '2023', name: 'X-SITE「途中」', tier: '獲獎', photo: 'uploads/獲獎-途中.png', link: 'https://www.tfam.museum/Exhibition/Exhibition_Special.aspx?ddlLang=zh-tw&id=731' },
-    { num: '20', year: '2022', name: 'X-SITE「藍屋」', tier: '獲獎', photo: 'uploads/獲獎-藍屋.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=707' },
-    { num: '21', year: '2021', name: 'X-SITE「爆炸容器」', tier: '獲獎', photo: 'uploads/獲獎-爆炸容器.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=687' },
-    { num: '22', year: '2020', name: 'X-SITE「膜」', tier: '獲獎', photo: 'uploads/獲獎-膜.png', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=672' },
-    { num: '23', year: '2016', name: 'X-SITE「浮光之間」', tier: '獲獎', photo: 'uploads/獲獎-浮光之間.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=584' },
-    { num: '24', year: '2015', name: 'X-SITE「未知質域」', tier: '獲獎', photo: 'uploads/獲獎-未知的質域.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=532' }
+    { num: '17', year: '2015', name: '嘉義市立美術館設計監造案競圖', tier: '獲勝', photo: 'uploads/原型獲獎/嘉義美術館.jpg', link: 'https://www.youtube.com/watch?v=BHEMBPrB9MM&t=1s' },
+    { num: '18', year: '2015', name: '左鎮菜寮化石文化園區改建工程競圖', tier: '獲勝', photo: 'uploads/原型獲獎/化石文化園區.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=505964' },
+    { num: '19', year: '2023', name: 'X-SITE「途中」', tier: '獲獎', photo: 'uploads/原型獲獎/途中.png', link: 'https://www.tfam.museum/Exhibition/Exhibition_Special.aspx?ddlLang=zh-tw&id=731' },
+    { num: '20', year: '2022', name: 'X-SITE「藍屋」', tier: '獲獎', photo: 'uploads/原型獲獎/藍屋.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=707' },
+    { num: '21', year: '2021', name: 'X-SITE「爆炸容器」', tier: '獲獎', photo: 'uploads/原型獲獎/爆炸容器.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=687' },
+    { num: '22', year: '2020', name: 'X-SITE「膜」', tier: '獲獎', photo: 'uploads/原型獲獎/膜.png', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=672' },
+    { num: '23', year: '2016', name: 'X-SITE「浮光之間」', tier: '獲獎', photo: 'uploads/原型獲獎/浮光之間.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=584' },
+    { num: '24', year: '2015', name: 'X-SITE「未知質域」', tier: '獲獎', photo: 'uploads/原型獲獎/未知的質域.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=532' }
   ];
 
   scrollToSection(id) {
