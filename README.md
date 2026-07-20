@@ -46,4 +46,5 @@
 https://skiper-ui.com/  
 https://animmasterlib.dev/scroll  
 https://kinetics.colorion.co/  
-https://www.originkit.dev/
+https://www.originkit.dev/  
+https://horizonx.so/  
