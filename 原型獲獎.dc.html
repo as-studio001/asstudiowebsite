@@ -15,7 +15,7 @@
   try { sessionStorage.removeItem('scTransitionIn'); } catch (err) {}
 
   // 本頁的大標題文字，需與 <h1> 內容一致
-  var ARRIVAL_WORD = '原型教學';
+  var ARRIVAL_WORD = '原型獲獎';
   var HOLD_AFTER_NAV_MS = 450;
   var EXIT_SLIDE_MS = 700;
   var OVERLAY_BG = '#0a0a0a';
@@ -25,7 +25,7 @@
   overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:' + OVERLAY_BG + ';display:flex;align-items:center;justify-content:center;opacity:1;transform:translateY(0);';
   var wordEl = document.createElement('span');
   wordEl.textContent = ARRIVAL_WORD;
-  wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:20px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
+  wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:15px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
   overlay.appendChild(wordEl);
   document.body.appendChild(overlay);
 
@@ -99,9 +99,12 @@
   </header>
 
   <!-- PAGE CONTENT -->
-  <section style="padding:220px 40px 160px; max-width:1600px; margin:0 auto;">
+  <section style="padding:220px 40px 160px; max-width:900px; margin:0 auto;">
 
-    <!-- HOVER-EXPAND GALLERY (skiper35 效果的替代版，來自「活頁簿1／原型教學」工作表，7 欄，圖片暫用佔位圖示) -->
+    <!-- HOVER-EXPAND GALLERY (skiper35 效果的替代版，來自「活頁簿1／原型獲獎」工作表，6 欄，
+         已依大標名稱對應 media/原型獲獎/ 資料夾的照片；
+         該工作表 C 欄標題是「小小標(比小標字更小一點)」，內容是年份，仍對應到通用版型的 en 欄位 /
+         sc-gallery-sub，跟其他子頁的「小標」共用同一套 CSS，未另外調整字級 ) -->
     <style>
       .sc-gallery { position:relative; display:flex; height:328px; margin-bottom:56px; }
       /* 游標彗星尾巴：容器包住整個圖片列（contained area），dot 只在滑鼠停留在列內時顯示，
@@ -145,7 +148,7 @@
       }
       .sc-gallery-num {
         position:absolute; left:0; bottom:0; transform-origin:left bottom;
-        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:20px; letter-spacing:0.05em;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:15px; letter-spacing:0.05em;
         white-space:nowrap; transform:translateY(-280px) rotate(0deg);
         transition:transform 0.5s cubic-bezier(.65,0,.35,1);
       }
@@ -156,7 +159,7 @@
         display:flex; flex-direction:column; justify-content:flex-end;
       }
       .sc-gallery-sub {
-        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:17px; line-height:1.3;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:13px; line-height:1.3;
         margin:0; white-space:nowrap; overflow:hidden;
         max-height:0; transform:scaleY(0); transform-origin:bottom;
         transition:max-height 0.4s ease, transform 0.4s ease;
@@ -164,7 +167,7 @@
       .sc-gallery-panel:hover .sc-gallery-sub { max-height:20px; transform:scaleY(1); }
       .sc-gallery-main {
         display:inline-block; transform-origin:left bottom;
-        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:21px; line-height:1.2;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:16px; line-height:1.2;
         margin:0; white-space:nowrap;
         transform:rotate(-90deg);
         transition:transform 0.5s cubic-bezier(.65,0,.35,1);
@@ -172,7 +175,7 @@
       .sc-gallery-panel:hover .sc-gallery-main { transform:rotate(0deg); }
     </style>
     <div class="sc-gallery" id="sc-gallery">
-      <sc-for list="{{ galleryItems }}" as="item" hint-placeholder-count="7">
+      <sc-for list="{{ galleryItems }}" as="item" hint-placeholder-count="6">
         <div class="sc-gallery-panel" data-photo="{{ item.hasPhoto }}" onClick="{{ item.goTo }}" style="background-color:{{ item.bg }}; border-left:{{ item.borderLeft }}; background-image:{{ item.bgImage }}; background-repeat:no-repeat; background-position:{{ item.bgPosition }}; background-size:{{ item.bgSize }};">
           <sc-if value="{{ !item.hasPhoto }}" hint-placeholder-val="{{ true }}">
             <svg class="sc-gallery-icon" viewBox="0 0 24 24" fill="none" stroke="{{ item.text }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -193,74 +196,139 @@
       <div class="sc-cursor-chain" id="sc-cursor-chain" style="color:#B4A249;"></div>
     </div>
 
-    <div style="font-size:19px; letter-spacing:0.1em; opacity:0.5; margin-bottom:16px;">
-      <a href="./index.html">首頁</a> / 原型教學
+    <div style="font-size:14px; letter-spacing:0.1em; opacity:0.5; margin-bottom:16px;">
+      <a href="./index.html">首頁</a> / 原型獲獎
     </div>
-    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:20px; font-weight:800; letter-spacing:0.02em; margin:0 0 40px 0;">原型教學</h1>
+    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:15px; font-weight:800; letter-spacing:0.02em; margin:0 0 40px 0;">原型獲獎</h1>
     <div style="display:flex; flex-direction:column; gap:72px;">
 
-      <div id="sc-section-school">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">學校是一切感知的起點</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">學校不只是知識傳遞的場域，更是培養觀察與創造力的溫床。從美感教育到實習現場，我們讓學生在真實的設計環境中學習思考與協作，理解結構與空間的邏輯。孩童的感知提醒我們，設計應保有遊戲與直覺的特質，讓建築的學習重新回到感受與想像的起點。</p>
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">School as the Origin of Perception</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">A school is more than a place for transmitting knowledge—it is a ground for cultivating observation and creativity. From aesthetic education to hands-on internships, we invite students to think and collaborate within real design environments, learning the logic of structure and space. The sensitivity of children reminds us that design should preserve the spirit of play and intuition, bringing architectural learning back to the origins of feeling and imagination.</p>
+      <div id="sc-section-recognition">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">獲獎是對方法的肯定</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">每一項獎項的背後，都是對設計方法與態度的回應。從構築的實驗精神到細節的精準掌握，我們相信「獲獎」並非終點，而是對思考深度與執行力的再確認。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Recognition as a Validation of Method</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Every award reflects a response to our design method and attitude. From structural experimentation to precise detailing, recognition is not an endpoint but an affirmation of thought and execution.</p>
       </div>
 
-      <div id="sc-section-culture">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">文化是一種工作的方法</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">文化是設計方法與工作態度的總和。從設計討論的節奏到團隊協作的方式，原型結構延續日本工作文化的細緻與專注，並融入在地的自由思辨。每一次專案都是對方法的再實驗，也是對時間與人之關係的重新體驗。透過紀錄與大事紀，我們將這些片段化為集體記憶，成為下一次創作的起點。</p>
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Culture as a Way of Working</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Culture is the sum of our design methods and working attitudes. From the rhythm of discussions to the modes of collaboration, AS Studio inherits the precision and focus of Japanese work culture while embracing the openness of local reflection. Each project becomes an experiment in method and an encounter with time and people. Through documentation and collective records, these moments are transformed into shared memory—the foundation for the next act of creation.</p>
+      <div id="sc-section-dialogue-world">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">以作品對話世界</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">原型結構的作品多次榮獲國內外獎項，包括 ADA 新銳建築獎、金點設計獎 與 iF 設計獎。這些肯定代表建築不僅是形式的創新，更是理念與社會價值的連結。每一件作品皆以清晰的結構語言與人文關懷，持續在世界舞台上發聲。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Dialogue Through Work</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Prototype Structure has received multiple honors, including the ADA Emerging Architect Award, the Golden Pin Design Award, and the iF Design Award. These achievements show that architecture is not only about form but also about connecting ideas with cultural and social values. Each project communicates through structural clarity and human sensitivity, engaging in a dialogue with the world.</p>
       </div>
 
-      <div id="sc-section-digital">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">數位工具是思想的延伸</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">數位工具在我們的工作流程中扮演思想引擎的角色。ArchiCAD 負責整合資訊與構築，Midjourney 則以生成影像探索概念的可能，Midas 進行結構模擬與力學驗證。三者共同構築出新的設計生態，讓建築在資料、感知與結構之間取得平衡，展現技術與詩意共存的當代構築語言。</p>
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Digital Tools as Extensions of Thought</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Digital tools function as engines of thought within our process. ArchiCAD integrates information and construction, Midjourney explores conceptual possibilities through generative imagery, and Midas conducts structural simulations and mechanical analysis. Together, they shape a new design ecology in which architecture finds balance among data, perception, and structure—revealing a contemporary language where technology and poetics coexist.</p>
+      <div id="sc-section-return-origin">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">從榮譽回到原點</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">對我們而言，榮譽的意義在於回望過程。每一次被看見，都是一次重新出發——讓團隊持續檢視建築的初衷，回到材料、結構與時間的對話，從實踐中再發現創作的起點。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Returning to the Origin</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">For us, honor means reflection. Each recognition is a moment to look back, refine our process, and rediscover the origins of creation. Through every project, we return to the dialogue between material, structure, and time—continuing to seek meaning beyond the award itself.</p>
       </div>
 
-      <!-- VERTICAL TIMELINE：軸線靠左，滾動到才顯示，顯示後捲回上面也不會消失（佔位文字） -->
-      <div id="sc-section-timeline">
+      <!-- 得獎名錄：參考 skiper-ui.com/v1/skiper24 的「清單 + 大圖預覽」效果做簡化改編，
+           跟參考版本的差異（維護者指定）：
+           (1) 不隨項目切換底色，固定沿用頁面本身的淺色白底／深色黑底，不額外加底色動畫；
+           (2) 案例照片尚未蒐集完成，先用跟畫廊滑塊同一套的佔位圖示，之後把 awardListItems
+               裡對應項目的 photo 欄位填上路徑即可自動換成真實照片，不用改版型；
+           (3) 「焦點」列預設由捲動位置決定——畫面目前可見的名錄項目裡，由下往上數第三個——
+               文字放大到 18px、變成全不透明（近黑/近白），其餘維持 13px 灰字；懸停在「文字本身」
+               （大標或年份標籤，不含列的空白區域）上會暫時把焦點切到該列，滑開文字後回到捲動位置
+               決定的那一列。這個判斷需要即時量測每列在視窗內的位置，CSS :hover 做不到，所以改成
+               JS 在 componentDidMount 用 getBoundingClientRect＋class 切換（見下方 script），
+               不透過樣板 setState 重繪整頁，滾動才不會卡頓，原則跟資訊卡手風琴的 class 切換一致。
+           不放標題、不放分隔線：純用列高的 padding 做節奏，不畫 border-bottom。
+           (4) 大圖預覽固定釘在畫面右下角（position:fixed），不會跟著焦點列的捲動位置到處跳動；
+               只有顯示的照片（背景圖）會隨焦點列切換，位置本身固定不動。因為只需要一個預覽框，
+               不再是每一列各自帶一個，改成 sc-for 外面唯一一個 .sc-award-preview，
+               內容由 JS 在切換焦點時直接讀該列 data-photo 寫進 background-image，
+               不透過樣板重繪（原因同上，滾動時要順）。 -->
+      <div id="sc-section-award-list">
         <style>
-          .sc-timeline { position:relative; padding-left:28px; margin-left:76px; }
-          .sc-timeline-line {
-            position:absolute; left:3px; top:6px; width:1px; height:0;
-            transition:height 0.6s ease;
+          .sc-award-list-wrap { position:relative; overflow:hidden; }
+          .sc-award-list { display:flex; flex-direction:column; }
+          .sc-award-row {
+            position:relative; display:flex; align-items:flex-start; gap:16px;
+            max-width:460px; padding:13px 0;
           }
-          .sc-timeline-item { position:relative; }
-          .sc-timeline-item-inner {
-            overflow:hidden;
-            max-height:0; opacity:0; padding-bottom:0;
-            transition:max-height 0.6s ease, opacity 0.5s ease 0.1s, padding-bottom 0.6s ease;
+          .sc-award-row-num {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:11px;
+            opacity:0.35; flex-shrink:0; width:20px; margin-top:2px;
           }
-          .sc-timeline-item.sc-visible .sc-timeline-item-inner { max-height:140px; opacity:1; padding-bottom:44px; }
-          .sc-timeline-item.sc-visible:last-child .sc-timeline-item-inner { padding-bottom:0; }
-          .sc-timeline-dot {
-            position:absolute; left:-28px; top:4px; width:7px; height:7px; border-radius:50%;
-            opacity:0; transition:opacity 0.4s ease 0.15s;
+          .sc-award-row-text { display:flex; flex-direction:column; min-width:0; }
+          /* 「焦點」列（.sc-award-row-active）：預設由捲動位置決定（畫面中由下往上數第三個項目，
+             JS 用 getBoundingClientRect 逐列量測），懸停在文字本身上時暫時改成該列，
+             滑開文字後回到捲動位置決定的那一列——class 由 JS 直接切換（跟資訊卡手風琴同一手法），
+             不透過樣板重繪，滾動才不會卡頓。字級放大/變黑只發生在焦點列的清單題，其餘維持灰色小字。
+             版面依格式參考圖：獎項在最上面、字體最細；清單題在下面、字體最粗（一律粗體，不只是
+             焦點列才粗）；年分在清單題右側、跟清單題垂直置中對齊、兩者間固定間距、字體最細。 */
+          .sc-award-row-tier {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:11px; letter-spacing:0.05em;
+            opacity:0.35; white-space:nowrap; cursor:default; margin-bottom:2px;
+            transition:opacity 0.35s ease;
           }
-          .sc-timeline-item.sc-visible .sc-timeline-dot { opacity:1; }
-          .sc-timeline-year {
-            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:20px; margin:0 0 6px 0;
+          .sc-award-row.sc-award-row-active .sc-award-row-tier { opacity:0.7; }
+          .sc-award-row-name-line { display:flex; align-items:center; gap:16px; }
+          .sc-award-row-name {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:700; font-size:13px; line-height:1.5;
+            opacity:0.45; cursor:default;
+            transition:font-size 0.4s cubic-bezier(.16,1,.3,1), opacity 0.35s ease;
           }
-          .sc-timeline-event {
-            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:17px; line-height:1.8; opacity:0.85; margin:0;
+          .sc-award-row.sc-award-row-active .sc-award-row-name { font-size:18px; opacity:1; }
+          /* 有連結的清單題是 <a>，沒連結的是純 <span>——只有前者要用 pointer 游標提示可點擊，
+             不能寫在共用的 .sc-award-row-name 上（那樣沒連結的 span 也會變 pointer） */
+          a.sc-award-row-name { cursor:pointer; }
+          .sc-award-row-year {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:11px;
+            opacity:0.35; white-space:nowrap; cursor:default;
+            transition:opacity 0.35s ease;
           }
-          .sc-timeline-fade-hint { height:60px; margin-top:-12px; }
+          .sc-award-row.sc-award-row-active .sc-award-row-year { opacity:0.7; }
+          /* 唯一一個大圖預覽框，1:1 正方形，預設釘在畫面右下角；.sc-award-preview-visible
+             控制顯示/隱藏，.sc-award-preview-has-photo 有照片時才藏起佔位圖示（兩個 class 都由
+             JS 切換）。bottom 值故意不寫死在這裡——JS 會在捲動時動態改 inline style 的 bottom，
+             讓圖片在名單快捲到底時改成跟著最後一筆的底部一起移動（見 componentDidMount），
+             這裡的 40px 只是 JS 接手前的預設值，且 transition 故意不含 bottom，
+             這樣位置變化才會跟捲動同步，不會有動畫延遲的錯位感。 */
+          .sc-award-preview {
+            position:fixed; right:40px; bottom:40px; z-index:200;
+            width:200px; height:200px; border-radius:6px; overflow:hidden;
+            background-repeat:no-repeat; background-position:center; background-size:cover;
+            display:flex; align-items:center; justify-content:center;
+            opacity:0; pointer-events:none;
+            transform:translateY(12px) scale(0.96);
+            transition:opacity 0.4s ease, transform 0.45s cubic-bezier(.16,1,.3,1);
+          }
+          .sc-award-preview.sc-award-preview-visible { opacity:1; transform:translateY(0) scale(1); }
+          .sc-award-preview-icon { width:26px; height:26px; opacity:0.3; }
+          .sc-award-preview.sc-award-preview-has-photo .sc-award-preview-icon { display:none; }
         </style>
-        <div class="sc-timeline">
-          <div class="sc-timeline-line" style="background:{{ textColor }};"></div>
-          <sc-for list="{{ timelineItems }}" as="tItem" hint-placeholder-count="10">
-            <div class="sc-timeline-item">
-              <span class="sc-timeline-dot" style="background:{{ textColor }};"></span>
-              <div class="sc-timeline-item-inner">
-                <p class="sc-timeline-year" style="color:{{ textColor }};">{{ tItem.year }}</p>
-                <p class="sc-timeline-event" style="color:{{ textColor }};">{{ tItem.event }}</p>
+        <div class="sc-award-list-wrap">
+          <div class="sc-award-list">
+            <sc-for list="{{ awardListItems }}" as="item" hint-placeholder-count="24">
+              <div class="sc-award-row" data-photo="{{ item.photo }}">
+                <span class="sc-award-row-num" style="color:{{ textColor }};">{{ item.num }}</span>
+                <div class="sc-award-row-text">
+                  <sc-if value="{{ item.tier }}" hint-placeholder-val="{{ true }}">
+                    <span class="sc-award-row-tier" style="color:{{ textColor }};">{{ item.tier }}</span>
+                  </sc-if>
+                  <div class="sc-award-row-name-line">
+                    <sc-if value="{{ item.link }}" hint-placeholder-val="{{ true }}">
+                      <a class="sc-award-row-name" href="{{ item.link }}" target="_blank" rel="noopener" style="color:{{ textColor }};">{{ item.name }}</a>
+                    </sc-if>
+                    <sc-if value="{{ !item.link }}" hint-placeholder-val="{{ false }}">
+                      <span class="sc-award-row-name" style="color:{{ textColor }};">{{ item.name }}</span>
+                    </sc-if>
+                    <span class="sc-award-row-year" style="color:{{ textColor }};">{{ item.year }}</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </sc-for>
-          <div class="sc-timeline-fade-hint" style="background:linear-gradient(to bottom, transparent, {{ bgColor }});"></div>
+            </sc-for>
+          </div>
+        </div>
+        <div class="sc-award-preview" style="background-color:{{ awardPreviewPlaceholderBg }}; border:1px solid {{ awardPreviewPlaceholderBorder }};">
+          <svg class="sc-award-preview-icon" viewBox="0 0 24 24" fill="none" stroke="{{ textColor }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <path d="M21 15l-5-5L5 21"></path>
+          </svg>
         </div>
       </div>
 
@@ -307,16 +375,59 @@
 class Component extends DCLogic {
   state = { isDarkMode: false, showMaterialMenu: false };
 
-  // 資料來源：活頁簿1.xlsx「原型教學」工作表（編號／大標／小標）
-  // target：點擊滑塊後捲動至對應段落（id 見下方內文區塊），無 target 者點擊無動作
+  // 資料來源：活頁簿1.xlsx「原型獲獎」工作表（編號／大標／小小標，C 欄目前有資料填的是年份）
+  // 6 個滑塊已依大標名稱對應 media/原型獲獎/ 資料夾的照片，檔名維持原始（複製進 uploads/原型獲獎/
+  // 子資料夾，跟下面 awardListItems 用同一個資料夾、同一套「檔名不改」的規則，見該處註解），
+  // 白字 textOverride；target 未指定（不確定的話先留空，點擊無動作，之後再補）
   galleryItems = [
-    { num: '01', zh: '實習', en: 'Internship', target: 'sc-section-school', photo: 'uploads/實習.jpg', textOverride: '#ffffff' },
-    { num: '02', zh: '美感教育', en: 'Aesthetic Education', target: 'sc-section-school', photo: 'uploads/美感教育.jpg', textOverride: '#ffffff' },
-    { num: '03', zh: '原型數位', en: 'AS Technology', target: 'sc-section-digital', photo: 'uploads/原型數位.png', textOverride: '#1a1a1a' },
-    { num: '04', zh: '文化', en: 'Culture', target: 'sc-section-culture', photo: 'uploads/文化.jpg', textOverride: '#ffffff' },
-    { num: '05', zh: '設計方法', en: 'Design Methodology', target: 'sc-section-culture', photo: 'uploads/設計方法.png', textOverride: '#ffffff' },
-    { num: '06', zh: '工作文化', en: 'Work Culture', target: 'sc-section-culture', photo: 'uploads/工作文化.jpg', textOverride: '#ffffff' },
-    { num: '07', zh: '大事記', en: 'Chronology', target: 'sc-section-timeline' }
+    { num: '01', zh: '舊屋力競賽', en: '2025', photo: 'uploads/原型獲獎/舊屋力.png', textOverride: '#ffffff' },
+    { num: '02', zh: 'ADA新銳建築獎', en: '2018、2021', photo: 'uploads/原型獲獎/ADA.jpg', textOverride: '#ffffff' },
+    { num: '03', zh: '台灣建築獎', en: '2015、2017', photo: 'uploads/原型獲獎/台灣建築獎.jpg', textOverride: '#ffffff' },
+    { num: '04', zh: '德國IF設計獎', en: '2023', photo: 'uploads/原型獲獎/IF設計獎.jpg', textOverride: '#ffffff' },
+    { num: '05', zh: '競圖', en: '', photo: 'uploads/原型獲獎/競圖.jpg', textOverride: '#ffffff' },
+    { num: '06', zh: 'X-SITE', en: '2015、2016、2020、2021、2023', photo: 'uploads/原型獲獎/X-SITE.jpg', textOverride: '#ffffff' }
+  ];
+
+  // 資料來源：活頁簿1.xlsx「獲獎清單」工作表（年分／清單／獎項／連結，第一列標題，共 24 筆；
+  // 欄位已改版，清單欄不再帶年份字首、獎項欄也已全部填滿，跟舊版同步時的資料不一樣，
+  // 這裡是照最新的活頁簿重新整批帶入）。連結欄用 openpyxl 讀出來的儲存格超連結（cell.hyperlink），
+  // 不是欄位文字本身，markitdown 轉出來的表格不會帶超連結，同步這欄要另外用 openpyxl 讀。
+  // 14/15/16 這三筆該欄是空的，link 留空字串，清單題渲染成純文字、不做成連結（見樣板的 sc-if）。
+  // photo：01-13、17-24 共 21 筆放在 uploads/原型獲獎/ 這個子資料夾裡，檔名維持跟
+  // media/原型獲獎/ 本機來源資料夾一樣的原始檔名，不要加前綴或改名——維護者是直接把
+  // media/原型獲獎/ 裡的檔案原封不動拖到 GitHub 網頁上的 uploads/原型獲獎/ 資料夾，
+  // 兩邊檔名要逐字一致（含副檔名大小寫，例如「實驗木場ADA.JPG」是大寫 JPG，GitHub Pages
+  // 底層是 Linux，路徑大小寫敏感，本機 Windows 測試不出來但部署後會 404，之前就因為
+  // 改成扁平放在 uploads/ 底下、又加了「獲獎-」前綴而兜不起來，才會圖片整批失效）。
+  // 06「嘉義美術館台灣建築獎」跟 17「嘉義市立美術館設計監造案競圖」是同一棟建築的兩個不同
+  // 獎項紀錄，各自有自己的照片（嘉美台灣建築獎.jpg／嘉義美術館.jpg），不要看名稱像就合併成
+  // 同一張。14、15、16 這 3 筆目前沒有對應照片，之後補齊一樣要放進 uploads/原型獲獎/、
+  // 檔名跟本機來源一致，不用改版型或 CSS
+  awardListItems = [
+    { num: '01', year: '2025', name: '舊屋力競賽', tier: '首獎', photo: 'uploads/原型獲獎/舊屋力剖面.png', link: 'https://drive.google.com/file/d/1luGDATcXj7FvjQ_h9uHDZUG-NqNW68Px/view' },
+    { num: '02', year: '2021', name: '嘉義實驗木場ADA新銳建築獎', tier: '首獎', photo: 'uploads/原型獲獎/實驗木場ADA.JPG', link: 'https://astaiwan.wixsite.com/website-1' },
+    { num: '03', year: '2018', name: '澎湖ENISHI緣民宿ADA新銳建築獎', tier: '首獎', photo: 'uploads/原型獲獎/緣宿.jpg', link: 'https://www.shoppingdesign.com.tw/post/view/6414?' },
+    { num: '04', year: '2023', name: '基隆太平國小台灣建築獎', tier: '建築轉生特別獎', photo: 'uploads/原型獲獎/太平國小.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608372' },
+    { num: '05', year: '2022', name: '德光教會台灣建築獎', tier: '佳作', photo: 'uploads/原型獲獎/德光教會.jpg', link: 'https://ct.org.tw/html/news/3-3.php?cat=26&article=1392838' },
+    { num: '06', year: '2021', name: '嘉義美術館台灣建築獎', tier: '首獎', photo: 'uploads/原型獲獎/嘉美台灣建築獎.jpg', link: 'https://www.chiayi.gov.tw/News_Content.aspx?n=455&s=628227' },
+    { num: '07', year: '2018', name: '嘉義火車站站前西側廣場台灣建築獎', tier: '佳作', photo: 'uploads/原型獲獎/嘉火西側.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608375' },
+    { num: '08', year: '2017', name: '宜蘭中山小巨蛋台灣建築獎', tier: '佳作', photo: 'uploads/原型獲獎/宜蘭小巨蛋.jpg', link: 'https://www.twarchitect.org.tw/works/%E4%B8%AD%E5%B1%B1%E5%B0%8F%E5%B7%A8%E8%9B%8B%E8%88%87%E5%91%A8%E9%82%8A%E9%80%9A%E5%AD%B8%E5%BB%8A%E9%81%93/' },
+    { num: '09', year: '2015', name: '雲林農博台灣建築獎', tier: '首獎', photo: 'uploads/原型獲獎/雲林農博.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=503916' },
+    { num: '10', year: '2023', name: '台中潭心鐵馬空橋德國IF設計獎', tier: '獲獎', photo: 'uploads/原型獲獎/台中橋.jpg', link: 'https://www.youtube.com/watch?v=E6ZyKXVKgWU' },
+    { num: '11', year: '2023', name: '嘉義實驗木場德國IF設計獎', tier: '獲獎', photo: 'uploads/原型獲獎/實驗木場.jpg', link: 'https://astaiwan.wixsite.com/website-1' },
+    { num: '12', year: '2023', name: '嘉義構竹林鐵新銳展德國IF設計獎', tier: '獲獎', photo: 'uploads/原型獲獎/構竹林鐵.png', link: 'https://astaiwan.wixsite.com/bamboo-newfield' },
+    { num: '13', year: '2019', name: '故宮南院景觀橋新建工程競圖', tier: '獲勝', photo: 'uploads/原型獲獎/故宮南院攬月橋.png', link: 'https://www.mashup.com.tw/as%20studio/?page=movies_list&group_id=1073' },
+    { num: '14', year: '2017', name: '華德福實驗分校第二期校舍新建工程競圖', tier: '獲勝', photo: '', link: '' },
+    { num: '15', year: '2016', name: '桃園市蘆竹國民運動中心興建工程競圖', tier: '獲勝', photo: '', link: '' },
+    { num: '16', year: '2016', name: '金門水頭港遊客服務中心新建工程競圖', tier: '獲勝', photo: '', link: '' },
+    { num: '17', year: '2015', name: '嘉義市立美術館設計監造案競圖', tier: '獲勝', photo: 'uploads/原型獲獎/嘉義美術館.jpg', link: 'https://www.youtube.com/watch?v=BHEMBPrB9MM&t=1s' },
+    { num: '18', year: '2015', name: '左鎮菜寮化石文化園區改建工程競圖', tier: '獲勝', photo: 'uploads/原型獲獎/化石文化園區.jpg', link: 'https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=505964' },
+    { num: '19', year: '2023', name: 'X-SITE「途中」', tier: '獲獎', photo: 'uploads/原型獲獎/途中.png', link: 'https://www.tfam.museum/Exhibition/Exhibition_Special.aspx?ddlLang=zh-tw&id=731' },
+    { num: '20', year: '2022', name: 'X-SITE「藍屋」', tier: '獲獎', photo: 'uploads/原型獲獎/藍屋.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=707' },
+    { num: '21', year: '2021', name: 'X-SITE「爆炸容器」', tier: '獲獎', photo: 'uploads/原型獲獎/爆炸容器.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=687' },
+    { num: '22', year: '2020', name: 'X-SITE「膜」', tier: '獲獎', photo: 'uploads/原型獲獎/膜.png', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=672' },
+    { num: '23', year: '2016', name: 'X-SITE「浮光之間」', tier: '獲獎', photo: 'uploads/原型獲獎/浮光之間.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=584' },
+    { num: '24', year: '2015', name: 'X-SITE「未知質域」', tier: '獲獎', photo: 'uploads/原型獲獎/未知的質域.jpg', link: 'https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=532' }
   ];
 
   scrollToSection(id) {
@@ -324,20 +435,6 @@ class Component extends DCLogic {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-
-  // 時間軸資料（佔位文字，之後換成實際年份／事件）
-  timelineItems = [
-    { year: '2011', event: '事件描述（佔位文字）' },
-    { year: '2013', event: '事件描述（佔位文字）' },
-    { year: '2015', event: '事件描述（佔位文字）' },
-    { year: '2016', event: '事件描述（佔位文字）' },
-    { year: '2018', event: '事件描述（佔位文字）' },
-    { year: '2019', event: '事件描述（佔位文字）' },
-    { year: '2021', event: '事件描述（佔位文字）' },
-    { year: '2022', event: '事件描述（佔位文字）' },
-    { year: '2023', event: '事件描述（佔位文字）' },
-    { year: '2025', event: '事件描述（佔位文字）' }
-  ];
 
   toggleDarkMode() {
     this.setState(s => ({ isDarkMode: !s.isDarkMode }));
@@ -449,63 +546,163 @@ class Component extends DCLogic {
       animateChain();
     })();
 
-    // 時間軸：class 一律用 JS 直接對真實 DOM 節點加，不透過樣板綁定 class（未經驗證的寫法）。
-    // 其餘每筆預設 max-height:0（不佔版面、頁尾緊接在後）。捲到接近目前內容底部時，
-    // 才一筆一筆展開，把頁尾往下推；只加 class 不移除，捲回上面已展開的不會收合。
-    // 左側線條的長度用 JS 直接控制，跟著每次展開同步變長，而不是整條固定滿版。
-    // 線段長度改成即時量測最後一個已展開項目的圓點實際位置，不再用固定的每筆估計高度
-    // ——固定估計值只要字級/內容長度一變就會跟真實高度對不上，導致線段長度跟展開內容脫節
-    // （跟畫廊正方形量測、手風琴展開高度同一原則：量測，不要寫死）。
-    // 項目展開動畫（max-height transition）需要 0.6s 才會跑到最終高度，所以量測前先等它跑完，
-    // 否則量到的是還沒展開完成的中間位置，線段會停在錯的地方。
-    const TIMELINE_EXPAND_MS = 600;
-    const TIMELINE_EXTRA_TAIL_PX = 151; // 4cm，讓線段在最後一個已展開節點下方繼續延伸
-    this._timelineRevealIndex = 3;
-    this._timelineRevealing = false;
+    // 得獎名錄「焦點」列：預設焦點＝畫面中目前看得到的名錄項目裡，由下往上數第三個，
+    // 隨捲動即時變動；懸停在某一列的文字（大標／年份標籤，不含列的空白區域）上時，
+    // 暫時把焦點切到該列，滑開文字後回到捲動位置決定的那一列。class 直接切在真實 DOM 節點上
+    // （跟資訊卡手風琴同一原則），不透過樣板 setState 整頁重繪，滾動才不會卡頓。
+    // 大圖預覽固定釘在畫面右下角，內容（背景圖）跟著焦點列切換，一樣直接寫 DOM，不經樣板。
+    this._awardRows = Array.from(document.querySelectorAll('#sc-section-award-list .sc-award-row'));
+    this._awardPreviewEl = document.querySelector('#sc-section-award-list .sc-award-preview');
+    if (this._awardRows.length) {
+      const PREVIEW_SIZE = 200; // 跟 CSS .sc-award-preview 的 width/height 保持一致
+      const PREVIEW_MARGIN = 40; // 跟 CSS 的 right/bottom 保持一致
 
-    const growLine = (count) => {
-      const line = document.querySelector('.sc-timeline-line');
-      const items = document.querySelectorAll('.sc-timeline-item');
-      if (!line || !items.length || count <= 0) return;
-      setTimeout(() => {
-        const idx = Math.min(count, items.length) - 1;
-        const dot = items[idx].querySelector('.sc-timeline-dot');
-        if (!dot) return;
-        const lineRect = line.getBoundingClientRect();
-        const dotRect = dot.getBoundingClientRect();
-        const distance = (dotRect.top + dotRect.height / 2) - lineRect.top;
-        line.style.height = Math.max(0, distance + TIMELINE_EXTRA_TAIL_PX) + 'px';
-      }, TIMELINE_EXPAND_MS + 20);
-    };
-    const timelineItemEls = document.querySelectorAll('.sc-timeline-item');
-    for (let i = 0; i < 3 && i < timelineItemEls.length; i++) {
-      timelineItemEls[i].classList.add('sc-visible');
+      this._awardActiveEl = null;
+      this._awardHoverEl = null;
+      this._awardScrollActiveEl = null;
+      this._awardScrollTicking = false;
+
+      // 最後一筆（未套用 .sc-award-row-active 放大字級前）的底部，用文件座標（含捲動位移）
+      // 快取起來，之後圖片「跟著最後一筆底部移動」的判斷都拿這個當基準，不要每次都重新量測
+      // ——因為最後一筆本身也可能正是目前的焦點列，那時它的字已經放大、高度變高，
+      // 現場量測會量到「放大後」的底部，反而讓圖片的停靠位置跟著字級動畫一起跳動。
+      this._awardLastRowNaturalBottomDocY = null;
+      this._measureAwardLastRowNatural = () => {
+        const lastRow = this._awardRows[this._awardRows.length - 1];
+        if (!lastRow || lastRow.classList.contains('sc-award-row-active')) return;
+        this._awardLastRowNaturalBottomDocY = lastRow.getBoundingClientRect().bottom + window.scrollY;
+      };
+      this._measureAwardLastRowNatural();
+      window.addEventListener('resize', this._measureAwardLastRowNatural);
+
+      this._setAwardActive = (el) => {
+        if (this._awardActiveEl === el) return;
+        if (this._awardActiveEl) this._awardActiveEl.classList.remove('sc-award-row-active');
+        this._awardActiveEl = el;
+        if (el) el.classList.add('sc-award-row-active');
+        if (!this._awardPreviewEl || !el) return;
+        const photo = el.getAttribute('data-photo') || '';
+        this._awardPreviewEl.style.backgroundImage = photo ? "url('" + photo + "')" : 'none';
+        this._awardPreviewEl.classList.toggle('sc-award-preview-has-photo', !!photo);
+      };
+
+      // 圖片顯示／停靠位置：跟「哪一列是焦點」分開算，因為這兩者會分別隨捲動即時變化，
+      // 不只是焦點列換人時才需要重算。
+      //   (1) 顯示條件：得獎名單在畫面上露出的高度要夠放下一張正方形圖片，圖片才開始顯示——
+      //       不然名單才剛從畫面下緣冒出一點點，圖片卻已經整張浮現，會蓋住還沒捲進來的內容。
+      //   (2) 停靠：預設固定貼在畫面右下角（bottom:40px）；捲到快接近名單底部、圖片的底部
+      //       會超過最後一筆（未放大前）的底部時，改成讓圖片的底部貼齊那個位置，也就是
+      //       跟著最後一筆一起往上移動（不再固定於視窗），效果類似「頂到底就停下、跟內容一起走」。
+      this._updateAwardPreviewDisplay = () => {
+        if (!this._awardPreviewEl) return;
+        const sectionEl = document.getElementById('sc-section-award-list');
+        if (!sectionEl) return;
+        const rect = sectionEl.getBoundingClientRect();
+        const visibleHeight = Math.max(Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0), 0);
+        const shouldShow = !!this._awardActiveEl && visibleHeight >= PREVIEW_SIZE;
+        this._awardPreviewEl.classList.toggle('sc-award-preview-visible', shouldShow);
+        if (!shouldShow) return;
+
+        let bottomPx = PREVIEW_MARGIN;
+        if (this._awardLastRowNaturalBottomDocY != null) {
+          const pinnedBottomDocY = window.scrollY + window.innerHeight - PREVIEW_MARGIN;
+          const overshoot = pinnedBottomDocY - this._awardLastRowNaturalBottomDocY;
+          if (overshoot > 0) bottomPx = PREVIEW_MARGIN + overshoot;
+        }
+        this._awardPreviewEl.style.bottom = bottomPx + 'px';
+      };
+
+      // 「畫面中看得到」用最基本的垂直範圍相交判斷（列底 > 0 且列頂 < 視窗高），
+      // 不用 IntersectionObserver 的原因是這裡需要「當下這一刻」馬上算出結果同步套用，
+      // 不想等 observer 的非同步 callback，跟其他效果（游標拖尾、時間軸）一樣直接用
+      // getBoundingClientRect 同步量測。
+      this._computeAwardScrollActiveEl = () => {
+        const visible = this._awardRows.filter((row) => {
+          const r = row.getBoundingClientRect();
+          return r.bottom > 0 && r.top < window.innerHeight;
+        });
+        if (!visible.length) return null;
+        // 由下往上數第三個 = 從上到下排列的可見清單裡，倒數第 3 個（index = length-3，不足 3 個就取最底那個）
+        return visible[Math.max(visible.length - 3, 0)];
+      };
+
+      this._onAwardScroll = () => {
+        if (this._awardScrollTicking) return;
+        this._awardScrollTicking = true;
+        requestAnimationFrame(() => {
+          this._awardScrollTicking = false;
+          this._awardScrollActiveEl = this._computeAwardScrollActiveEl();
+          if (!this._awardHoverEl) this._setAwardActive(this._awardScrollActiveEl);
+          this._updateAwardPreviewDisplay();
+        });
+      };
+      window.addEventListener('scroll', this._onAwardScroll, { passive: true });
+      window.addEventListener('resize', this._onAwardScroll);
+
+      // 收尾規則：捲到「畫面同時看得到最後 3 筆」就會卡住（自然機制永遠只能算出
+      // 這 3 筆裡最上面那筆，因為可見清單再也不會變短），這時再滾的滾輪改用累加 deltaY
+      // 一步一步往後推：再滾 1 格（≈100px）換成倒數第二筆，再滾 1 格（累計≈200px）
+      // 換成最後一筆。不寫死是第幾筆，一律取「當下清單最後 3 個 DOM 節點」（this._awardRows
+      // 的陣列順序＝畫面由上到下的順序），Excel 之後新增資料、清單變長時這條規則
+      // 一樣只套用在當時的最後 3 筆。跟三時期時間軸那段一樣監聽 wheel（不是 scroll），
+      // 因為捲到底之後頁面已經不會再有新的 scroll 事件。
+      const WHEEL_NOTCH_PX = 100;
+      const TAIL_STEP_NOTCHES = [1, 1]; // 累計門檻（格數）：[到倒數第二筆, 再到最後一筆]
+      this._awardTailAccum = 0;
+      this._onAwardWheel = (e) => {
+        const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+        if (!atBottom) { this._awardTailAccum = 0; return; }
+        if (e.deltaY <= 0) return;
+        const tail = this._awardRows.slice(-3);
+        if (tail.length < 3) return;
+        this._awardTailAccum += e.deltaY;
+        let target = tail[0];
+        if (this._awardTailAccum >= (TAIL_STEP_NOTCHES[0] + TAIL_STEP_NOTCHES[1]) * WHEEL_NOTCH_PX) {
+          target = tail[2];
+        } else if (this._awardTailAccum >= TAIL_STEP_NOTCHES[0] * WHEEL_NOTCH_PX) {
+          target = tail[1];
+        }
+        this._awardScrollActiveEl = target;
+        if (!this._awardHoverEl) this._setAwardActive(target);
+        this._updateAwardPreviewDisplay();
+      };
+      window.addEventListener('wheel', this._onAwardWheel, { passive: true });
+
+      this._awardTextListeners = [];
+      this._awardRows.forEach((row) => {
+        const textEls = row.querySelectorAll('.sc-award-row-name, .sc-award-row-tier, .sc-award-row-year');
+        textEls.forEach((textEl) => {
+          const onEnter = () => { this._awardHoverEl = row; this._setAwardActive(row); this._updateAwardPreviewDisplay(); };
+          const onLeave = () => { this._awardHoverEl = null; this._setAwardActive(this._awardScrollActiveEl); this._updateAwardPreviewDisplay(); };
+          textEl.addEventListener('mouseenter', onEnter);
+          textEl.addEventListener('mouseleave', onLeave);
+          this._awardTextListeners.push({ textEl, onEnter, onLeave });
+        });
+      });
+
+      this._onAwardScroll(); // 一進頁面就先算一次，馬上有預設焦點，不用等使用者先捲動
     }
-    growLine(this._timelineRevealIndex); // 初始 3 筆已顯示，線條先長到對應長度
-
-    this._onScroll = () => {
-      if (this._timelineRevealing) return;
-      const items = document.querySelectorAll('.sc-timeline-item');
-      if (this._timelineRevealIndex >= items.length) return;
-      const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 200;
-      if (!nearBottom) return;
-      this._timelineRevealing = true;
-      items[this._timelineRevealIndex].classList.add('sc-visible');
-      this._timelineRevealIndex++;
-      growLine(this._timelineRevealIndex);
-      setTimeout(() => { this._timelineRevealing = false; }, 150);
-    };
-    window.addEventListener('scroll', this._onScroll, { passive: true });
   }
 
   componentWillUnmount() {
     document.removeEventListener('mousedown', this._onDocMouseDown);
-    window.removeEventListener('scroll', this._onScroll);
     window.removeEventListener('resize', this._sizeGallerySquare);
     if (this._chainRAF) cancelAnimationFrame(this._chainRAF);
     const gallery = document.getElementById('sc-gallery');
     if (gallery && this._onGalleryMouseMove) gallery.removeEventListener('mousemove', this._onGalleryMouseMove);
     if (gallery && this._onGalleryMouseLeave) gallery.removeEventListener('mouseleave', this._onGalleryMouseLeave);
+    if (this._onAwardScroll) {
+      window.removeEventListener('scroll', this._onAwardScroll);
+      window.removeEventListener('resize', this._onAwardScroll);
+    }
+    if (this._onAwardWheel) window.removeEventListener('wheel', this._onAwardWheel);
+    if (this._measureAwardLastRowNatural) window.removeEventListener('resize', this._measureAwardLastRowNatural);
+    if (this._awardTextListeners) {
+      this._awardTextListeners.forEach(({ textEl, onEnter, onLeave }) => {
+        textEl.removeEventListener('mouseenter', onEnter);
+        textEl.removeEventListener('mouseleave', onLeave);
+      });
+    }
   }
 
   renderVals() {
@@ -517,6 +714,10 @@ class Component extends DCLogic {
       showMaterialMenu: this.state.showMaterialMenu,
       toggleMaterialMenu: () => this.toggleMaterialMenu(),
       toggleDarkMode: () => this.toggleDarkMode(),
+      // 得獎名錄唯一那個大圖預覽框，還沒有照片時的佔位底色／邊框（照片本身由 JS 直接寫
+      // background-image，不透過樣板，見 componentDidMount 的 _setAwardActive）
+      awardPreviewPlaceholderBg: isDarkMode ? 'oklch(0.16 0 0)' : 'oklch(0.96 0 0)',
+      awardPreviewPlaceholderBorder: isDarkMode ? 'oklch(0.3 0 0)' : 'oklch(0.85 0 0)',
       galleryItems: this.galleryItems.map((it, idx) => {
         const lineColor = isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(136,136,136,0.8)';
         const hasPhoto = !!it.photo;
@@ -536,7 +737,9 @@ class Component extends DCLogic {
           bgSize: hasPhoto ? '328px 328px' : 'auto'
         };
       }),
-      timelineItems: this.timelineItems
+      // 只需要原始欄位（num/name/tier/photo）給列表渲染跟 data-photo 屬性用，
+      // 大圖預覽的顯示邏輯改由 JS 直接操作那唯一一個 .sc-award-preview 節點，不用另外轉換
+      awardListItems: this.awardListItems
     };
   }
 }
