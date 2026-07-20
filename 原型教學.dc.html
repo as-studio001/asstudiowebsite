@@ -25,7 +25,7 @@
   overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:' + OVERLAY_BG + ';display:flex;align-items:center;justify-content:center;opacity:1;transform:translateY(0);';
   var wordEl = document.createElement('span');
   wordEl.textContent = ARRIVAL_WORD;
-  wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:15px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
+  wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:20px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
   overlay.appendChild(wordEl);
   document.body.appendChild(overlay);
 
@@ -99,7 +99,7 @@
   </header>
 
   <!-- PAGE CONTENT -->
-  <section style="padding:220px 40px 160px; max-width:900px; margin:0 auto;">
+  <section style="padding:220px 40px 160px; max-width:1600px; margin:0 auto;">
 
     <!-- HOVER-EXPAND GALLERY (skiper35 效果的替代版，來自「活頁簿1／原型教學」工作表，7 欄，圖片暫用佔位圖示) -->
     <style>
@@ -141,11 +141,11 @@
          兩者都用絕對定位固定各自的 left/bottom 基準點旋轉（不透過 flex gap），
          避免 transform 不影響版位計算導致的重疊或跑位過遠 */
       .sc-gallery-caption {
-        position:absolute; left:16px; bottom:16px; height:44px; right:16px;
+        position:absolute; left:35px; bottom:16px; height:44px; right:16px;
       }
       .sc-gallery-num {
         position:absolute; left:0; bottom:0; transform-origin:left bottom;
-        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:15px; letter-spacing:0.05em;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:20px; letter-spacing:0.05em;
         white-space:nowrap; transform:translateY(-280px) rotate(0deg);
         transition:transform 0.5s cubic-bezier(.65,0,.35,1);
       }
@@ -156,7 +156,7 @@
         display:flex; flex-direction:column; justify-content:flex-end;
       }
       .sc-gallery-sub {
-        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:13px; line-height:1.3;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:17px; line-height:1.3;
         margin:0; white-space:nowrap; overflow:hidden;
         max-height:0; transform:scaleY(0); transform-origin:bottom;
         transition:max-height 0.4s ease, transform 0.4s ease;
@@ -164,7 +164,7 @@
       .sc-gallery-panel:hover .sc-gallery-sub { max-height:20px; transform:scaleY(1); }
       .sc-gallery-main {
         display:inline-block; transform-origin:left bottom;
-        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:16px; line-height:1.2;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:21px; line-height:1.2;
         margin:0; white-space:nowrap;
         transform:rotate(-90deg);
         transition:transform 0.5s cubic-bezier(.65,0,.35,1);
@@ -193,37 +193,37 @@
       <div class="sc-cursor-chain" id="sc-cursor-chain" style="color:#B4A249;"></div>
     </div>
 
-    <div style="font-size:14px; letter-spacing:0.1em; opacity:0.5; margin-bottom:16px;">
+    <div style="font-size:19px; letter-spacing:0.1em; opacity:0.5; margin-bottom:16px;">
       <a href="./index.html">首頁</a> / 原型教學
     </div>
-    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:15px; font-weight:800; letter-spacing:0.02em; margin:0 0 40px 0;">原型教學</h1>
+    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:20px; font-weight:800; letter-spacing:0.02em; margin:0 0 40px 0;">原型教學</h1>
     <div style="display:flex; flex-direction:column; gap:72px;">
 
       <div id="sc-section-school">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">學校是一切感知的起點</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">學校不只是知識傳遞的場域，更是培養觀察與創造力的溫床。從美感教育到實習現場，我們讓學生在真實的設計環境中學習思考與協作，理解結構與空間的邏輯。孩童的感知提醒我們，設計應保有遊戲與直覺的特質，讓建築的學習重新回到感受與想像的起點。</p>
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">School as the Origin of Perception</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">A school is more than a place for transmitting knowledge—it is a ground for cultivating observation and creativity. From aesthetic education to hands-on internships, we invite students to think and collaborate within real design environments, learning the logic of structure and space. The sensitivity of children reminds us that design should preserve the spirit of play and intuition, bringing architectural learning back to the origins of feeling and imagination.</p>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">學校是一切感知的起點</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">學校不只是知識傳遞的場域，更是培養觀察與創造力的溫床。從美感教育到實習現場，我們讓學生在真實的設計環境中學習思考與協作，理解結構與空間的邏輯。孩童的感知提醒我們，設計應保有遊戲與直覺的特質，讓建築的學習重新回到感受與想像的起點。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">School as the Origin of Perception</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">A school is more than a place for transmitting knowledge—it is a ground for cultivating observation and creativity. From aesthetic education to hands-on internships, we invite students to think and collaborate within real design environments, learning the logic of structure and space. The sensitivity of children reminds us that design should preserve the spirit of play and intuition, bringing architectural learning back to the origins of feeling and imagination.</p>
       </div>
 
       <div id="sc-section-culture">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">文化是一種工作的方法</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">文化是設計方法與工作態度的總和。從設計討論的節奏到團隊協作的方式，原型結構延續日本工作文化的細緻與專注，並融入在地的自由思辨。每一次專案都是對方法的再實驗，也是對時間與人之關係的重新體驗。透過紀錄與大事紀，我們將這些片段化為集體記憶，成為下一次創作的起點。</p>
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Culture as a Way of Working</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Culture is the sum of our design methods and working attitudes. From the rhythm of discussions to the modes of collaboration, AS Studio inherits the precision and focus of Japanese work culture while embracing the openness of local reflection. Each project becomes an experiment in method and an encounter with time and people. Through documentation and collective records, these moments are transformed into shared memory—the foundation for the next act of creation.</p>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">文化是一種工作的方法</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">文化是設計方法與工作態度的總和。從設計討論的節奏到團隊協作的方式，原型結構延續日本工作文化的細緻與專注，並融入在地的自由思辨。每一次專案都是對方法的再實驗，也是對時間與人之關係的重新體驗。透過紀錄與大事紀，我們將這些片段化為集體記憶，成為下一次創作的起點。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Culture as a Way of Working</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Culture is the sum of our design methods and working attitudes. From the rhythm of discussions to the modes of collaboration, AS Studio inherits the precision and focus of Japanese work culture while embracing the openness of local reflection. Each project becomes an experiment in method and an encounter with time and people. Through documentation and collective records, these moments are transformed into shared memory—the foundation for the next act of creation.</p>
       </div>
 
       <div id="sc-section-digital">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">數位工具是思想的延伸</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">數位工具在我們的工作流程中扮演思想引擎的角色。ArchiCAD 負責整合資訊與構築，Midjourney 則以生成影像探索概念的可能，Midas 進行結構模擬與力學驗證。三者共同構築出新的設計生態，讓建築在資料、感知與結構之間取得平衡，展現技術與詩意共存的當代構築語言。</p>
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Digital Tools as Extensions of Thought</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Digital tools function as engines of thought within our process. ArchiCAD integrates information and construction, Midjourney explores conceptual possibilities through generative imagery, and Midas conducts structural simulations and mechanical analysis. Together, they shape a new design ecology in which architecture finds balance among data, perception, and structure—revealing a contemporary language where technology and poetics coexist.</p>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">數位工具是思想的延伸</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">數位工具在我們的工作流程中扮演思想引擎的角色。ArchiCAD 負責整合資訊與構築，Midjourney 則以生成影像探索概念的可能，Midas 進行結構模擬與力學驗證。三者共同構築出新的設計生態，讓建築在資料、感知與結構之間取得平衡，展現技術與詩意共存的當代構築語言。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Digital Tools as Extensions of Thought</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Digital tools function as engines of thought within our process. ArchiCAD integrates information and construction, Midjourney explores conceptual possibilities through generative imagery, and Midas conducts structural simulations and mechanical analysis. Together, they shape a new design ecology in which architecture finds balance among data, perception, and structure—revealing a contemporary language where technology and poetics coexist.</p>
       </div>
 
       <!-- VERTICAL TIMELINE：軸線靠左，滾動到才顯示，顯示後捲回上面也不會消失（佔位文字） -->
       <div id="sc-section-timeline">
         <style>
-          .sc-timeline { position:relative; padding-left:28px; }
+          .sc-timeline { position:relative; padding-left:28px; margin-left:76px; }
           .sc-timeline-line {
             position:absolute; left:3px; top:6px; width:1px; height:0;
             transition:height 0.6s ease;
@@ -242,10 +242,10 @@
           }
           .sc-timeline-item.sc-visible .sc-timeline-dot { opacity:1; }
           .sc-timeline-year {
-            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:15px; margin:0 0 6px 0;
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:20px; margin:0 0 6px 0;
           }
           .sc-timeline-event {
-            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:13px; line-height:1.8; opacity:0.85; margin:0;
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:17px; line-height:1.8; opacity:0.85; margin:0;
           }
           .sc-timeline-fade-hint { height:60px; margin-top:-12px; }
         </style>
@@ -453,13 +453,29 @@ class Component extends DCLogic {
     // 其餘每筆預設 max-height:0（不佔版面、頁尾緊接在後）。捲到接近目前內容底部時，
     // 才一筆一筆展開，把頁尾往下推；只加 class 不移除，捲回上面已展開的不會收合。
     // 左側線條的長度用 JS 直接控制，跟著每次展開同步變長，而不是整條固定滿版。
-    const TIMELINE_SEGMENT_HEIGHT = 95; // 對應每筆 max-height:140px + padding-bottom:44px 的視覺節奏
+    // 線段長度改成即時量測最後一個已展開項目的圓點實際位置，不再用固定的每筆估計高度
+    // ——固定估計值只要字級/內容長度一變就會跟真實高度對不上，導致線段長度跟展開內容脫節
+    // （跟畫廊正方形量測、手風琴展開高度同一原則：量測，不要寫死）。
+    // 項目展開動畫（max-height transition）需要 0.6s 才會跑到最終高度，所以量測前先等它跑完，
+    // 否則量到的是還沒展開完成的中間位置，線段會停在錯的地方。
+    const TIMELINE_EXPAND_MS = 600;
+    const TIMELINE_EXTRA_TAIL_PX = 151; // 4cm，讓線段在最後一個已展開節點下方繼續延伸
     this._timelineRevealIndex = 3;
     this._timelineRevealing = false;
 
     const growLine = (count) => {
       const line = document.querySelector('.sc-timeline-line');
-      if (line) line.style.height = (count * TIMELINE_SEGMENT_HEIGHT) + 'px';
+      const items = document.querySelectorAll('.sc-timeline-item');
+      if (!line || !items.length || count <= 0) return;
+      setTimeout(() => {
+        const idx = Math.min(count, items.length) - 1;
+        const dot = items[idx].querySelector('.sc-timeline-dot');
+        if (!dot) return;
+        const lineRect = line.getBoundingClientRect();
+        const dotRect = dot.getBoundingClientRect();
+        const distance = (dotRect.top + dotRect.height / 2) - lineRect.top;
+        line.style.height = Math.max(0, distance + TIMELINE_EXTRA_TAIL_PX) + 'px';
+      }, TIMELINE_EXPAND_MS + 20);
     };
     const timelineItemEls = document.querySelectorAll('.sc-timeline-item');
     for (let i = 0; i < 3 && i < timelineItemEls.length; i++) {
