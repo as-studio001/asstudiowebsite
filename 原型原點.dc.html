@@ -25,7 +25,7 @@
   overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:' + OVERLAY_BG + ';display:flex;align-items:center;justify-content:center;opacity:1;transform:translateY(0);';
   var wordEl = document.createElement('span');
   wordEl.textContent = ARRIVAL_WORD;
-  wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:15px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
+  wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:20px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
   overlay.appendChild(wordEl);
   document.body.appendChild(overlay);
 
@@ -99,7 +99,7 @@
   </header>
 
   <!-- PAGE CONTENT -->
-  <section style="padding:220px 40px 160px; max-width:900px; margin:0 auto;">
+  <section style="padding:220px 40px 160px; max-width:1600px; margin:0 auto;">
 
     <!-- HOVER-EXPAND GALLERY (skiper35 效果的替代版，來自「活頁簿1／原型原點」工作表，7 欄，圖片尚未匯入，暫用佔位圖示) -->
     <style>
@@ -141,11 +141,11 @@
          兩者都用絕對定位固定各自的 left/bottom 基準點旋轉（不透過 flex gap），
          避免 transform 不影響版位計算導致的重疊或跑位過遠 */
       .sc-gallery-caption {
-        position:absolute; left:16px; bottom:16px; height:44px; right:16px;
+        position:absolute; left:35px; bottom:16px; height:44px; right:16px;
       }
       .sc-gallery-num {
         position:absolute; left:0; bottom:0; transform-origin:left bottom;
-        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:15px; letter-spacing:0.05em;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:20px; letter-spacing:0.05em;
         white-space:nowrap; transform:translateY(-280px) rotate(0deg);
         transition:transform 0.5s cubic-bezier(.65,0,.35,1);
       }
@@ -156,7 +156,7 @@
         display:flex; flex-direction:column; justify-content:flex-end;
       }
       .sc-gallery-sub {
-        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:13px; line-height:1.3;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:17px; line-height:1.3;
         margin:0; white-space:nowrap; overflow:hidden;
         max-height:0; transform:scaleY(0); transform-origin:bottom;
         transition:max-height 0.4s ease, transform 0.4s ease;
@@ -164,7 +164,7 @@
       .sc-gallery-panel:hover .sc-gallery-sub { max-height:20px; transform:scaleY(1); }
       .sc-gallery-main {
         display:inline-block; transform-origin:left bottom;
-        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:16px; line-height:1.2;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:21px; line-height:1.2;
         margin:0; white-space:nowrap;
         transform:rotate(-90deg);
         transition:transform 0.5s cubic-bezier(.65,0,.35,1);
@@ -193,31 +193,31 @@
       <div class="sc-cursor-chain" id="sc-cursor-chain" style="color:#B4A249;"></div>
     </div>
 
-    <div style="font-size:14px; letter-spacing:0.1em; opacity:0.5; margin-bottom:16px;">
+    <div style="font-size:19px; letter-spacing:0.1em; opacity:0.5; margin-bottom:16px;">
       <a href="./index.html">首頁</a> / 原型原點
     </div>
-    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:15px; font-weight:800; letter-spacing:0.02em; margin:0 0 40px 0;">原型原點</h1>
+    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:20px; font-weight:800; letter-spacing:0.02em; margin:0 0 40px 0;">原型原點</h1>
     <div style="display:flex; flex-direction:column; gap:72px;">
 
       <div id="sc-section-origin">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">原點：SDG 與原型結構的對話</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">在建築與結構之間，存在一個被不斷追問的起點——那個尚未被命名的「原點」。它是材料被發現的瞬間、力被感知的方向，也是建築思考的源頭。SDG（構造設計集團）正是在這樣的原點上，重新定義了「結構」的意義，讓構造成為設計的核心語言，也啟發了台灣原型結構的誕生。</p>
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Origin: SDG and the Prototype Structure</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Between architecture and structure lies a point that is constantly questioned—an unnamed origin. It is the moment when material is discovered, when force is first perceived, and when architectural thought begins to take shape. At this origin, SDG (Structural Design Group) redefined the meaning of "structure," turning construction into a core language of design and inspiring the emergence of Taiwan's Prototype Structure movement.</p>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">原點：SDG 與原型結構的對話</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">在建築與結構之間，存在一個被不斷追問的起點——那個尚未被命名的「原點」。它是材料被發現的瞬間、力被感知的方向，也是建築思考的源頭。SDG（構造設計集團）正是在這樣的原點上，重新定義了「結構」的意義，讓構造成為設計的核心語言，也啟發了台灣原型結構的誕生。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Origin: SDG and the Prototype Structure</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Between architecture and structure lies a point that is constantly questioned—an unnamed origin. It is the moment when material is discovered, when force is first perceived, and when architectural thought begins to take shape. At this origin, SDG (Structural Design Group) redefined the meaning of "structure," turning construction into a core language of design and inspiring the emergence of Taiwan's Prototype Structure movement.</p>
       </div>
 
       <div id="sc-section-sdg-spirit">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">SDG 的精神：結構即設計</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">在 SDG 的實踐中，設計與結構從不分離。渡邊邦夫強調：「沒有什麼材料不能被設計，沒有什麼構造不能被想像。」他要求設計師以建築師的眼光提問，讓力學成為理解形體的語言。結構因此不再隱身，而以線條與力的節奏，參與空間的生成，成為建築詩學的一部分。</p>
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">The Spirit of SDG: Structure as Design</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Within SDG's practice, design and structure are never separate. Kunio Watanabe emphasized: "There is no material that cannot be designed, and no structure that cannot be imagined." He encouraged designers to ask questions through the eyes of architects—why this system, and how would space transform if the forces changed? Through such inquiry, mechanics became more than calculation; it became a language for understanding form. Structure no longer hides behind architecture but joins the rhythm of lines and forces, shaping space and becoming part of its poetic expression.</p>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">SDG 的精神：結構即設計</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">在 SDG 的實踐中，設計與結構從不分離。渡邊邦夫強調：「沒有什麼材料不能被設計，沒有什麼構造不能被想像。」他要求設計師以建築師的眼光提問，讓力學成為理解形體的語言。結構因此不再隱身，而以線條與力的節奏，參與空間的生成，成為建築詩學的一部分。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">The Spirit of SDG: Structure as Design</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Within SDG's practice, design and structure are never separate. Kunio Watanabe emphasized: "There is no material that cannot be designed, and no structure that cannot be imagined." He encouraged designers to ask questions through the eyes of architects—why this system, and how would space transform if the forces changed? Through such inquiry, mechanics became more than calculation; it became a language for understanding form. Structure no longer hides behind architecture but joins the rhythm of lines and forces, shaping space and becoming part of its poetic expression.</p>
       </div>
 
       <div id="sc-section-from-sdg">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">從 SDG 到原型結構</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">回到台灣後，陳冠帆將這份精神化為實踐，創立「原型結構工程顧問有限公司」，主張結構與建築本為一體。他將 SDG 的自由思維延伸至竹構與木構研究，讓材料成為思考的起點，而非形式的裝飾。SDG 對原型結構最深遠的影響，正是在於讓結構回到設計的原點，讓材料回到自然的秩序。</p>
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">From SDG to Prototype Structure</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Upon returning to Taiwan, Kuan-Fan Chen transformed this spirit into practice, founding Prototype Structural Engineers to advocate that structure and architecture are inherently one. To him, structure is not a technical afterthought but the first line written in the act of design. He extended SDG's freedom of thought into explorations of bamboo and timber construction, treating material not as ornament but as the origin of inquiry. SDG's most profound influence on Prototype Structure lies in bringing structure back to the origin of design, and material back to the order of nature.</p>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">從 SDG 到原型結構</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">回到台灣後，陳冠帆將這份精神化為實踐，創立「原型結構工程顧問有限公司」，主張結構與建築本為一體。他將 SDG 的自由思維延伸至竹構與木構研究，讓材料成為思考的起點，而非形式的裝飾。SDG 對原型結構最深遠的影響，正是在於讓結構回到設計的原點，讓材料回到自然的秩序。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">From SDG to Prototype Structure</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Upon returning to Taiwan, Kuan-Fan Chen transformed this spirit into practice, founding Prototype Structural Engineers to advocate that structure and architecture are inherently one. To him, structure is not a technical afterthought but the first line written in the act of design. He extended SDG's freedom of thought into explorations of bamboo and timber construction, treating material not as ornament but as the origin of inquiry. SDG's most profound influence on Prototype Structure lies in bringing structure back to the origin of design, and material back to the order of nature.</p>
       </div>
 
       <!-- INFO CARD ACCORDION：海之博物館案例資訊，彈簧感開合 + 箭頭旋轉，皆為 CSS transition，
@@ -239,7 +239,7 @@
           .sc-accordion-header {
             display:flex; align-items:center; justify-content:space-between; gap:16px;
             width:100%; background:none; border:none; cursor:pointer; padding:20px 0;
-            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:15px; font-weight:800; letter-spacing:0.02em;
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:20px; font-weight:800; letter-spacing:0.02em;
             text-align:left;
           }
           .sc-accordion-chevron {
@@ -277,7 +277,7 @@
           </button>
           <div class="sc-accordion-panel">
             <div class="sc-accordion-panel-inner">
-              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};">
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};">
                 建築類型 / 博物館<br>
                 項目狀態 / 已完工（1992 年竣工）<br>
                 構造系統 / 層壓木桁架＋鋼筋混凝土<br>
@@ -287,7 +287,7 @@
                 建築設計｜內藤廣（Hiroshi Naitō）<br>
                 結構設計｜構造設計集團 SDG（渡邊邦夫 Kunio Watanabe）
               </p>
-              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};">
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};">
                 Building Type / Museum<br>
                 Project Status / Completed (1992)<br>
                 Structural System / Laminated timber truss + reinforced concrete hybrid structure with a central skylight emphasizing the rhythm of the wooden frame<br>
@@ -303,9 +303,9 @@
       </div>
 
       <div id="sc-section-sea-museum">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">海之博物館</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">海之民博物館由建築師內藤廣設計，結構設計由渡邊邦夫率領的構造設計集團（SDG）負責，1992 年於三重縣鳥羽市完工。建築以 18.5 公尺寬的層壓木桁架屋頂為核心，結合木構與鋼筋混凝土複合結構，形成溫潤而堅實的展覽空間。中央天窗引入自然光，映照海洋文物，使空間充滿光影流動的節奏。起伏的屋頂呼應海浪的韻律，蜿蜒的動線如潮汐般引導參觀者在空間中移動。博物館收藏木船、海女器具與漁具，展現人與海的共生歷史。此案以結構詩學與材料誠實著稱，既是文化的容器，也是海岸線上一座靜謐的地景建築。</p>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">The Toba Sea-Folk Museum, designed by Hiroshi Naitō with structural design by Kunio Watanabe of SDG, was completed in 1992 in Toba, Mie Prefecture. The 18.5-meter-wide laminated timber truss roof, supported by a hybrid system of wood and reinforced concrete, defines a warm and expansive exhibition space. A central skylight introduces natural light, creating shifting patterns of illumination over maritime artifacts. The undulating roof and meandering circulation echo the rhythm of waves, guiding visitors through a calm, fluid spatial experience. Exhibiting wooden boats, Ama diving tools, and fishing implements, the museum captures the enduring relationship between people and the sea—an architectural expression of restraint, structure, and poetic continuity.</p>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">海之博物館</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">海之民博物館由建築師內藤廣設計，結構設計由渡邊邦夫率領的構造設計集團（SDG）負責，1992 年於三重縣鳥羽市完工。建築以 18.5 公尺寬的層壓木桁架屋頂為核心，結合木構與鋼筋混凝土複合結構，形成溫潤而堅實的展覽空間。中央天窗引入自然光，映照海洋文物，使空間充滿光影流動的節奏。起伏的屋頂呼應海浪的韻律，蜿蜒的動線如潮汐般引導參觀者在空間中移動。博物館收藏木船、海女器具與漁具，展現人與海的共生歷史。此案以結構詩學與材料誠實著稱，既是文化的容器，也是海岸線上一座靜謐的地景建築。</p>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">The Toba Sea-Folk Museum, designed by Hiroshi Naitō with structural design by Kunio Watanabe of SDG, was completed in 1992 in Toba, Mie Prefecture. The 18.5-meter-wide laminated timber truss roof, supported by a hybrid system of wood and reinforced concrete, defines a warm and expansive exhibition space. A central skylight introduces natural light, creating shifting patterns of illumination over maritime artifacts. The undulating roof and meandering circulation echo the rhythm of waves, guiding visitors through a calm, fluid spatial experience. Exhibiting wooden boats, Ama diving tools, and fishing implements, the museum captures the enduring relationship between people and the sea—an architectural expression of restraint, structure, and poetic continuity.</p>
       </div>
 
       <!-- INFO CARD ACCORDION：東京國際會議中心案例資訊，套用「案例資訊卡元件」共用 CSS/JS
@@ -320,7 +320,7 @@
           </button>
           <div class="sc-accordion-panel">
             <div class="sc-accordion-panel-inner">
-              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};">
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};">
                 建築類型 / 會議與文化中心<br>
                 項目狀態 / 已完工（1996 年竣工，1997 年開幕）<br>
                 構造系統 / 鋼結構 + 鋼骨玻璃結構<br>
@@ -330,7 +330,7 @@
                 建築設計｜Rafael Viñoly Architects<br>
                 結構設計｜Structural Design Group (SDG) / 渡邊邦夫（Kunio Watanabe）
               </p>
-              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};">
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};">
                 Building Type / Convention and Cultural Center<br>
                 Project Status / Completed (Constructed in 1996, Opened in 1997)<br>
                 Structural System / Steel structure with glass and steel-framed components<br>
@@ -346,9 +346,9 @@
       </div>
 
       <div id="sc-section-tokyo-forum">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">東京國際會議中心</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">東京國際論壇於 1996 年竣工、1997 年開幕，位於東京丸之內地區，是一座融合會議、展演與公共活動的文化地標。由 Rafael Viñoly Architects 設計，結構設計由構造設計集團（SDG）的渡邊邦夫負責，展現建築與工程的精準協奏。其核心為標誌性的玻璃大廳，形似船艙，橫跨約 230 公尺，兩側以高達 60 公尺的鋼索懸吊玻璃牆支撐於優雅的鋼拱之間。大廳作為整體動線的中樞，串連多座表演廳、會議室與展覽空間，透過橋梁與坡道交織出流動的公共體驗。外立面以花崗岩包覆，構築城市邊界；內部則以透明結構引光入室。白日如晶體般透亮，夜晚化為東京天際線上的光之艦。二十多年來，論壇舉辦數千場活動、迎接數以百萬計訪客，成為城市開放精神與建築美學的象徵。2024 年，該建築榮獲美國建築師學會（AIA）「二十五年獎」，肯定其持續的設計價值與文化影響力。</p>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">The Tokyo International Forum, completed in 1996 and opened in 1997, is a convention and cultural complex in Tokyo's Marunouchi district. Designed by Rafael Viñoly Architects with structural design by Kunio Watanabe (SDG), it integrates architecture and engineering through its iconic Glass Hall—a vast, ship-like atrium framed by steel arches and cable-supported glass walls. The hall connects multiple theaters, exhibition spaces, and meeting rooms, serving as both circulation core and civic plaza. By day, the building shines as a crystalline vessel of light; by night, it glows as a lantern on Tokyo's skyline. Honored with the 2024 AIA Twenty-Five Year Award, it remains a timeless symbol of structural elegance and urban openness.</p>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">東京國際會議中心</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">東京國際論壇於 1996 年竣工、1997 年開幕，位於東京丸之內地區，是一座融合會議、展演與公共活動的文化地標。由 Rafael Viñoly Architects 設計，結構設計由構造設計集團（SDG）的渡邊邦夫負責，展現建築與工程的精準協奏。其核心為標誌性的玻璃大廳，形似船艙，橫跨約 230 公尺，兩側以高達 60 公尺的鋼索懸吊玻璃牆支撐於優雅的鋼拱之間。大廳作為整體動線的中樞，串連多座表演廳、會議室與展覽空間，透過橋梁與坡道交織出流動的公共體驗。外立面以花崗岩包覆，構築城市邊界；內部則以透明結構引光入室。白日如晶體般透亮，夜晚化為東京天際線上的光之艦。二十多年來，論壇舉辦數千場活動、迎接數以百萬計訪客，成為城市開放精神與建築美學的象徵。2024 年，該建築榮獲美國建築師學會（AIA）「二十五年獎」，肯定其持續的設計價值與文化影響力。</p>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">The Tokyo International Forum, completed in 1996 and opened in 1997, is a convention and cultural complex in Tokyo's Marunouchi district. Designed by Rafael Viñoly Architects with structural design by Kunio Watanabe (SDG), it integrates architecture and engineering through its iconic Glass Hall—a vast, ship-like atrium framed by steel arches and cable-supported glass walls. The hall connects multiple theaters, exhibition spaces, and meeting rooms, serving as both circulation core and civic plaza. By day, the building shines as a crystalline vessel of light; by night, it glows as a lantern on Tokyo's skyline. Honored with the 2024 AIA Twenty-Five Year Award, it remains a timeless symbol of structural elegance and urban openness.</p>
       </div>
 
       <!-- INFO CARD ACCORDION：橫濱大棧橋案例資訊，套用「案例資訊卡元件」共用 CSS/JS
@@ -363,7 +363,7 @@
           </button>
           <div class="sc-accordion-panel">
             <div class="sc-accordion-panel-inner">
-              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};">
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};">
                 建築類型 / 海運客運碼頭<br>
                 項目狀態 / 已完工（2002 年竣工）<br>
                 構造系統 / 鋼構＋鋼筋混凝土複合結構，採折板與箱型梁系統形成無柱大跨空間<br>
@@ -373,7 +373,7 @@
                 建築設計｜Foreign Office Architects (FOA)<br>
                 結構設計｜構造設計集團 SDG（渡邊邦夫 Kunio Watanabe）
               </p>
-              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};">
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};">
                 Building Type / International Passenger Terminal<br>
                 Project Status / Completed (2002)<br>
                 Structural System / Steel and reinforced concrete hybrid structure with folded-plate and box-girder system creating a column-free long span<br>
@@ -389,9 +389,9 @@
       </div>
 
       <div id="sc-section-yokohama-pier">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">橫濱大棧橋</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">橫濱國際客運碼頭於 2002 年完工，由 Foreign Office Architects（FOA） 設計，構造設計集團（SDG） 的 渡邊邦夫 負責結構設計。此案以「流動的地景」取代傳統碼頭，將建築、結構與都市動線融合為連續的公共地形。總樓地板面積約 48,000 平方公尺，屋頂以起伏的折板形態延展成海邊步道，使城市與港灣之間無縫銜接。下方的鋼構與鋼筋混凝土複合折板系統形成無柱大跨空間，容納旅客候船廳與多功能展演區。其結構形式以折板與箱型梁協同受力，使屋頂既為結構亦為表皮，最小化支撐，展現連續與運動的張力。設計將公共步行層與功能層整合，將基礎設施轉化為可親近的市民平台。橫濱大棧橋以其創新的建築與結構語彙，成為日本城市濱水設計的里程碑與象徵。</p>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">The Yokohama International Passenger Terminal, completed in 2002, transforms the pier into a continuous public landscape. Designed by Foreign Office Architects (FOA) with structural design by Kunio Watanabe (SDG), it merges architecture and engineering into a fluid, civic form. The 48,000 m² terminal features an undulating folded-plate roof that serves as both structure and promenade, connecting city and sea. Its hybrid steel-and-concrete system creates a vast column-free hall beneath, combining function and openness. The project stands as a landmark of structural innovation and urban integration on Japan's waterfront.</p>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">橫濱大棧橋</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">橫濱國際客運碼頭於 2002 年完工，由 Foreign Office Architects（FOA） 設計，構造設計集團（SDG） 的 渡邊邦夫 負責結構設計。此案以「流動的地景」取代傳統碼頭，將建築、結構與都市動線融合為連續的公共地形。總樓地板面積約 48,000 平方公尺，屋頂以起伏的折板形態延展成海邊步道，使城市與港灣之間無縫銜接。下方的鋼構與鋼筋混凝土複合折板系統形成無柱大跨空間，容納旅客候船廳與多功能展演區。其結構形式以折板與箱型梁協同受力，使屋頂既為結構亦為表皮，最小化支撐，展現連續與運動的張力。設計將公共步行層與功能層整合，將基礎設施轉化為可親近的市民平台。橫濱大棧橋以其創新的建築與結構語彙，成為日本城市濱水設計的里程碑與象徵。</p>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">The Yokohama International Passenger Terminal, completed in 2002, transforms the pier into a continuous public landscape. Designed by Foreign Office Architects (FOA) with structural design by Kunio Watanabe (SDG), it merges architecture and engineering into a fluid, civic form. The 48,000 m² terminal features an undulating folded-plate roof that serves as both structure and promenade, connecting city and sea. Its hybrid steel-and-concrete system creates a vast column-free hall beneath, combining function and openness. The project stands as a landmark of structural innovation and urban integration on Japan's waterfront.</p>
       </div>
 
       <!-- 橫向時間軸：資料來源活頁簿1.xlsx「原型三時期」工作表（時期／事件／說明，目前是佔位文字）。
@@ -423,19 +423,19 @@
             position:relative; z-index:1; width:10px; height:10px; border-radius:50%; margin-bottom:24px; flex-shrink:0;
           }
           .sc-h-timeline-period {
-            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:15px;
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:20px;
             letter-spacing:0.02em; margin:0 0 8px 0;
           }
           .sc-h-timeline-event {
-            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:700; font-size:13px;
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:700; font-size:17px;
             letter-spacing:0.05em; opacity:0.55; margin:0 0 10px 0;
           }
           .sc-h-timeline-desc {
-            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:13px;
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:17px;
             line-height:1.8; opacity:0.85; margin:0; max-width:220px;
           }
         </style>
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:700; letter-spacing:0.02em; margin:0 0 24px 0;">原型三時期</h2>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:17px; font-weight:700; letter-spacing:0.02em; margin:0 0 24px 0;">原型三時期</h2>
         <div class="sc-h-timeline-scroll">
           <div class="sc-h-timeline">
             <div class="sc-h-timeline-track">
@@ -503,7 +503,7 @@ class Component extends DCLogic {
     { num: '01', zh: 'SDG', en: 'StructuralDesignGroup', target: 'sc-section-origin' },
     { num: '02', zh: '1992海之博物館', en: '', photo: 'uploads/海之博物館.jpg', textOverride: '#ffffff', target: 'sc-section-sea-museum-card' },
     { num: '03', zh: '1996東京國際', en: '', photo: 'uploads/東京國際會議中心.jpg', textOverride: '#ffffff', target: 'sc-section-tokyo-forum-card' },
-    { num: '04', zh: '2002橫濱大', en: '', photo: 'uploads/橫濱大棧橋.jpg', textOverride: '#ffffff', target: 'sc-section-yokohama-pier-card' },
+    { num: '04', zh: '2002橫濱大棧橋', en: '', photo: 'uploads/橫濱大棧橋.jpg', textOverride: '#ffffff', target: 'sc-section-yokohama-pier-card' },
     { num: '05', zh: '原型三時期', en: '', target: 'sc-section-three-periods' },
     { num: '06', zh: '一人', en: '' },
     { num: '07', zh: '原型建築+原型結構', en: '' }
