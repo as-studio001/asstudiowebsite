@@ -48,3 +48,4 @@ https://animmasterlib.dev/scroll
 https://kinetics.colorion.co/  
 https://www.originkit.dev/  
 https://horizonx.so/  
+https://animate-ui.com/docs/icons
