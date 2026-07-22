@@ -87,13 +87,34 @@
   button.sc-btn.primary:hover { opacity: 0.85; }
   button.sc-btn:disabled,
   button.sc-btn:disabled:hover { opacity: 0.3; cursor: not-allowed; }
-  #btnUndo, #btnRedo, #btnResetSpacing, #btnThemeToggle {
+  #btnUndo, #btnRedo, #btnResetSpacing, #btnThemeToggle, #btnSyncSite {
     padding: 9px 14px; font-size: 15px; line-height: 1;
     display: flex; align-items: center; justify-content: center;
   }
-  #btnResetSpacing svg, #btnThemeToggle svg { width: 15px; height: 15px; display: block; }
+  #btnResetSpacing svg, #btnThemeToggle svg, #btnSyncSite svg { width: 15px; height: 15px; display: block; }
   .sc-divider { width: 1px; align-self: stretch; background: var(--border); margin: 0 4px; }
-  #btnSyncSite { display: flex; align-items: center; gap: 6px; }
+
+  /* Hover animation ported from @animate-ui/icons-send (Framer Motion) to
+     plain CSS: the plane flies up-and-right while shrinking slightly, and a
+     flight-trail line draws in behind it. transform-box: fill-box makes the
+     translate/scale apply around the plane's own bounding box, matching
+     Framer's default anchor, rather than the whole 24x24 viewBox's origin. */
+  #btnSyncSite .send-icon-plane {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 0.5s ease;
+  }
+  #btnSyncSite:hover .send-icon-plane {
+    transform: translate(3px, -3px) scale(0.8);
+  }
+  #btnSyncSite .send-icon-trail {
+    opacity: 0;
+    transition: opacity 0.3s ease, stroke-dashoffset 0.55s ease 0.1s;
+  }
+  #btnSyncSite:hover .send-icon-trail {
+    opacity: 1;
+    stroke-dashoffset: 0 !important;
+  }
 
   /* Left-side node list — fixed to the viewport (not the page) so it never
      scrolls away with the oversized diagram. Closed by default; opening it
@@ -354,14 +375,25 @@
   }
   .modal-close:hover { opacity: 1; background: var(--border); }
   .modal-hint { flex-shrink: 0; margin: 12px 18px 0; font-size: 12.5px; color: var(--text); opacity: 0.75; line-height: 1.5; }
+  .sync-sections {
+    flex: 1 1 auto; overflow-y: auto; margin: 10px 18px 18px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .sync-section { display: flex; flex-direction: column; gap: 6px; }
+  .sync-section-head {
+    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+    font-size: 12.5px; font-weight: 700; opacity: 0.85;
+  }
+  .sync-copy-btn { width: 26px; height: 26px; padding: 0; display: flex; align-items: center; justify-content: center; }
+  .sync-copy-btn svg { width: 14px; height: 14px; display: block; }
   .modal-output {
-    flex: 1 1 auto; margin: 10px 18px 0; min-height: 240px;
+    min-height: 160px;
     font-family: ui-monospace, SFMono-Regular, Consolas, 'Courier New', monospace;
     font-size: 12px; line-height: 1.5; white-space: pre; resize: vertical;
     background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 5px;
     padding: 10px; box-sizing: border-box;
   }
-  .modal-actions { flex-shrink: 0; display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px; }
+  .modal-output-sm { min-height: 60px; }
 </style>
 <script>
   // Applies a previously saved explicit theme choice before first paint, so
@@ -393,12 +425,13 @@
     <button type="button" class="sc-btn" id="btnCancel">Cancel changes</button>
     <button type="button" class="sc-btn primary" id="btnCommit">Commit changes</button>
     <button type="button" class="sc-btn" id="btnSyncSite" aria-label="同步至主網頁">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
-        <circle cx="12" cy="12" r="3"/>
-        <line x1="3" y1="12" x2="9" y2="12"/>
-        <line x1="15" y1="12" x2="21" y2="12"/>
+      <svg class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="overflow:visible;">
+        <g class="send-icon-plane">
+          <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/>
+          <path d="m21.854 2.147-10.94 10.939"/>
+        </g>
+        <path class="send-icon-trail" d="M -3 28 C -0.5 26.8 1.6 24.6 3.3 22 C 4.8 19.7 5.2 17.6 4.2 16.1 C 3.2 14.7 1.4 14.5 0.3 15.8 C -0.9 17.2 -0.6 19.4 1.2 20.4 C 3.4 21.5 6.4 19.4 9 15.8" stroke-width="1"/>
       </svg>
-      <span>同步至主網頁</span>
     </button>
   </div>
 </header>
@@ -409,10 +442,35 @@
       <span>主網頁同步程式碼</span>
       <button type="button" id="btnCloseSyncModal" class="modal-close" aria-label="關閉">✕</button>
     </div>
-    <p class="modal-hint">複製以下內容，貼到「建築事務所首頁.dc.html」對應區塊，取代原本的 specialIds／nodeData／edgeData 三段賦值（保留其餘程式碼不動）。</p>
-    <textarea id="syncOutput" class="modal-output" readonly spellcheck="false"></textarea>
-    <div class="modal-actions">
-      <button type="button" id="btnCopySync" class="sc-btn primary">複製到剪貼簿</button>
+    <p class="modal-hint">分別複製以下三段內容，貼到「建築事務所首頁.dc.html」對應陣列的中括號［ ］之間，取代原本裡面的內容（中括號本身不用動，也不用複製）。</p>
+    <div class="sync-sections">
+      <div class="sync-section">
+        <div class="sync-section-head">
+          <span>specialIds［ ］</span>
+          <button type="button" class="sc-btn primary sync-copy-btn" data-target="syncOutputSpecial" aria-label="複製 specialIds 內容">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </button>
+        </div>
+        <textarea id="syncOutputSpecial" class="modal-output modal-output-sm" readonly spellcheck="false"></textarea>
+      </div>
+      <div class="sync-section">
+        <div class="sync-section-head">
+          <span>nodeData［ ］</span>
+          <button type="button" class="sc-btn primary sync-copy-btn" data-target="syncOutputNodeData" aria-label="複製 nodeData 內容">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </button>
+        </div>
+        <textarea id="syncOutputNodeData" class="modal-output" readonly spellcheck="false"></textarea>
+      </div>
+      <div class="sync-section">
+        <div class="sync-section-head">
+          <span>edgeData［ ］</span>
+          <button type="button" class="sc-btn primary sync-copy-btn" data-target="syncOutputEdgeData" aria-label="複製 edgeData 內容">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </button>
+        </div>
+        <textarea id="syncOutputEdgeData" class="modal-output" readonly spellcheck="false"></textarea>
+      </div>
     </div>
   </div>
 </div>
@@ -504,7 +562,7 @@
 (function () {
   // Node names + hrefs copied verbatim from 建築事務所首頁.dc.html's nodeData.
   // href is editable here (超連結 field in the edit panel) and flows back out
-  // through the "同步至主網頁" export — see buildSyncText().
+  // through the "同步至主網頁" export — see buildSyncParts().
   const NODE_DATA = [
     { id: 'r1', name: "章 architecture design", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
     { id: 'r2', name: "原型教學", href: "./原型教學.dc.html" },
@@ -1046,6 +1104,8 @@
   function resolveDragPosition() {
     current[dragId] = ringPositionAtAngle(dragUnwrappedAngle);
 
+    let swapped = false;
+
     // Bounded (never while(true)) as a hard safety net — a full cascade
     // can touch at most every other node once, so n is always enough, and
     // this guarantees the browser can never lock up here no matter what.
@@ -1056,6 +1116,7 @@
       if (dragUnwrappedAngle < boundary - 1e-9) break;
       order[k] = nextId; slotOf[nextId] = k;
       order[(k + 1) % n] = dragId; slotOf[dragId] = (k + 1) % n;
+      swapped = true;
       // A locked neighbour's own coordinate is never reassigned (it's a
       // fixed pin, not a swap partner) — but the drag still passes it, so
       // the cascade keeps going to check whatever comes after it.
@@ -1070,20 +1131,23 @@
       if (dragUnwrappedAngle > boundary + 1e-9) break;
       order[k] = prevId; slotOf[prevId] = k;
       order[(k - 1 + n) % n] = dragId; slotOf[dragId] = (k - 1 + n) % n;
+      swapped = true;
       if (!lockedIds.has(prevId)) {
         current[prevId] = ringPositionAtAngle(dragUnwrappedAngle + edgeGap(dragId, prevId) + TIE_BREAK_MARGIN);
       }
     }
 
-    // Re-evens spacing around the whole ring on EVERY call, not just ones
-    // that crossed a swap boundary — any frame where dragId moved counts as
-    // "point positions differ," so the rest of the ring continuously stays
-    // evenly shared out as the drag approaches it, not just at the instant
-    // it actually swaps. dragId itself is the pin (it must stay exactly
-    // under the pointer); every locked node elsewhere is pinned too, so it
-    // never moves (and its own neighbouring gap stays as-is — see the
-    // "reset spacing" header button for a full re-even including locks).
-    relayoutRing(dragId);
+    // Only re-even spacing around the whole ring when this call actually
+    // crossed a swap boundary (order[] changed) — plain movement within
+    // dragId's own gap doesn't change who's adjacent to whom, so there's
+    // nothing for the rest of the ring to react to. Re-running it on every
+    // micro-movement made spacing visibly twitch on the slightest nudge;
+    // gating it on `swapped` keeps everyone else still until a real
+    // reshuffle happens. dragId itself is always the pin (it must stay
+    // exactly under the pointer); every locked node elsewhere is pinned
+    // too, so it never moves (see the "reset spacing" header button for a
+    // full re-even including locks).
+    if (swapped) relayoutRing(dragId);
     updateNode(dragId);
   }
 
@@ -1133,9 +1197,9 @@
     g.removeEventListener('pointercancel', onDragEnd);
     dragId = null;
     pendingMoveEvent = null;
-    // resolveDragPosition() already re-evens the whole ring's spacing on
-    // every frame (not just swap crossings), so whatever it last computed
-    // is already fully settled — nothing more to do here before recording it.
+    // resolveDragPosition() only re-evens spacing on frames that crossed a
+    // swap — if the drag ends mid-gap without a final swap, nothing further
+    // needs settling (no pin/topology changed since the last relayout).
     pushHistory();
     if (id === editingId) refreshEditAngleField();
     // Keeps the list's own row order matching the ring's actual sequence
@@ -1222,17 +1286,48 @@
   // connections (adjacency, deduped since it's stored symmetrically). This
   // editor has no server/git access of its own, so "sync" here means
   // generate-and-copy, not a direct file write.
-  function buildSyncText() {
-    const specialLine = 'specialIds = [' + order.filter(id => SPECIAL_IDS.has(id)).map(id => `'${id}'`).join(', ') + '];';
+  //
+  // order[0] is whatever the raw atan2 sort in rebuildOrderFromCurrent()
+  // happened to land on (an arbitrary artifact of where its ±π wraparound
+  // falls) — but the production page always pins nodeData[0] to a FIXED
+  // angle, -90°/12-o'clock (see its `angle = arcPos/radius - Math.PI/2`
+  // with arcPos starting at 0). Exporting order[] as-is would force whatever
+  // node sits at order[0] to jump to 12-o'clock on production, rotating the
+  // *entire* ring away from what this editor is showing, even though every
+  // node's neighbours (the part order[] actually encodes) stay correct.
+  // Fix: cyclically rotate the exported sequence so whichever node is
+  // CURRENTLY closest to 12-o'clock here becomes first — a pure relabeling
+  // of the same cycle, so it lines up with production's fixed anchor.
+  function angularDistance(a, b) {
+    let d = Math.abs(a - b) % (2 * Math.PI);
+    if (d > Math.PI) d = 2 * Math.PI - d;
+    return d;
+  }
 
-    const nodeDataLine = 'nodeData = [\n' + order.map(id => {
+  // Returns just the INSIDE of each array's [ ] — not the `specialIds = [`
+  // wrapper or trailing `];` — so each can be copied separately and pasted
+  // straight between the brackets already sitting in the production file,
+  // without the maintainer having to touch the brackets themselves.
+  function buildSyncParts() {
+    const topAngle = -Math.PI / 2;
+    let startIdx = 0;
+    let bestDist = Infinity;
+    order.forEach((id, i) => {
+      const dist = angularDistance(angleOf(current[id]), topAngle);
+      if (dist < bestDist) { bestDist = dist; startIdx = i; }
+    });
+    const rotatedOrder = order.slice(startIdx).concat(order.slice(0, startIdx));
+
+    const specialIdsInner = rotatedOrder.filter(id => SPECIAL_IDS.has(id)).map(id => `'${id}'`).join(', ');
+
+    const nodeDataInner = rotatedOrder.map(id => {
       const d = NODE_DATA.find(x => x.id === id);
       return `    { id: '${id}', name: ${JSON.stringify(d.name)}, href: ${JSON.stringify(d.href || '')} }`;
-    }).join(',\n') + '\n  ];';
+    }).join(',\n');
 
     const seenPairs = new Set();
     const pairs = [];
-    order.forEach(id => {
+    rotatedOrder.forEach(id => {
       adjacency[id].forEach(other => {
         const key = id < other ? id + '|' + other : other + '|' + id;
         if (seenPairs.has(key)) return;
@@ -1240,15 +1335,31 @@
         pairs.push([id, other]);
       });
     });
-    const edgeDataLine = 'edgeData = [\n    ' + pairs.map(([a, b]) => `['${a}', '${b}']`).join(',\n    ') + '\n  ];';
+    const edgeDataInner = '    ' + pairs.map(([a, b]) => `['${a}', '${b}']`).join(',\n    ');
 
-    return specialLine + '\n\n' + nodeDataLine + '\n\n' + edgeDataLine;
+    return { specialIdsInner, nodeDataInner, edgeDataInner };
+  }
+
+  // Sets up the send-icon's flight-trail path to "draw in" on hover: measure
+  // its real length once, park it fully hidden via dash offset, then the
+  // :hover rule (stroke-dashoffset: 0) animates it revealing end-to-end —
+  // the plain-CSS equivalent of the reference icon's pathLength 0→1 tween.
+  const sendTrailPath = document.querySelector('#btnSyncSite .send-icon-trail');
+  if (sendTrailPath) {
+    const trailLen = sendTrailPath.getTotalLength();
+    sendTrailPath.style.strokeDasharray = trailLen;
+    sendTrailPath.style.strokeDashoffset = trailLen;
   }
 
   const syncModalOverlay = document.getElementById('syncModalOverlay');
-  const syncOutputEl = document.getElementById('syncOutput');
+  const syncOutputSpecialEl = document.getElementById('syncOutputSpecial');
+  const syncOutputNodeDataEl = document.getElementById('syncOutputNodeData');
+  const syncOutputEdgeDataEl = document.getElementById('syncOutputEdgeData');
   document.getElementById('btnSyncSite').addEventListener('click', () => {
-    syncOutputEl.value = buildSyncText();
+    const parts = buildSyncParts();
+    syncOutputSpecialEl.value = parts.specialIdsInner;
+    syncOutputNodeDataEl.value = parts.nodeDataInner;
+    syncOutputEdgeDataEl.value = parts.edgeDataInner;
     syncModalOverlay.hidden = false;
   });
   document.getElementById('btnCloseSyncModal').addEventListener('click', () => {
@@ -1257,15 +1368,18 @@
   syncModalOverlay.addEventListener('click', (e) => {
     if (e.target === syncModalOverlay) syncModalOverlay.hidden = true;
   });
-  document.getElementById('btnCopySync').addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(syncOutputEl.value);
-      showToast('已複製，可貼到主網頁檔案中');
-    } catch (err) {
-      syncOutputEl.focus();
-      syncOutputEl.select();
-      showToast('自動複製失敗，已選取內容，請手動複製（Ctrl+C）');
-    }
+  document.querySelectorAll('.sync-copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const targetEl = document.getElementById(btn.dataset.target);
+      try {
+        await navigator.clipboard.writeText(targetEl.value);
+        showToast('已複製，可貼到主網頁檔案的中括號內');
+      } catch (err) {
+        targetEl.focus();
+        targetEl.select();
+        showToast('自動複製失敗，已選取內容，請手動複製（Ctrl+C）');
+      }
+    });
   });
 
   const btnUndo = document.getElementById('btnUndo');
