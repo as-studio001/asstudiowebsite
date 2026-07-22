@@ -1,0 +1,2422 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>圓點位置編輯器｜原型結構首頁網絡圖</title>
+<style>
+  :root {
+    --bg: #fcfcfc;
+    --bg-translucent: rgba(252, 252, 252, 0.88);
+    --text: #1a1a1a;
+    --line: #d9d9d9;
+    --dot: #1a1a1a;
+    --special: #808080;
+    --border: #e2e2e2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --bg-translucent: rgba(26, 26, 26, 0.88);
+      --text: #f5f5f5;
+      --line: #444444;
+      --dot: #f5f5f5;
+      --special: #d4af37;
+      --border: #3a3a3a;
+    }
+  }
+  /* Explicit user choice (via the header toggle button) always wins over
+     the OS/browser's own prefers-color-scheme — the attribute selector's
+     extra specificity beats the plain :root inside the media query above,
+     in either direction, regardless of which one the system prefers. */
+  :root[data-theme="light"] {
+    --bg: #fcfcfc;
+    --bg-translucent: rgba(252, 252, 252, 0.88);
+    --text: #1a1a1a;
+    --line: #d9d9d9;
+    --dot: #1a1a1a;
+    --special: #808080;
+    --border: #e2e2e2;
+  }
+  :root[data-theme="dark"] {
+    --bg: #1a1a1a;
+    --bg-translucent: rgba(26, 26, 26, 0.88);
+    --text: #f5f5f5;
+    --line: #444444;
+    --dot: #f5f5f5;
+    --special: #d4af37;
+    --border: #3a3a3a;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; min-height: 100%;
+    background: var(--bg); color: var(--text);
+    font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+  /* The diagram (ring + long radial labels) is drawn larger than any single
+     viewport can show at a readable scale — rather than shrinking it to
+     fit, the page itself grows to the diagram's real size and scrolls in
+     both directions to reach the rest, instead of letting the fixed header
+     or the viewport bounds clip it. */
+  html { overflow-y: auto; }
+  body { overflow-x: auto; }
+
+  /* HEADER — only the two requested actions, nothing from the main site's header/footer */
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px;
+    background: var(--bg-translucent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    font-size: 14px; font-weight: 700; letter-spacing: 0.04em; margin: 0;
+  }
+  .sc-btns { display: flex; gap: 12px; }
+  button.sc-btn {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.03em;
+    padding: 9px 20px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--text); background: none; color: var(--text);
+    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+  button.sc-btn:hover { opacity: 0.6; }
+  button.sc-btn.primary { background: var(--text); color: var(--bg); }
+  button.sc-btn.primary:hover { opacity: 0.85; }
+  button.sc-btn:disabled,
+  button.sc-btn:disabled:hover { opacity: 0.3; cursor: not-allowed; }
+  #btnUndo, #btnRedo, #btnResetSpacing, #btnThemeToggle {
+    padding: 9px 14px; font-size: 15px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #btnResetSpacing svg, #btnThemeToggle svg { width: 15px; height: 15px; display: block; }
+  .sc-divider { width: 1px; align-self: stretch; background: var(--border); margin: 0 4px; }
+  #btnSyncSite { display: flex; align-items: center; gap: 6px; }
+
+  /* Left-side node list — fixed to the viewport (not the page) so it never
+     scrolls away with the oversized diagram. Closed by default; opening it
+     pushes #mainContent over via padding-left rather than overlaying, per
+     the requested "推開版面" behavior. */
+  .list-toggle {
+    position: fixed; left: 0; top: 50%; z-index: 1001;
+    transform: translateY(-50%);
+    padding: 14px 9px; border: none; border-radius: 0 8px 8px 0;
+    background: var(--text); color: var(--bg); cursor: pointer;
+    font-size: 15px; line-height: 1;
+    transition: left 0.25s ease, opacity 0.2s ease;
+  }
+  .list-toggle:hover { opacity: 0.85; }
+  .list-toggle.open { left: 280px; }
+  /* When the per-node edit panel is also open, it starts exactly where the
+     toggle button would otherwise sit (left: 280px) — push the button past
+     it too, or it floats on top of the edit fields (name/angle/size/colour/
+     href) since the button's z-index is intentionally above every panel. */
+  .list-toggle.open.connections-open { left: 540px; }
+  .list-toggle:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .node-list {
+    position: fixed; left: 0; top: var(--header-h, 71px); bottom: 0; width: 280px;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    /* border-right only while open — the translateX hide below carries the
+       border along with it, so an always-on border here would still leave
+       a 1px line sitting at the viewport's left edge even while closed. */
+    border-right: 0 solid var(--border);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease, border-right-width 0.25s ease;
+    z-index: 998;
+  }
+  .node-list.open { transform: translateX(0); border-right-width: 1px; }
+  .node-list-head {
+    flex-shrink: 0; padding: 14px 12px 14px 20px;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+  }
+  .node-list-head-view:not([hidden]) { display: flex; align-items: center; justify-content: space-between; }
+  .node-list-pen-btn {
+    flex-shrink: 0; width: 26px; height: 26px; border: none; background: none;
+    color: var(--text); opacity: 0.55; cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; border-radius: 5px;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+  }
+  .node-list-pen-btn:hover { opacity: 1; background: var(--border); }
+  /* :not([hidden]) — an unconditional `display: flex` here would outrank
+     the `hidden` attribute's own display:none (author rule beats the UA
+     stylesheet's attribute selector), leaving Cancel/Commit visible even
+     when this element carries `hidden`. */
+  .node-list-head-edit:not([hidden]) { display: flex; gap: 6px; }
+  .node-list-head-edit .sc-btn {
+    padding: 7px 10px; font-size: 14px; min-width: 32px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .node-list-add-row { flex-shrink: 0; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .node-list-add-btn {
+    width: 100%; padding: 8px; border: 1px dashed var(--border); border-radius: 6px;
+    background: none; color: var(--text); cursor: pointer; font-size: 13px; font-weight: 600;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+  .node-list-add-btn:hover { background: var(--border); border-color: var(--text); }
+
+  .node-list-items { flex: 1 1 auto; overflow-y: auto; padding: 8px; }
+  .node-list-row {
+    display: flex; align-items: center; border-radius: 5px;
+  }
+  .node-list-row:not(:last-child) { border-bottom: 1px solid var(--border); }
+  .node-list-row.editing { background: rgba(155, 125, 31, 0.14); }
+  .node-list-row.row-selected { background: rgba(155, 125, 31, 0.14); }
+  .node-list-row.row-dragging {
+    opacity: 0.85; background: var(--border);
+    position: relative; z-index: 10;
+  }
+  .node-list-item {
+    flex: 1 1 auto; min-width: 0; display: block; text-align: left;
+    padding: 7px 12px; margin: 0; border: none; background: none;
+    border-radius: 5px; cursor: pointer;
+    font-size: 13px; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .node-list-item:hover { background: var(--border); }
+  .node-list-item.special { color: var(--special); font-weight: 700; }
+  /* Edit-target triangle, on the right of each row. Distinct from clicking
+     the name itself (which just locates/highlights it on the ring) —
+     rotates down when this node is the sole current edit target. */
+  .node-list-edit-target {
+    flex-shrink: 0; width: 24px; height: 24px; margin-left: 2px;
+    border: none; background: none; border-radius: 4px; cursor: pointer;
+    color: var(--text); opacity: 0.45; font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+  .node-list-edit-target:hover { opacity: 1; background: var(--border); }
+  .node-list-edit-target.active { opacity: 1; color: var(--special); transform: rotate(90deg); }
+
+  /* Drag handle + delete only make sense while restructuring the list, so
+     they're hidden the rest of the time; the edit-target triangle is the
+     reverse (hidden during structure editing, to keep the two modes from
+     overlapping). */
+  .node-list-handle, .node-list-lock, .node-list-delete { display: none; flex-shrink: 0; width: 22px; height: 24px; }
+  .node-list-handle {
+    align-items: center; justify-content: center; color: var(--text); opacity: 0.45;
+    font-size: 13px; cursor: grab; touch-action: none;
+  }
+  .node-list-lock, .node-list-delete {
+    border: none; background: none; border-radius: 4px; color: var(--text);
+    opacity: 0.45; cursor: pointer; font-size: 12px;
+    align-items: center; justify-content: center;
+    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+  .node-list-lock svg { width: 12px; height: 12px; fill: currentColor; display: block; }
+  .node-list-lock:hover, .node-list-delete:hover { opacity: 1; background: var(--border); }
+  .node-list-lock.locked { opacity: 1; }
+  .node-list-row.row-locked .node-list-handle { cursor: not-allowed; opacity: 0.25; }
+  .node-list.structure-editing .node-list-handle,
+  .node-list.structure-editing .node-list-lock,
+  .node-list.structure-editing .node-list-delete { display: flex; }
+  .node-list.structure-editing .node-list-edit-target { display: none; }
+
+  /* Edit panel, flyout to the right of the main list for whichever single
+     node is the current edit target — properties (name/position/size/
+     colour) plus its connection list (add/remove). A separate panel (not
+     inline in the row) so picking a target never reflows the list itself. */
+  .node-connections {
+    position: fixed; left: 280px; top: var(--header-h, 71px); bottom: 0; width: 0;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    /* border-right only while open — at width:0 the left and right edges of
+       this box are the same point, so an always-on border here would draw
+       a 1px line at x:280 (right where the panel appears when opened)
+       even while it's fully collapsed and supposedly invisible. */
+    border-right: 0 solid var(--border);
+    transition: width 0.2s ease, border-right-width 0.2s ease;
+    z-index: 997;
+  }
+  .node-connections.open { width: 260px; border-right-width: 1px; }
+  .edit-panel-head { flex-shrink: 0; padding: 16px 16px 8px; width: 260px; box-sizing: border-box; }
+  .edit-name-input {
+    width: 100%; font-size: 14px; font-weight: 700; padding: 7px 9px;
+    border: 1px solid var(--border); border-radius: 5px;
+    background: var(--bg); color: var(--text); box-sizing: border-box;
+  }
+  .edit-panel-fields {
+    flex-shrink: 0; width: 260px; box-sizing: border-box;
+    padding: 0 16px 14px; display: flex; flex-direction: column; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .edit-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text); opacity: 0.8; }
+  .edit-field input, .edit-field select {
+    font-size: 13px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 5px;
+    background: var(--bg); color: var(--text); box-sizing: border-box; font-family: inherit;
+  }
+  .edit-angle-dial-wrap { display: flex; justify-content: center; padding: 2px 0 4px; }
+  .edit-angle-dial { width: 128px; height: 128px; touch-action: none; cursor: grab; }
+  .edit-angle-dial.dial-dragging { cursor: grabbing; }
+  .dial-ring { fill: none; stroke: var(--border); stroke-width: 1.5; }
+  .dial-tick { stroke: var(--border); stroke-width: 1.5; }
+  .dial-tick-label { fill: var(--text); opacity: 0.4; font-size: 10px; }
+  .dial-pointer { stroke: var(--special); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
+  .dial-center { fill: var(--special); pointer-events: none; }
+  .node-connections-subhead {
+    flex-shrink: 0; width: 260px; box-sizing: border-box;
+    padding: 12px 16px 8px; display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.05em; opacity: 0.85;
+  }
+  .edit-add-btn {
+    width: 22px; height: 22px; border: 1px solid var(--text); border-radius: 5px;
+    background: none; color: var(--text); cursor: pointer; font-size: 13px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .edit-add-btn:hover { background: var(--text); color: var(--bg); }
+  .add-connection-row { flex-shrink: 0; width: 260px; box-sizing: border-box; padding: 0 16px 10px; }
+  .add-connection-row select {
+    width: 100%; font-size: 13px; padding: 6px 8px;
+    border: 1px solid var(--border); border-radius: 5px; box-sizing: border-box;
+  }
+  .node-connections-items { flex: 1 1 auto; overflow-y: auto; padding: 8px; width: 260px; box-sizing: border-box; }
+  .node-connections-row { display: flex; align-items: center; }
+  .node-connections-remove {
+    flex-shrink: 0; width: 24px; height: 24px; border: none; background: none;
+    color: var(--text); opacity: 0.4; cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; border-radius: 4px;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+  }
+  .node-connections-remove:hover { opacity: 1; background: var(--border); }
+
+  main {
+    padding: 128px 16px 80px;
+    box-sizing: border-box;
+    transition: padding-left 0.25s ease;
+  }
+  main.list-open { padding-left: 296px; }
+  main.list-open.connections-open { padding-left: 556px; }
+  /* --content-scale (set by the script below once the diagram's real extent
+     is known) keeps each dot/label at the same on-screen size as the original
+     900-unit design — the stage simply grows past min(92vw, 78vh) instead
+     of shrinking everything to fit, which is what makes it scrollable.
+     margin: 0 auto (not flex centering) so an oversized stage still starts
+     flush at the left edge and every bit of the overflow stays reachable
+     by scrolling, rather than being centered into an unreachable negative
+     offset. */
+  #stage {
+    width: calc(min(92vw, 78vh) * var(--content-scale, 1));
+    max-width: calc(1700px * var(--content-scale, 1));
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+  }
+  svg { width: 100%; height: 100%; overflow: visible; display: block; }
+
+  .sc-node { cursor: grab; touch-action: none; }
+  .sc-node.dragging { cursor: grabbing; }
+  .sc-hit { fill: transparent; }
+  .sc-dot { transition: fill 0.2s ease; }
+  .sc-edge { transition: opacity 0.2s ease; }
+  .sc-label { pointer-events: none; }
+  /* A displaced dot slides into its new seat instead of teleporting, so a
+     swap reads clearly — but the dot under the pointer must track it with
+     zero lag, so its own transition is switched off while dragging. */
+  .sc-dot, .sc-hit { transition: cx 0.18s ease-out, cy 0.18s ease-out, fill 0.2s ease; }
+  .sc-edge { transition: x1 0.18s ease-out, y1 0.18s ease-out, x2 0.18s ease-out, y2 0.18s ease-out, opacity 0.2s ease; }
+  .sc-node.dragging .sc-dot, .sc-node.dragging .sc-hit,
+  .sc-edge.sc-drag-live { transition: fill 0.2s ease, opacity 0.2s ease; }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; z-index: 2000;
+    transform: translateX(-50%) translateY(16px);
+    background: #1a1a1a; color: #fff; font-size: 13px;
+    padding: 10px 22px; border-radius: 999px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 3000;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-overlay[hidden] { display: none; }
+  .modal-box {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; width: min(720px, 92vw); max-height: 82vh;
+    display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+  .modal-head {
+    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 14px;
+  }
+  .modal-close {
+    border: none; background: none; color: var(--text); opacity: 0.6; cursor: pointer;
+    font-size: 15px; line-height: 1; padding: 4px 6px; border-radius: 4px;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+  }
+  .modal-close:hover { opacity: 1; background: var(--border); }
+  .modal-hint { flex-shrink: 0; margin: 12px 18px 0; font-size: 12.5px; color: var(--text); opacity: 0.75; line-height: 1.5; }
+  .modal-output {
+    flex: 1 1 auto; margin: 10px 18px 0; min-height: 240px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, 'Courier New', monospace;
+    font-size: 12px; line-height: 1.5; white-space: pre; resize: vertical;
+    background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 5px;
+    padding: 10px; box-sizing: border-box;
+  }
+  .modal-actions { flex-shrink: 0; display: flex; justify-content: flex-end; gap: 8px; padding: 14px 18px; }
+</style>
+<script>
+  // Applies a previously saved explicit theme choice before first paint, so
+  // there's no flash of the OS-default theme before the toggle button's own
+  // script (at the bottom of the page) gets a chance to run.
+  (function () {
+    try {
+      var t = localStorage.getItem('dotPositionEditor:theme:v1');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    } catch (err) {}
+  })();
+</script>
+</head>
+<body>
+
+<header id="pageHeader">
+  <h1>圓點位置編輯器　·　拖曳任意圓點調整位置</h1>
+  <div class="sc-btns">
+    <button type="button" class="sc-btn" id="btnUndo" aria-label="上一步">↶</button>
+    <button type="button" class="sc-btn" id="btnRedo" aria-label="下一步">↷</button>
+    <button type="button" class="sc-btn" id="btnResetSpacing" aria-label="重新整理間距">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+        <path d="M21 3v5h-5"/>
+      </svg>
+    </button>
+    <button type="button" class="sc-btn" id="btnThemeToggle" aria-label="切換深色/淺色模式"></button>
+    <div class="sc-divider"></div>
+    <button type="button" class="sc-btn" id="btnCancel">Cancel changes</button>
+    <button type="button" class="sc-btn primary" id="btnCommit">Commit changes</button>
+    <button type="button" class="sc-btn" id="btnSyncSite" aria-label="同步至主網頁">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+        <circle cx="12" cy="12" r="3"/>
+        <line x1="3" y1="12" x2="9" y2="12"/>
+        <line x1="15" y1="12" x2="21" y2="12"/>
+      </svg>
+      <span>同步至主網頁</span>
+    </button>
+  </div>
+</header>
+
+<div class="modal-overlay" id="syncModalOverlay" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>主網頁同步程式碼</span>
+      <button type="button" id="btnCloseSyncModal" class="modal-close" aria-label="關閉">✕</button>
+    </div>
+    <p class="modal-hint">複製以下內容，貼到「建築事務所首頁.dc.html」對應區塊，取代原本的 specialIds／nodeData／edgeData 三段賦值（保留其餘程式碼不動）。</p>
+    <textarea id="syncOutput" class="modal-output" readonly spellcheck="false"></textarea>
+    <div class="modal-actions">
+      <button type="button" id="btnCopySync" class="sc-btn primary">複製到剪貼簿</button>
+    </div>
+  </div>
+</div>
+
+<button type="button" id="btnToggleList" class="list-toggle" aria-expanded="false" aria-controls="nodeList">
+  <span id="listToggleIcon">☰</span>
+</button>
+
+<aside id="nodeList" class="node-list">
+  <div class="node-list-head">
+    <div class="node-list-head-view" id="nodeListHeadView">
+      <span>節點清單</span>
+      <button type="button" id="btnPenMode" class="node-list-pen-btn" aria-label="編輯節點清單">✒</button>
+    </div>
+    <div class="node-list-head-edit" id="nodeListHeadEdit" hidden>
+      <button type="button" class="sc-btn" id="btnListUndo" aria-label="上一步">↶</button>
+      <button type="button" class="sc-btn" id="btnListRedo" aria-label="下一步">↷</button>
+      <button type="button" class="sc-btn" id="btnListCancel" aria-label="Cancel changes">✕</button>
+      <button type="button" class="sc-btn primary" id="btnListCommit" aria-label="Commit changes">✓</button>
+    </div>
+  </div>
+  <div class="node-list-add-row" id="nodeListAddRow" hidden>
+    <button type="button" id="btnAddNode" class="node-list-add-btn">＋ 新增節點</button>
+  </div>
+  <div class="node-list-items" id="nodeListItems"></div>
+</aside>
+
+<aside id="nodeConnections" class="node-connections">
+  <div class="edit-panel-head">
+    <input type="text" id="editName" class="edit-name-input" placeholder="圓點名稱">
+  </div>
+  <div class="edit-panel-fields">
+    <label class="edit-field">
+      <span>位置角度（0–360°）</span>
+      <input type="number" id="editAngle" min="0" max="360" step="0.1">
+    </label>
+    <div class="edit-angle-dial-wrap">
+      <svg id="editAngleDial" class="edit-angle-dial" viewBox="0 0 120 120" aria-label="拖曳指針設定位置角度">
+        <circle class="dial-ring" cx="60" cy="60" r="48"></circle>
+        <g id="dialTicks"></g>
+        <line id="dialPointer" class="dial-pointer" x1="60" y1="60" x2="108" y2="60"></line>
+        <circle class="dial-center" cx="60" cy="60" r="2.5"></circle>
+      </svg>
+    </div>
+    <label class="edit-field">
+      <span>大小</span>
+      <input type="number" id="editSize" min="1" max="60" step="0.5">
+    </label>
+    <label class="edit-field">
+      <span>顏色</span>
+      <select id="editColor">
+        <option value="normal">一般</option>
+        <option value="special">特殊</option>
+      </select>
+    </label>
+    <label class="edit-field">
+      <span>超連結（子網頁）</span>
+      <input type="text" id="editHref" placeholder="https:// 或 ./子網頁.dc.html">
+    </label>
+  </div>
+  <div class="node-connections-subhead">
+    <span>連線對象</span>
+    <button type="button" id="btnAddConnection" class="edit-add-btn" aria-label="新增連線">＋</button>
+  </div>
+  <div class="add-connection-row" id="addConnectionRow" hidden>
+    <select id="addConnectionSelect"></select>
+  </div>
+  <div class="node-connections-items" id="nodeConnectionsItems"></div>
+</aside>
+
+<main id="mainContent">
+  <div id="stage">
+    <svg id="svg" viewBox="0 0 900 900">
+      <g id="edgesLayer"></g>
+      <g id="nodesLayer"></g>
+      <foreignObject x="240" y="350" width="420" height="200" style="overflow:visible; pointer-events:none;">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;">
+          <div style="font-size:62px; font-weight:600; letter-spacing:0.02em; color:var(--text); font-family:'Noto Serif TC','Source Han Serif TC',serif;">原型 × 未來</div>
+          <div style="font-size:22px; letter-spacing:0.06em; color:var(--text); opacity:0.55; margin-top:10px;">Architecture + Structure</div>
+        </div>
+      </foreignObject>
+    </svg>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  // Node names + hrefs copied verbatim from 建築事務所首頁.dc.html's nodeData.
+  // href is editable here (超連結 field in the edit panel) and flows back out
+  // through the "同步至主網頁" export — see buildSyncText().
+  const NODE_DATA = [
+    { id: 'r1', name: "章 architecture design", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r2', name: "原型教學", href: "./原型教學.dc.html" },
+    { id: 'r3', name: "實習", href: "./原型教學.dc.html" },
+    { id: 'r4', name: "美感教育", href: "./原型教學.dc.html" },
+    { id: 'r5', name: "孩童", href: "./原型教學.dc.html" },
+    { id: 'r6', name: "文化", href: "./原型教學.dc.html" },
+    { id: 'r7', name: "設計方法", href: "./原型教學.dc.html" },
+    { id: 'r8', name: "工作文化", href: "./原型教學.dc.html" },
+    { id: 'r9', name: "大事記", href: "./原型教學.dc.html" },
+    { id: 'r10', name: "工作文化", href: "./原型教學.dc.html" },
+    { id: 'r11', name: "原型數位", href: "./原型教學.dc.html" },
+    { id: 'r12', name: "ArchiCAD", href: "./原型教學.dc.html" },
+    { id: 'r13', name: "midjourney", href: "./原型教學.dc.html" },
+    { id: 'r14', name: "midas", href: "./原型教學.dc.html" },
+    { id: 'r15', name: "原型原點", href: "./原型原點.dc.html" },
+    { id: 'r16', name: "SDG(Structural Design Group)", href: "./原型原點.dc.html" },
+    { id: 'r17', name: "1992 海之博物館", href: "./原型原點.dc.html" },
+    { id: 'r18', name: "1996 東京國際", href: "./原型原點.dc.html" },
+    { id: 'r19', name: "2002橫濱大", href: "./原型原點.dc.html" },
+    { id: 'r20', name: "原型三時期", href: "./原型原點.dc.html" },
+    { id: 'r21', name: "一人", href: "./原型原點.dc.html" },
+    { id: 'r22', name: "原型建築+原型結構", href: "./原型原點.dc.html" },
+    { id: 'r23', name: "原型結構", href: "./原型結構.dc.html" },
+    { id: 'r24', name: "木構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=27070" },
+    { id: 'r25', name: "竹構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25396" },
+    { id: 'r26', name: "RC構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25397" },
+    { id: 'r27', name: "鋼構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25398" },
+    { id: 'r28', name: "成 construction", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r29', name: "媒體報導", href: "https://www.mashup.com.tw/as%20studio/?page=one_page&id=4045" },
+    { id: 'r30', name: "2012 媽祖宗教文化園區眺望台雜誌報導", href: "./原型獲獎.dc.html" },
+    { id: 'r31', name: "2012 新營服務區公廁新建工程雜誌報導", href: "./原型獲獎.dc.html" },
+    { id: 'r32', name: "2013雲林農博微笑餐廳雜誌報導", href: "./原型獲獎.dc.html" },
+    { id: 'r33', name: "2021構竹林鐵新銳展", href: "./原型獲獎.dc.html" },
+    { id: 'r34', name: "2024香港大學木構專案", href: "./原型獲獎.dc.html" },
+    { id: 'r35', name: "2015 X-SITE 「未知質域」獲獎", href: "./原型獲獎.dc.html" },
+    { id: 'r36', name: "2016 X-SITE「浮光之間」獲獎", href: "./原型獲獎.dc.html" },
+    { id: 'r37', name: "2020 X-SITE 「膜」獲獎", href: "./原型獲獎.dc.html" },
+    { id: 'r38', name: "2021 X-SITE 「爆炸容器」獲獎", href: "./原型獲獎.dc.html" },
+    { id: 'r39', name: "2022 X-SITE 「藍屋」獲獎", href: "https://www.tfam.museum/Exhibition/Exhibition_page.aspx?ddlLang=zh-tw&id=707" },
+    { id: 'r40', name: "2023 X-SITE 「途中」獲獎", href: "./原型獲獎.dc.html" },
+    { id: 'r41', name: "2015 左鎮菜寮化石文化園區改建工程競圖獲勝", href: "./原型獲獎.dc.html" },
+    { id: 'r42', name: "2015 嘉義市立美術館 設計監造案 競圖獲勝", href: "./原型獲獎.dc.html" },
+    { id: 'r43', name: "2016 金門水頭港遊客服務中心新建工程 競圖獲勝", href: "./原型獲獎.dc.html" },
+    { id: 'r44', name: "2016 桃園市蘆竹國民運動中心興建工程 競圖獲勝", href: "./原型獲獎.dc.html" },
+    { id: 'r45', name: "2017 華德福實驗分校第二期校舍新建工程 競圖獲勝", href: "./原型獲獎.dc.html" },
+    { id: 'r46', name: "2019 故宮南院景觀橋新建工程 競圖獲勝", href: "./原型獲獎.dc.html" },
+    { id: 'r47', name: "2023 嘉義 構竹林鐵 新銳展 德國IF設計獎", href: "./原型獲獎.dc.html" },
+    { id: 'r48', name: "2023 嘉義實驗木場 德國IF設計獎", href: "./原型獲獎.dc.html" },
+    { id: 'r49', name: "2023 台中潭心鐵馬空橋 德國IF設計獎", href: "./原型獲獎.dc.html" },
+    { id: 'r50', name: "2015 雲林農博 台灣建築獎首獎", href: "./原型獲獎.dc.html" },
+    { id: 'r51', name: "2017 宜蘭中山小巨蛋 台灣建築獎佳作", href: "./原型獲獎.dc.html" },
+    { id: 'r52', name: "2018 嘉義火車站站前西側廣場 台灣建築獎佳作", href: "./原型獲獎.dc.html" },
+    { id: 'r53', name: "2021 嘉義美術館 台灣建築獎首獎", href: "./原型獲獎.dc.html" },
+    { id: 'r54', name: "2022 德光教會 台灣建築獎佳作", href: "./原型獲獎.dc.html" },
+    { id: 'r55', name: "2023 基隆太平國小 台灣建築獎建築轉生特別獎", href: "./原型獲獎.dc.html" },
+    { id: 'r56', name: "2018 澎湖ENISHI緣民宿ADA新銳建築獎首獎", href: "./原型獲獎.dc.html" },
+    { id: 'r57', name: "2021 嘉義實驗木場 ADA新銳建築獎首獎", href: "./原型獲獎.dc.html" },
+    { id: 'r58', name: "2025舊屋力競賽首獎", href: "./原型獲獎.dc.html" },
+    { id: 'r59', name: "法 structure data", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r60', name: "2013雲林農博", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=503916" },
+    { id: 'r61', name: "2013 新營服務區休息站", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=503882" },
+    { id: 'r62', name: "2014 宜蘭中山小巨蛋", href: "https://www.twarchitect.org.tw/works/%E4%B8%AD%E5%B1%B1%E5%B0%8F%E5%B7%A8%E8%9B%8B%E8%88%87%E5%91%A8%E9%82%8A%E9%80%9A%E5%AD%B8%E5%BB%8A%E9%81%93/" },
+    { id: 'r63', name: "2015 X-SITE", href: "https://www.tfam.museum/Exhibition/Exhibition_page.aspx?id=532&ddlLang=zh-tw" },
+    { id: 'r64', name: "2015 德光教會", href: "https://www.youtube.com/watch?v=TDCPw8-Smys" },
+    { id: 'r65', name: "2015 石岡紅屋", href: "#" },
+    { id: 'r66', name: "2016 大溪木構造教堂", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=503874" },
+    { id: 'r67', name: "2016 嘉義美術館", href: "https://www.youtube.com/watch?v=BHEMBPrB9MM&t=1s" },
+    { id: 'r68', name: "2016師大美術館", href: "#" },
+    { id: 'r69', name: "2016 浮光之間", href: "https://www.tfam.museum/Exhibition/Exhibition_page.aspx?id=584&ddlLang=zh-tw" },
+    { id: 'r70', name: "2017 嘉義火車站前雨遮", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608375" },
+    { id: 'r71', name: "2017 台中橋", href: "https://www.youtube.com/watch?v=E6ZyKXVKgWU" },
+    { id: 'r72', name: "2017 橘月民宿", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=505935" },
+    { id: 'r73', name: "2017 ENISHI 澎湖緣宿", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=502815" },
+    { id: 'r74', name: "2018獅甲幼兒園", href: "#" },
+    { id: 'r75', name: "2018威斯汀木構婚禮教堂", href: "#" },
+    { id: 'r76', name: "2019 故宮南院_覽月橋", href: "https://www.youtube.com/watch?v=1tgZcoLCGA4" },
+    { id: 'r77', name: "2019成大游泳池改建", href: "#" },
+    { id: 'r78', name: "2019 札哈木原民會館", href: "#" },
+    { id: 'r79', name: "2020 柳營車站", href: "#" },
+    { id: 'r80', name: "2020 教師會館", href: "#" },
+    { id: 'r81', name: "2020太平國小", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608372" },
+    { id: 'r82', name: "2020台南市安平樹屋2.0", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608374" },
+    { id: 'r83', name: "2021綠美圖帷幕", href: "https://greenmedia.today/article_detail.php?cid=35&mid=1372" },
+    { id: 'r84', name: "2021構竹林鐵Ⅰ", href: "https://greenmedia.today/article_category.php?cid=54" },
+    { id: 'r85', name: "2022X-SITE途中", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609184" },
+    { id: 'r86', name: "2022友愛街立體停車場", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608537" },
+    { id: 'r87', name: "2022新竹慈雲路空橋", href: "#" },
+    { id: 'r88', name: "2022PARK2草悟廣場", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608381" },
+    { id: 'r89', name: "2022嘉義火車站前廣場改建", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608375" },
+    { id: 'r90', name: "2022 馬禮遜美國學校", href: "#" },
+    { id: 'r91', name: "2023 構竹林鐵Ⅱ", href: "https://astaiwan.wixsite.com/bamboo-newfield" },
+    { id: 'r92', name: "2023億載金城入口意象", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609194" },
+    { id: 'r93', name: "2023大阪世博TW館", href: "https://www.ta-mag.net/ta/News.php?id=2515" },
+    { id: 'r94', name: "2023 「弦閣」(KATENARA)", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608538" },
+    { id: 'r95', name: "2023萬大電廠辦公大樓新建工程", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608373" },
+    { id: 'r96', name: "2024繁花之頂", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=608376" },
+    { id: 'r97', name: "2024長榮堂 長榮大學竹構集會堂", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=582678" },
+    { id: 'r98', name: "2024國立歷史博物館修復及再利用", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609197" },
+    { id: 'r99', name: "2024大巨蛋公共藝術「雨生光芽」", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609185" },
+    { id: 'r100', name: "構technics", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r101', name: "原型展覽", href: "https://e64872170.wixsite.com/mysite/%E5%89%AF%E6%9C%AC-%E5%B1%95%E8%A6%BD%E6%B4%BB%E5%8B%95" },
+    { id: 'r102', name: "2021構竹林鐵", href: "https://astaiwan.wixsite.com/bamboo-newfield" },
+    { id: 'r103', name: "2023構竹林鐵", href: "https://astaiwan.wixsite.com/bamboo-newfield" },
+    { id: 'r104', name: "2024第七屆ADA新銳建築獎展覽", href: "https://iecosyst.com/news/1260" },
+    { id: 'r105', name: "2025成大建築×信義街咾咕石黃宅展", href: "https://sdg.ncku.edu.tw/product-956.html" },
+    { id: 'r106', name: "2025 台南建築三年展衛星展", href: "https://e64872170.wixsite.com/mysite/%E5%89%AF%E6%9C%AC-%E5%B1%95%E8%A6%BD%E6%B4%BB%E5%8B%95" },
+    { id: 'r107', name: "2025ADA新銳建築獎×信義街咾咕石黃宅", href: "https://e64872170.wixsite.com/mysite/%E5%89%AF%E6%9C%AC-%E5%B1%95%E8%A6%BD%E6%B4%BB%E5%8B%95" },
+    { id: 'r108', name: "2025台南咾咕石×芳宅×原型未來展", href: "https://e64872170.wixsite.com/mysite/%E5%89%AF%E6%9C%AC-%E5%B1%95%E8%A6%BD%E6%B4%BB%E5%8B%95" },
+    { id: 'r116', name: "2025好感空間展", href: "#" },
+    { id: 'r109', name: "原型建築", href: "https://www.as-structure.com/%E5%8E%9F%E5%9E%8B%E5%BB%BA%E7%AF%89" },
+    { id: 'r110', name: "2021嘉義實驗木場", href: "https://astaiwan.wixsite.com/website-1" },
+    { id: 'r111', name: "2021馬祖東莒55光影美術館", href: "https://matsu.kyart.tw/project/%E8%A5%BF%E8%8E%9214%E6%93%9A%E9%BB%9E%E3%80%8115%E6%93%9A%E9%BB%9E-%E7%B9%BC%E5%85%89%E5%B7%A5%E5%8B%99%E6%89%80/" },
+    { id: 'r112', name: "南寧老屋", href: "#" },
+    { id: 'r113', name: "2025原型1號宅", href: "https://asstudio029.wixsite.com/ashouse1" },
+    { id: 'r114', name: "2025台南咾咕石芳宅", href: "https://e64872170.wixsite.com/mysite" },
+    { id: 'r115', name: "原型獲獎", href: "./原型獲獎.dc.html" }
+  ];
+
+  const EDGE_DATA = [
+    ['r2','r3'], ['r2','r4'], ['r2','r5'], ['r2','r6'], ['r2','r7'], ['r2','r8'], ['r2','r9'], ['r10','r2'],
+    ['r11','r12'], ['r11','r13'], ['r11','r14'],
+    ['r15','r23'], ['r15','r16'], ['r15','r17'], ['r15','r18'], ['r15','r19'], ['r15','r20'], ['r15','r21'], ['r15','r22'],
+    ['r23','r24'], ['r23','r25'], ['r23','r26'], ['r23','r27'], ['r23','r61'], ['r23','r62'], ['r23','r63'], ['r23','r64'],
+    ['r23','r65'], ['r23','r67'], ['r23','r69'], ['r23','r70'], ['r23','r71'], ['r23','r72'], ['r23','r73'], ['r23','r76'],
+    ['r23','r78'], ['r23','r79'], ['r23','r80'], ['r23','r86'], ['r23','r91'], ['r23','r94'], ['r23','r95'],
+    ['r24','r48'], ['r24','r53'], ['r24','r54'], ['r24','r55'], ['r24','r57'], ['r24','r64'], ['r24','r67'], ['r24','r71'],
+    ['r25','r90'], ['r25','r91'], ['r25','r92'],
+    ['r26','r46'], ['r26','r56'], ['r26','r72'], ['r26','r76'],
+    ['r27','r37'], ['r27','r38'], ['r27','r40'], ['r27','r43'], ['r27','r44'], ['r27','r51'], ['r27','r61'], ['r27','r63'],
+    ['r27','r69'], ['r27','r70'], ['r27','r79'], ['r27','r80'], ['r27','r94'],
+    ['r30','r115'], ['r31','r115'], ['r32','r115'], ['r33','r115'], ['r34','r115'],
+    ['r35','r27'], ['r35','r115'], ['r36','r27'], ['r36','r115'], ['r37','r115'], ['r38','r115'],
+    ['r39','r24'], ['r39','r115'], ['r40','r115'],
+    ['r41','r24'], ['r41','r115'], ['r42','r24'], ['r42','r115'], ['r43','r115'], ['r44','r115'],
+    ['r45','r24'], ['r45','r115'], ['r46','r115'],
+    ['r47','r25'], ['r47','r115'], ['r48','r115'], ['r48','r109'],
+    ['r49','r24'], ['r49','r115'], ['r50','r25'], ['r50','r115'], ['r51','r115'],
+    ['r52','r27'], ['r52','r115'], ['r53','r115'], ['r54','r115'], ['r55','r115'],
+    ['r56','r115'], ['r56','r109'], ['r57','r115'], ['r57','r109'], ['r58','r115'],
+    ['r60','r25'], ['r60','r23'], ['r62','r27'], ['r65','r24'], ['r66','r24'], ['r66','r23'],
+    ['r68','r27'], ['r68','r23'], ['r70','r109'], ['r73','r26'], ['r74','r24'], ['r74','r23'],
+    ['r75','r24'], ['r75','r23'], ['r77','r26'], ['r77','r23'], ['r78','r24'],
+    ['r81','r24'], ['r81','r23'], ['r82','r27'], ['r82','r23'], ['r83','r27'], ['r83','r23'],
+    ['r84','r25'], ['r85','r23'], ['r85','r27'], ['r86','r27'], ['r87','r23'], ['r87','r26'],
+    ['r88','r23'], ['r88','r27'], ['r89','r27'], ['r89','r23'], ['r90','r23'],
+    ['r92','r23'], ['r93','r23'], ['r93','r27'], ['r95','r24'],
+    ['r96','r25'], ['r96','r23'], ['r97','r25'], ['r97','r23'], ['r98','r23'], ['r98','r27'],
+    ['r99','r27'], ['r99','r23'],
+    ['r101','r105'], ['r101','r106'], ['r101','r107'], ['r101','r108'], ['r101','r111'], ['r101','r113'],
+    ['r101','r114'], ['r101','r57'],
+    ['r109','r110'], ['r109','r111'], ['r109','r113'], ['r109','r114'],
+    ['r112','r109'], ['r112','r101'], ['r114','r24'], ['r101','r49'],
+    ['r116','r101'], ['r116','r24'], ['r116','r67'], ['r116','r114'], ['r116','r23']
+  ];
+
+  const SPECIAL_IDS = new Set(['r1','r28','r59','r100','r2','r11','r22','r23','r101','r109','r115']);
+
+  const CX = 450, CY = 450;
+  const NS = 'http://www.w3.org/2000/svg';
+  // v4: gaps are now computed dynamically from each pair's actual radii
+  // (edge-to-edge), not a fixed per-slot table — bumped so any old-format
+  // save is ignored (falls back to the default layout) rather than reused.
+  const STORAGE_KEY = 'dotPositionEditor:committedPositions:v4';
+
+  const svgEl = document.getElementById('svg');
+  const edgesLayer = document.getElementById('edgesLayer');
+  const nodesLayer = document.getElementById('nodesLayer');
+  const toastEl = document.getElementById('toast');
+
+  // Adjacency (for hover highlight) + degree (for dot sizing) — same derivation as the source page.
+  const adjacency = {};
+  NODE_DATA.forEach(d => { adjacency[d.id] = new Set(); });
+  EDGE_DATA.forEach(([a, b]) => {
+    if (adjacency[a]) adjacency[a].add(b);
+    if (adjacency[b]) adjacency[b].add(a);
+  });
+  const degree = {};
+  NODE_DATA.forEach(d => { degree[d.id] = adjacency[d.id].size; });
+  const maxDegree = Math.max(1, ...Object.values(degree));
+
+  const R_MIN = 4, R_MAX = 24, DOT_SCALE = 1.18, LABEL_GAP = 20;
+  const nodeRadius = {};
+  NODE_DATA.forEach(d => {
+    nodeRadius[d.id] = R_MIN + (degree[d.id] / maxDegree) * (R_MAX - R_MIN);
+  });
+
+  // Same ring-packing walk as the source page, but the radius it derives is now
+  // load-bearing: every dot is constrained to stay on this single circle, so
+  // dragging can only ever change a dot's angle, never its distance from center
+  // ("很多小圓排成一個大圓" — the small circles only travel along the big circle's
+  // edge).
+  function computeRingLayout() {
+    const n = NODE_DATA.length;
+    const gapVB = 2.5;
+    const diameterSum = NODE_DATA.reduce((sum, d) => sum + 2 * nodeRadius[d.id], 0);
+    const circumference = diameterSum + n * gapVB;
+    const radius = Math.max(circumference / (2 * Math.PI), 420);
+    const effectiveGap = (2 * Math.PI * radius - diameterSum) / n;
+    const pos = {};
+    let arc = 0;
+    NODE_DATA.forEach(d => {
+      const r = nodeRadius[d.id];
+      const angle = ((arc + r) / radius) - Math.PI / 2;
+      pos[d.id] = { x: CX + radius * Math.cos(angle), y: CY + radius * Math.sin(angle) };
+      arc += 2 * r + effectiveGap;
+    });
+    return { positions: pos, radius };
+  }
+
+  function clonePositions(obj) {
+    const out = {};
+    Object.keys(obj).forEach(k => { out[k] = { x: obj[k].x, y: obj[k].y }; });
+    return out;
+  }
+
+  const ringLayout = computeRingLayout();
+  const DEFAULT_LAYOUT = ringLayout.positions;
+  const RING_RADIUS = ringLayout.radius;
+  // Mutable: adding/deleting a node in the list editor changes the node
+  // count, but RING_RADIUS itself is never recomputed (matches the size
+  // field's behaviour) — the ring's total circumference stays fixed, only
+  // SLACK_PER_GAP absorbs the change.
+  let n = NODE_DATA.length;
+
+  function angleOf(pos) {
+    return Math.atan2(pos.y - CY, pos.x - CX);
+  }
+
+  function ringPositionAtAngle(angle) {
+    return { x: CX + RING_RADIUS * Math.cos(angle), y: CY + RING_RADIUS * Math.sin(angle) };
+  }
+
+  // Re-projects any stored {x,y} onto the ring by keeping only its angle —
+  // guards against drift from floating point round-trips through localStorage.
+  function snapToRing(pos) {
+    return ringPositionAtAngle(angleOf(pos));
+  }
+
+  // Required angular gap between two SPECIFIC dots, edge-to-edge — computed
+  // from each one's OWN actual drawn radius (precomputed once below), not a
+  // shared/precomputed-per-pair value. This is what makes spacing stay
+  // correct after a reorder: whoever ends up next to whoever, the gap comes
+  // from their real sizes right then.
+  const GAP_PADDING = 2.5;
+  const scaledRadius = {};
+  NODE_DATA.forEach(d => { scaledRadius[d.id] = nodeRadius[d.id] * DOT_SCALE; });
+  function edgeGap(idA, idB) {
+    return (scaledRadius[idA] + scaledRadius[idB] + GAP_PADDING) / RING_RADIUS;
+  }
+
+  // The total of every gap's minimum around a closed ring is the same no
+  // matter the order (each dot's radius contributes to exactly two gaps
+  // either way), so the leftover slack — and each gap's equal share of it —
+  // is a constant, cheap to recompute (pure arithmetic, no DOM) whenever a
+  // manual size edit changes some node's scaledRadius, but otherwise never
+  // touched during a drag.
+  let TOTAL_MIN_GAP, SLACK_PER_GAP;
+  function recomputeSlack() {
+    TOTAL_MIN_GAP = (2 * NODE_DATA.reduce((sum, d) => sum + scaledRadius[d.id], 0) + n * GAP_PADDING) / RING_RADIUS;
+    SLACK_PER_GAP = (2 * Math.PI - TOTAL_MIN_GAP) / n;
+  }
+  recomputeSlack();
+
+  // Picks whichever representation of `rawAngle` (mod 2π) sits closest to
+  // `reference` — lets us compare/combine angles that may have wound past
+  // ±π without a false discontinuity at the wrap point.
+  function unwrapNear(rawAngle, reference) {
+    return rawAngle + 2 * Math.PI * Math.round((reference - rawAngle) / (2 * Math.PI));
+  }
+
+  // order[i] = id currently in the i-th position around the ring; slotOf[id]
+  // = that id's index in `order`. Purely a sequence — NOT tied to any fixed
+  // angle — reconstructed from `current` any time `current` is replaced
+  // wholesale (load, cancel, undo, redo). Position data itself always lives
+  // only in `current`.
+  const order = new Array(n);
+  const slotOf = {};
+  function rebuildOrderFromCurrent() {
+    const sortedIds = NODE_DATA.map(d => d.id).sort((a, b) => angleOf(current[a]) - angleOf(current[b]));
+    sortedIds.forEach((id, i) => { order[i] = id; slotOf[id] = i; });
+  }
+
+  function loadCommitted() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return clonePositions(DEFAULT_LAYOUT);
+      const parsed = JSON.parse(raw);
+      const merged = {};
+      NODE_DATA.forEach(d => {
+        merged[d.id] = (parsed[d.id] && typeof parsed[d.id].x === 'number')
+          ? snapToRing({ x: parsed[d.id].x, y: parsed[d.id].y })
+          : { x: DEFAULT_LAYOUT[d.id].x, y: DEFAULT_LAYOUT[d.id].y };
+      });
+      return merged;
+    } catch (err) {
+      return clonePositions(DEFAULT_LAYOUT);
+    }
+  }
+
+  let committed = loadCommitted();
+  let current = clonePositions(committed);
+  rebuildOrderFromCurrent();
+
+  // Undo/redo history — a stack of full position snapshots plus a pointer into
+  // it. New actions (a finished drag, a Cancel revert) truncate any redo tail
+  // and push a fresh snapshot; Undo/Redo just move the pointer.
+  let history = [clonePositions(current)];
+  let historyIndex = 0;
+
+  function statesEqual(a, b) {
+    return NODE_DATA.every(d => a[d.id].x === b[d.id].x && a[d.id].y === b[d.id].y);
+  }
+
+  function pushHistory() {
+    if (statesEqual(current, history[historyIndex])) return;
+    history = history.slice(0, historyIndex + 1);
+    history.push(clonePositions(current));
+    historyIndex = history.length - 1;
+    updateHistoryButtons();
+  }
+
+  function undo() {
+    if (historyIndex <= 0) return;
+    historyIndex--;
+    current = clonePositions(history[historyIndex]);
+    rebuildOrderFromCurrent();
+    renderAll();
+    updateHistoryButtons();
+  }
+
+  function redo() {
+    if (historyIndex >= history.length - 1) return;
+    historyIndex++;
+    current = clonePositions(history[historyIndex]);
+    rebuildOrderFromCurrent();
+    renderAll();
+    updateHistoryButtons();
+  }
+
+  function updateHistoryButtons() {
+    // Position undo/redo is meaningless mid list-structure-edit (the node
+    // set itself is in flux) — disabled for the duration, same as the
+    // header's own Commit/Cancel. Reset-spacing touches every node's
+    // position too, so it's held to the same rule.
+    btnUndo.disabled = structureEditing || historyIndex <= 0;
+    btnRedo.disabled = structureEditing || historyIndex >= history.length - 1;
+    btnResetSpacing.disabled = structureEditing;
+  }
+
+  const nodeEls = {};
+  const edgesByNode = {};
+  const edgeEls = [];
+
+  // Shared by initial load, adding a connection, and rebuilding after a
+  // cancelled list-structure edit. `edgesByNode[a]`/`[b]` must already
+  // exist before this runs.
+  function createEdgeElement(a, b) {
+    const line = document.createElementNS(NS, 'line');
+    line.setAttribute('class', 'sc-edge');
+    line.setAttribute('stroke', 'var(--line)');
+    line.setAttribute('stroke-width', '1');
+    edgesLayer.appendChild(line);
+    const rec = { el: line, a, b };
+    edgeEls.push(rec);
+    edgesByNode[a].push(rec);
+    edgesByNode[b].push(rec);
+    return rec;
+  }
+
+  // Builds one node's dot/hit-target/label + drag/hover listeners. Shared
+  // by initial load, adding a new node, and rebuilding after a cancelled
+  // list-structure edit. Assumes nodeRadius[d.id]/scaledRadius[d.id] and
+  // edgesByNode[d.id] are already set before this runs.
+  function createNodeElements(d) {
+    const isSpecial = SPECIAL_IDS.has(d.id);
+
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('class', 'sc-node');
+    g.dataset.id = d.id;
+
+    // Generous invisible hit target so small dots are still easy to grab.
+    const hit = document.createElementNS(NS, 'circle');
+    hit.setAttribute('class', 'sc-hit');
+    hit.setAttribute('r', '26');
+    g.appendChild(hit);
+
+    const dot = document.createElementNS(NS, 'circle');
+    dot.setAttribute('class', 'sc-dot');
+    dot.setAttribute('fill', isSpecial ? 'var(--special)' : 'var(--dot)');
+    dot.setAttribute('r', String(scaledRadius[d.id]));
+    g.appendChild(dot);
+
+    // Plain SVG text instead of a foreignObject+div: same visual result
+    // (position, rotation-flip, color/weight), but repositioning a <text>
+    // is a native SVG attribute write with no embedded HTML layout pass —
+    // foreignObject reflow was the dominant per-frame cost during a
+    // swap-heavy drag, when relayoutRing() repositions every other node's
+    // label in one synchronous batch.
+    const label = document.createElementNS(NS, 'text');
+    label.setAttribute('class', 'sc-label');
+    label.setAttribute('font-size', '15');
+    label.setAttribute('font-weight', isSpecial ? '700' : '400');
+    label.setAttribute('fill', isSpecial ? 'var(--special)' : 'var(--text)');
+    label.setAttribute('dominant-baseline', 'middle');
+    label.textContent = d.name;
+    g.appendChild(label);
+
+    nodesLayer.appendChild(g);
+
+    nodeEls[d.id] = { g, hit, dot, label };
+
+    g.addEventListener('mouseenter', () => setHover(d.id));
+    g.addEventListener('mouseleave', () => setHover(null));
+    g.addEventListener('pointerdown', (e) => startDrag(e, d.id));
+  }
+
+  NODE_DATA.forEach(d => { edgesByNode[d.id] = []; });
+  // Edges first so nodes/labels always render on top of the lines.
+  EDGE_DATA.forEach(([a, b]) => createEdgeElement(a, b));
+  NODE_DATA.forEach(d => createNodeElements(d));
+
+  // Labels are drawn radially outward from wherever a dot ends up, and any
+  // node can be dragged to any angle — so the box has to fit the longest
+  // possible label in every direction, not just the default layout's.
+  // Sized from each label's actual rendered width (not a guessed estimate)
+  // so nothing can bleed past the box edge, where "overflow: visible" would
+  // let it end up hidden behind the fixed header or clipped by the viewport
+  // instead of just being fully contained. Kept live (not just at load) so
+  // an edited name/size can only ever grow this, never leaves something
+  // clipped after a rename or resize.
+  let halfExtent = 0;
+  function applyHalfExtent(newHalf) {
+    halfExtent = newHalf;
+    svgEl.setAttribute('viewBox', (CX - halfExtent) + ' ' + (CY - halfExtent) + ' ' + (2 * halfExtent) + ' ' + (2 * halfExtent));
+    // Keep every dot/label at the same on-screen size as the original
+    // 900-unit design (halfExtent 450) by growing the STAGE element itself
+    // past the viewport instead of shrinking the drawing to fit it — the
+    // extra room becomes ordinary scrollable page, not clipped overflow.
+    document.getElementById('stage').style.setProperty('--content-scale', halfExtent / 450);
+  }
+  function nodeReach(id) {
+    return RING_RADIUS + scaledRadius[id] + LABEL_GAP + nodeEls[id].label.getBBox().width + 12;
+  }
+  function ensureViewBoxFits(id) {
+    const reach = nodeReach(id);
+    if (reach > halfExtent) applyHalfExtent(reach);
+  }
+  applyHalfExtent(Math.max(...NODE_DATA.map(d => nodeReach(d.id))));
+
+  function setHover(id) {
+    const related = id ? new Set([id, ...adjacency[id]]) : null;
+    NODE_DATA.forEach(d => {
+      const dim = related && !related.has(d.id);
+      nodeEls[d.id].g.style.opacity = dim ? '0.3' : '1';
+    });
+    edgeEls.forEach(rec => {
+      const dim = !!id && !(rec.a === id || rec.b === id);
+      rec.el.style.opacity = dim ? '0.3' : '1';
+    });
+  }
+
+  function svgPoint(evt) {
+    const pt = svgEl.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    return pt.matrixTransform(svgEl.getScreenCTM().inverse());
+  }
+
+  let dragId = null, dragAngleOffset = 0, dragUnwrappedAngle = 0;
+  let dragStartClientX = 0, dragStartClientY = 0;
+  const CLICK_MOVE_THRESHOLD = 5;
+  // Raw pointermove can fire faster than the browser can paint, especially
+  // during a long, fast drag where nearly every event crosses a swap
+  // boundary and triggers a full relayoutRing(). Processing every single raw
+  // event synchronously lets that work pile up faster than it can be drawn,
+  // which is what reads as the dragged dot "fake-freezing" then jumping to
+  // catch up. Instead, only the latest event is kept and the real work runs
+  // once per animation frame — display-rate-capped, never backlogged.
+  let pendingMoveEvent = null, moveFrameRequested = false;
+
+  function startDrag(e, id) {
+    if (lockedIds.has(id)) return;
+    e.preventDefault();
+    dragId = id;
+    dragStartClientX = e.clientX;
+    dragStartClientY = e.clientY;
+    const p = svgPoint(e);
+    const pointerAngle = Math.atan2(p.y - CY, p.x - CX);
+    dragAngleOffset = angleOf(current[id]) - pointerAngle;
+    dragUnwrappedAngle = angleOf(current[id]);
+    const g = nodeEls[id].g;
+    g.classList.add('dragging');
+    edgesByNode[id].forEach(rec => rec.el.classList.add('sc-drag-live'));
+    g.setPointerCapture(e.pointerId);
+    g.addEventListener('pointermove', onDragMove);
+    g.addEventListener('pointerup', onDragEnd);
+    g.addEventListener('pointercancel', onDragEnd);
+  }
+
+  // A hair of extra room (way below anything visible), used only for the
+  // placeholder position a just-swapped dot gets mid-cascade — see below.
+  const TIE_BREAK_MARGIN = 1e-6;
+
+  // The dragged dot always tracks the pointer exactly, free of any spacing
+  // constraint — it is never blocked. Every OTHER dot stays exactly where it
+  // is until the dragged dot's edge actually reaches it (not just its
+  // center — with a real edge-to-edge gap required, waiting for the exact
+  // center-crossing point would let them visibly overlap in the narrow
+  // window just before it), at which point it swaps with the dragged dot.
+  // A fast flick can cross several dots in one frame, cascading multiple
+  // swaps — each one gets a cheap placeholder position (just enough so the
+  // *next* crossing check, possibly in the other loop, isn't comparing
+  // against a stale pre-swap spot), and the full, real redistribution across
+  // every dot on the ring runs exactly once at the end, however many swaps
+  // just happened, not once per swap.
+  function onDragMove(e) {
+    if (!dragId) return;
+    pendingMoveEvent = e;
+    if (!moveFrameRequested) {
+      moveFrameRequested = true;
+      requestAnimationFrame(processPendingMove);
+    }
+  }
+
+  function processPendingMove() {
+    moveFrameRequested = false;
+    const e = pendingMoveEvent;
+    pendingMoveEvent = null;
+    if (!dragId || !e) return;
+    applyDragMove(e);
+  }
+
+  // Moves `dragId` to `dragUnwrappedAngle`, cascading any swaps this
+  // crosses and doing one full relayout if it did. Shared by live pointer
+  // dragging and by the edit panel's angle field jumping straight to a
+  // typed value — both are just "put dragId at this angle," so both reuse
+  // the exact same tested swap/relayout logic.
+  function resolveDragPosition() {
+    current[dragId] = ringPositionAtAngle(dragUnwrappedAngle);
+
+    // Bounded (never while(true)) as a hard safety net — a full cascade
+    // can touch at most every other node once, so n is always enough, and
+    // this guarantees the browser can never lock up here no matter what.
+    for (let guard = 0; guard < n; guard++) {
+      const k = slotOf[dragId];
+      const nextId = order[(k + 1) % n];
+      const boundary = unwrapNear(angleOf(current[nextId]), dragUnwrappedAngle) - edgeGap(dragId, nextId);
+      if (dragUnwrappedAngle < boundary - 1e-9) break;
+      order[k] = nextId; slotOf[nextId] = k;
+      order[(k + 1) % n] = dragId; slotOf[dragId] = (k + 1) % n;
+      // A locked neighbour's own coordinate is never reassigned (it's a
+      // fixed pin, not a swap partner) — but the drag still passes it, so
+      // the cascade keeps going to check whatever comes after it.
+      if (!lockedIds.has(nextId)) {
+        current[nextId] = ringPositionAtAngle(dragUnwrappedAngle - edgeGap(dragId, nextId) - TIE_BREAK_MARGIN);
+      }
+    }
+    for (let guard = 0; guard < n; guard++) {
+      const k = slotOf[dragId];
+      const prevId = order[(k - 1 + n) % n];
+      const boundary = unwrapNear(angleOf(current[prevId]), dragUnwrappedAngle) + edgeGap(dragId, prevId);
+      if (dragUnwrappedAngle > boundary + 1e-9) break;
+      order[k] = prevId; slotOf[prevId] = k;
+      order[(k - 1 + n) % n] = dragId; slotOf[dragId] = (k - 1 + n) % n;
+      if (!lockedIds.has(prevId)) {
+        current[prevId] = ringPositionAtAngle(dragUnwrappedAngle + edgeGap(dragId, prevId) + TIE_BREAK_MARGIN);
+      }
+    }
+
+    // Re-evens spacing around the whole ring on EVERY call, not just ones
+    // that crossed a swap boundary — any frame where dragId moved counts as
+    // "point positions differ," so the rest of the ring continuously stays
+    // evenly shared out as the drag approaches it, not just at the instant
+    // it actually swaps. dragId itself is the pin (it must stay exactly
+    // under the pointer); every locked node elsewhere is pinned too, so it
+    // never moves (and its own neighbouring gap stays as-is — see the
+    // "reset spacing" header button for a full re-even including locks).
+    relayoutRing(dragId);
+    updateNode(dragId);
+  }
+
+  function applyDragMove(e) {
+    const p = svgPoint(e);
+    const rawAngle = Math.atan2(p.y - CY, p.x - CX) + dragAngleOffset;
+    // Unwrap nearest to the running total so a full-turn drag is tracked
+    // continuously instead of snapping back at the ±180° seam.
+    dragUnwrappedAngle = unwrapNear(rawAngle, dragUnwrappedAngle);
+    resolveDragPosition();
+  }
+
+  // Moves a node's ring angle directly, without an actual pointer drag on
+  // the ring — reuses resolveDragPosition() by briefly borrowing the drag
+  // state, so it goes through the identical swap-cascade + relayout as a
+  // real drag to that angle. No history push (callers that fire this
+  // repeatedly, like list-row dragging, push once at gesture-end instead).
+  function moveNodeToRingSlot(id, targetRad) {
+    const prevDragId = dragId, prevAngle = dragUnwrappedAngle;
+    dragId = id;
+    dragUnwrappedAngle = unwrapNear(targetRad, angleOf(current[id]));
+    resolveDragPosition();
+    dragId = prevDragId;
+    dragUnwrappedAngle = prevAngle;
+  }
+
+  // The edit panel's position field: one-shot angle set, so it pushes
+  // history immediately like any other completed position edit. A locked
+  // node's position is fixed everywhere, not just against being dragged —
+  // this is the other direct way to move a node, so it's guarded too.
+  function setNodeAngle(id, targetRad) {
+    if (lockedIds.has(id)) return;
+    moveNodeToRingSlot(id, targetRad);
+    pushHistory();
+    syncListToRingOrder();
+  }
+
+  function onDragEnd(e) {
+    if (!dragId) return;
+    const id = dragId;
+    const g = nodeEls[id].g;
+    g.classList.remove('dragging');
+    edgesByNode[id].forEach(rec => rec.el.classList.remove('sc-drag-live'));
+    g.releasePointerCapture(e.pointerId);
+    g.removeEventListener('pointermove', onDragMove);
+    g.removeEventListener('pointerup', onDragEnd);
+    g.removeEventListener('pointercancel', onDragEnd);
+    dragId = null;
+    pendingMoveEvent = null;
+    // resolveDragPosition() already re-evens the whole ring's spacing on
+    // every frame (not just swap crossings), so whatever it last computed
+    // is already fully settled — nothing more to do here before recording it.
+    pushHistory();
+    if (id === editingId) refreshEditAngleField();
+    // Keeps the list's own row order matching the ring's actual sequence
+    // at all times (not just when pen mode opens), so entering list-edit
+    // mode never surprises with a sudden reorder of what was just showing.
+    syncListToRingOrder();
+
+    const moved = Math.hypot(e.clientX - dragStartClientX, e.clientY - dragStartClientY);
+
+    // Now reachable during pen mode too (locked nodes aside) — record real
+    // moves as a structure-history step so the pen-mode ↶/↷ buttons can
+    // undo/redo a canvas reposition exactly like a list-row drag. A plain
+    // click (no real movement) leaves the ring untouched, so it's not a step.
+    if (structureEditing && moved >= CLICK_MOVE_THRESHOLD) pushStructureHistory();
+
+    // A plain click (negligible movement, not an actual drag) on a dot,
+    // while the node list is open, targets that node for editing — the
+    // same action as clicking its row's triangle, just reachable straight
+    // from the diagram.
+    if (listOpen && !structureEditing && moved < CLICK_MOVE_THRESHOLD) toggleEditTarget(id);
+  }
+
+  // Moves one dot + its bound title together, and re-anchors every line
+  // touching it so the connections never visually detach mid-drag.
+  function updateNode(id) {
+    const pos = current[id];
+    const rec = nodeEls[id];
+
+    rec.dot.setAttribute('cx', pos.x);
+    rec.dot.setAttribute('cy', pos.y);
+    rec.hit.setAttribute('cx', pos.x);
+    rec.hit.setAttribute('cy', pos.y);
+
+    const r = nodeRadius[id];
+    const angle = Math.atan2(pos.y - CY, pos.x - CX);
+    const isRight = Math.cos(angle) >= 0;
+    const labelPointX = pos.x + Math.cos(angle) * (r + LABEL_GAP);
+    const labelPointY = pos.y + Math.sin(angle) * (r + LABEL_GAP);
+    const angleDeg = angle * 180 / Math.PI;
+    const rotateDeg = isRight ? angleDeg : angleDeg + 180;
+
+    rec.label.setAttribute('x', labelPointX);
+    rec.label.setAttribute('y', labelPointY);
+    rec.label.setAttribute('text-anchor', isRight ? 'start' : 'end');
+    rec.label.setAttribute('transform', 'rotate(' + rotateDeg + ' ' + labelPointX + ' ' + labelPointY + ')');
+
+    edgesByNode[id].forEach(erec => {
+      if (erec.a === id) { erec.el.setAttribute('x1', pos.x); erec.el.setAttribute('y1', pos.y); }
+      if (erec.b === id) { erec.el.setAttribute('x2', pos.x); erec.el.setAttribute('y2', pos.y); }
+    });
+  }
+
+  function renderAll() {
+    NODE_DATA.forEach(d => updateNode(d.id));
+  }
+
+  renderAll();
+
+  let toastTimer = null;
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1800);
+  }
+
+  document.getElementById('btnCommit').addEventListener('click', () => {
+    committed = clonePositions(current);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(committed)); } catch (err) {}
+    showToast('已儲存目前的圓點位置');
+  });
+
+  document.getElementById('btnCancel').addEventListener('click', () => {
+    current = clonePositions(committed);
+    rebuildOrderFromCurrent();
+    renderAll();
+    pushHistory();
+    showToast('已還原至上次儲存的位置');
+  });
+
+  // Builds the specialIds/nodeData/edgeData text block the maintainer pastes
+  // into 建築事務所首頁.dc.html, straight from this tool's live state — ring
+  // order (order[]), names, hrefs, special/colour flags (SPECIAL_IDS) and
+  // connections (adjacency, deduped since it's stored symmetrically). This
+  // editor has no server/git access of its own, so "sync" here means
+  // generate-and-copy, not a direct file write.
+  function buildSyncText() {
+    const specialLine = 'specialIds = [' + order.filter(id => SPECIAL_IDS.has(id)).map(id => `'${id}'`).join(', ') + '];';
+
+    const nodeDataLine = 'nodeData = [\n' + order.map(id => {
+      const d = NODE_DATA.find(x => x.id === id);
+      return `    { id: '${id}', name: ${JSON.stringify(d.name)}, href: ${JSON.stringify(d.href || '')} }`;
+    }).join(',\n') + '\n  ];';
+
+    const seenPairs = new Set();
+    const pairs = [];
+    order.forEach(id => {
+      adjacency[id].forEach(other => {
+        const key = id < other ? id + '|' + other : other + '|' + id;
+        if (seenPairs.has(key)) return;
+        seenPairs.add(key);
+        pairs.push([id, other]);
+      });
+    });
+    const edgeDataLine = 'edgeData = [\n    ' + pairs.map(([a, b]) => `['${a}', '${b}']`).join(',\n    ') + '\n  ];';
+
+    return specialLine + '\n\n' + nodeDataLine + '\n\n' + edgeDataLine;
+  }
+
+  const syncModalOverlay = document.getElementById('syncModalOverlay');
+  const syncOutputEl = document.getElementById('syncOutput');
+  document.getElementById('btnSyncSite').addEventListener('click', () => {
+    syncOutputEl.value = buildSyncText();
+    syncModalOverlay.hidden = false;
+  });
+  document.getElementById('btnCloseSyncModal').addEventListener('click', () => {
+    syncModalOverlay.hidden = true;
+  });
+  syncModalOverlay.addEventListener('click', (e) => {
+    if (e.target === syncModalOverlay) syncModalOverlay.hidden = true;
+  });
+  document.getElementById('btnCopySync').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(syncOutputEl.value);
+      showToast('已複製，可貼到主網頁檔案中');
+    } catch (err) {
+      syncOutputEl.focus();
+      syncOutputEl.select();
+      showToast('自動複製失敗，已選取內容，請手動複製（Ctrl+C）');
+    }
+  });
+
+  const btnUndo = document.getElementById('btnUndo');
+  const btnRedo = document.getElementById('btnRedo');
+  const btnResetSpacing = document.getElementById('btnResetSpacing');
+  btnUndo.addEventListener('click', undo);
+  btnRedo.addEventListener('click', redo);
+  btnResetSpacing.addEventListener('click', () => {
+    resetAllSpacing();
+    pushHistory();
+    if (editingId) refreshEditAngleField();
+    showToast('已重新整理所有圓點間距');
+  });
+
+  // Light/dark toggle — an explicit `data-theme` attribute always wins over
+  // the OS/browser's own prefers-color-scheme (see the CSS), so this is a
+  // real override, not just a one-time snapshot of the system preference.
+  // The tiny inline script in <head> already applied any saved choice
+  // before first paint; this just keeps the button's own icon/label and
+  // future clicks in sync with it.
+  const THEME_STORAGE_KEY = 'dotPositionEditor:theme:v1';
+  const btnThemeToggle = document.getElementById('btnThemeToggle');
+  const SUN_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+  const MOON_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+
+  function currentTheme() {
+    const explicit = document.documentElement.getAttribute('data-theme');
+    if (explicit === 'light' || explicit === 'dark') return explicit;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  // Icon shows the theme a click WOULD switch to (a moon while light,
+  // inviting a switch to dark; a sun while dark), matching the usual
+  // convention for this kind of toggle.
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    btnThemeToggle.innerHTML = theme === 'dark' ? SUN_ICON_SVG : MOON_ICON_SVG;
+    btnThemeToggle.setAttribute('aria-label', theme === 'dark' ? '切換為淺色模式' : '切換為深色模式');
+  }
+  applyTheme(currentTheme());
+  btnThemeToggle.addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(THEME_STORAGE_KEY, next); } catch (err) {}
+    applyTheme(next);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return;
+    e.preventDefault();
+    if (e.shiftKey) redo(); else undo();
+  });
+
+  // Left node list: closed by default, toggled open with a fixed edge
+  // button. Opening it pushes #mainContent over (padding-left) instead of
+  // overlaying the diagram. Picking a node scrolls it to the viewport
+  // centre and reuses the existing hover-highlight (dim everything else,
+  // light up this node + its connections) as the "locate" effect, cleared
+  // automatically after a few seconds. Each row also has an arrow that
+  // expands a flyout to its right, listing that node's connections (also
+  // clickable) — a separate panel rather than an inline accordion, so
+  // expanding one row never shifts the others' scroll position.
+  document.documentElement.style.setProperty('--header-h', document.getElementById('pageHeader').offsetHeight + 'px');
+
+  const btnToggleList = document.getElementById('btnToggleList');
+  const nodeListEl = document.getElementById('nodeList');
+  const mainEl = document.getElementById('mainContent');
+  const listToggleIcon = document.getElementById('listToggleIcon');
+  let listOpen = false;
+  btnToggleList.addEventListener('click', () => {
+    listOpen = !listOpen;
+    nodeListEl.classList.toggle('open', listOpen);
+    btnToggleList.classList.toggle('open', listOpen);
+    mainEl.classList.toggle('list-open', listOpen);
+    btnToggleList.setAttribute('aria-expanded', String(listOpen));
+    listToggleIcon.textContent = listOpen ? '✕' : '☰';
+    if (!listOpen) closeEditPanel();
+  });
+
+  let locateTimer = null;
+  function locateNode(id) {
+    const pt = svgEl.createSVGPoint();
+    pt.x = current[id].x;
+    pt.y = current[id].y;
+    const screenPt = pt.matrixTransform(svgEl.getScreenCTM());
+    window.scrollTo({
+      left: screenPt.x + window.scrollX - window.innerWidth / 2,
+      top: screenPt.y + window.scrollY - window.innerHeight / 2,
+      behavior: 'smooth'
+    });
+    setHover(id);
+    clearTimeout(locateTimer);
+    locateTimer = setTimeout(() => setHover(null), 1800);
+  }
+
+  // Edit panel: an Illustrator-layers-style "target" icon per row limits
+  // editing to exactly one node at a time (editingId). Its flyout carries
+  // both the property form (name/angle/size/colour) and that node's
+  // connection list (add via a picker, remove via a trash icon per row).
+  // Only position edits go through pushHistory()/the existing undo-redo
+  // and Commit/Cancel machinery, because that machinery is inherently
+  // position-only (committed/localStorage store positions, not names,
+  // sizes, colours or edges) — name/size/colour/connection edits are
+  // deliberately immediate and outside that system.
+  const nodeConnectionsEl = document.getElementById('nodeConnections');
+  const nodeConnectionsItemsEl = document.getElementById('nodeConnectionsItems');
+  const editNameInput = document.getElementById('editName');
+  const editAngleInput = document.getElementById('editAngle');
+  const editAngleDial = document.getElementById('editAngleDial');
+  const dialTicksEl = document.getElementById('dialTicks');
+  const dialPointerEl = document.getElementById('dialPointer');
+  const editSizeInput = document.getElementById('editSize');
+  const editColorSelect = document.getElementById('editColor');
+  const editHrefInput = document.getElementById('editHref');
+  const btnAddConnection = document.getElementById('btnAddConnection');
+  const addConnectionRow = document.getElementById('addConnectionRow');
+  const addConnectionSelect = document.getElementById('addConnectionSelect');
+
+  const editBtnById = {};
+  const listBtnById = {};
+  const lockBtnById = {};
+  const rowById = {};
+  let editingId = null;
+
+  // Pen-mode row lock — a locked node keeps its ring position fixed: it
+  // can neither be dragged itself nor be swapped into by another row being
+  // dragged past it. Purely an in-session editing aid (like the rest of
+  // structure editing), not persisted to localStorage.
+  const lockedIds = new Set();
+
+  // Pen-mode multi-select — shift-click a row's name to extend a contiguous
+  // range from `selectionAnchorId` (set by the last plain click) up to that
+  // row. No new buttons; the existing name button just grew a modifier
+  // behaviour. Purely a drag aid: dragging any selected row's handle moves
+  // the whole selected block together (see startRowDrag/processPendingRowMove).
+  let selectionAnchorId = null;
+  let selectedIds = [];
+
+  function clearSelectionVisuals() {
+    selectedIds.forEach(id => { if (rowById[id]) rowById[id].classList.remove('row-selected'); });
+  }
+
+  function selectSingle(id) {
+    clearSelectionVisuals();
+    selectionAnchorId = id;
+    selectedIds = [id];
+    rowById[id].classList.add('row-selected');
+  }
+
+  function extendSelectionTo(id) {
+    if (selectionAnchorId == null || !(selectionAnchorId in slotOf)) { selectSingle(id); return; }
+    clearSelectionVisuals();
+    const lo = Math.min(slotOf[selectionAnchorId], slotOf[id]);
+    const hi = Math.max(slotOf[selectionAnchorId], slotOf[id]);
+    selectedIds = [];
+    for (let i = lo; i <= hi; i++) selectedIds.push(order[i]);
+    selectedIds.forEach(sid => rowById[sid].classList.add('row-selected'));
+  }
+
+  function resetSelection() {
+    clearSelectionVisuals();
+    selectionAnchorId = null;
+    selectedIds = [];
+  }
+
+  function closeEditPanel() {
+    if (editingId) {
+      editBtnById[editingId].classList.remove('active');
+      rowById[editingId].classList.remove('editing');
+    }
+    editingId = null;
+    nodeConnectionsEl.classList.remove('open');
+    mainEl.classList.remove('connections-open');
+    btnToggleList.classList.remove('connections-open');
+    addConnectionRow.hidden = true;
+  }
+
+  function toggleEditTarget(id) {
+    if (editingId === id) closeEditPanel(); else openEditPanel(id);
+  }
+
+  function openEditPanel(id) {
+    if (editingId) {
+      editBtnById[editingId].classList.remove('active');
+      rowById[editingId].classList.remove('editing');
+    }
+    editingId = id;
+    editBtnById[id].classList.add('active');
+    rowById[id].classList.add('editing');
+    // Jump the list itself to that row so it's obvious at a glance which
+    // node the now-open panel belongs to, even if it was scrolled far down.
+    rowById[id].scrollIntoView({ block: 'start', behavior: 'smooth' });
+    addConnectionRow.hidden = true;
+
+    const d = NODE_DATA.find(x => x.id === id);
+    editNameInput.value = d.name;
+    refreshEditAngleField();
+    editSizeInput.value = Math.round(nodeRadius[id] * 10) / 10;
+    editColorSelect.value = SPECIAL_IDS.has(id) ? 'special' : 'normal';
+    editHrefInput.value = d.href || '';
+    renderEditConnections();
+
+    nodeConnectionsEl.classList.add('open');
+    mainEl.classList.add('connections-open');
+    btnToggleList.classList.add('connections-open');
+  }
+
+  function refreshEditAngleField() {
+    if (!editingId) return;
+    const deg = (angleOf(current[editingId]) * 180 / Math.PI + 360) % 360;
+    editAngleInput.value = Math.round(deg * 10) / 10;
+    updateDialPointer(deg);
+  }
+
+  // Angle dial: a plain circle (no fill) with 8 light ticks + degree labels
+  // at every 45°, and a pointer line (no arrowhead) from centre to the
+  // current angle. Ticks/labels are built once here; only the pointer line
+  // moves after that, driven by the same degree value the number field
+  // shows (so the two are always in sync — see refreshEditAngleField above).
+  const DIAL_CX = 60, DIAL_CY = 60, DIAL_POINTER_R = 44;
+
+  function buildAngleDialTicks() {
+    [0, 45, 90, 135, 180, 225, 270, 315].forEach(deg => {
+      const rad = deg * Math.PI / 180;
+      const cos = Math.cos(rad), sin = Math.sin(rad);
+      const tick = document.createElementNS(NS, 'line');
+      tick.setAttribute('class', 'dial-tick');
+      tick.setAttribute('x1', DIAL_CX + 43 * cos);
+      tick.setAttribute('y1', DIAL_CY + 43 * sin);
+      tick.setAttribute('x2', DIAL_CX + 48 * cos);
+      tick.setAttribute('y2', DIAL_CY + 48 * sin);
+      dialTicksEl.appendChild(tick);
+
+      const label = document.createElementNS(NS, 'text');
+      label.setAttribute('class', 'dial-tick-label');
+      label.setAttribute('x', DIAL_CX + 59 * cos);
+      label.setAttribute('y', DIAL_CY + 59 * sin);
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('dy', '0.32em');
+      label.textContent = deg;
+      dialTicksEl.appendChild(label);
+    });
+  }
+  buildAngleDialTicks();
+
+  function updateDialPointer(deg) {
+    const rad = deg * Math.PI / 180;
+    dialPointerEl.setAttribute('x2', DIAL_CX + DIAL_POINTER_R * Math.cos(rad));
+    dialPointerEl.setAttribute('y2', DIAL_CY + DIAL_POINTER_R * Math.sin(rad));
+  }
+
+  // Dragging the dial reuses the exact same swap-cascade + relayout-on-swap
+  // logic as dragging a dot directly on the ring (resolveDragPosition, via
+  // the shared dragId/dragUnwrappedAngle) — the dial is just another way of
+  // aiming that same angle, batched per animation frame like the other two
+  // pointer-drag surfaces in this file (ring dots, list rows) for the same
+  // reason: raw pointermove can outrun paint.
+  let dialDragging = false;
+  let pendingDialEvent = null, dialFrameRequested = false;
+
+  function dialAngleFromEvent(e) {
+    const rect = editAngleDial.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    return Math.atan2(e.clientY - cy, e.clientX - cx);
+  }
+
+  function startDialDrag(e) {
+    if (!editingId) return;
+    e.preventDefault();
+    dialDragging = true;
+    dragId = editingId;
+    dragUnwrappedAngle = unwrapNear(dialAngleFromEvent(e), angleOf(current[editingId]));
+    resolveDragPosition();
+    refreshEditAngleField();
+    editAngleDial.classList.add('dial-dragging');
+    editAngleDial.setPointerCapture(e.pointerId);
+    editAngleDial.addEventListener('pointermove', onDialDragMove);
+    editAngleDial.addEventListener('pointerup', onDialDragEnd);
+    editAngleDial.addEventListener('pointercancel', onDialDragEnd);
+  }
+
+  function onDialDragMove(e) {
+    if (!dialDragging) return;
+    pendingDialEvent = e;
+    if (!dialFrameRequested) {
+      dialFrameRequested = true;
+      requestAnimationFrame(processPendingDialMove);
+    }
+  }
+
+  function processPendingDialMove() {
+    dialFrameRequested = false;
+    const e = pendingDialEvent;
+    pendingDialEvent = null;
+    if (!dialDragging || !e) return;
+    dragUnwrappedAngle = unwrapNear(dialAngleFromEvent(e), dragUnwrappedAngle);
+    resolveDragPosition();
+    refreshEditAngleField();
+  }
+
+  function onDialDragEnd(e) {
+    if (!dialDragging) return;
+    dialDragging = false;
+    pendingDialEvent = null;
+    editAngleDial.classList.remove('dial-dragging');
+    editAngleDial.releasePointerCapture(e.pointerId);
+    editAngleDial.removeEventListener('pointermove', onDialDragMove);
+    editAngleDial.removeEventListener('pointerup', onDialDragEnd);
+    editAngleDial.removeEventListener('pointercancel', onDialDragEnd);
+    dragId = null;
+    pushHistory();
+    syncListToRingOrder();
+  }
+
+  editAngleDial.addEventListener('pointerdown', startDialDrag);
+
+  function renderEditConnections() {
+    const id = editingId;
+    nodeConnectionsItemsEl.innerHTML = '';
+    NODE_DATA.filter(x => adjacency[id].has(x.id)).forEach(x => {
+      const row = document.createElement('div');
+      row.className = 'node-connections-row';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'node-list-item' + (SPECIAL_IDS.has(x.id) ? ' special' : '');
+      btn.textContent = x.name;
+      btn.addEventListener('click', () => locateNode(x.id));
+      row.appendChild(btn);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'node-connections-remove';
+      removeBtn.textContent = '🗑';
+      removeBtn.setAttribute('aria-label', '取消連線');
+      removeBtn.addEventListener('click', () => removeConnection(id, x.id));
+      row.appendChild(removeBtn);
+
+      nodeConnectionsItemsEl.appendChild(row);
+    });
+    populateAddConnectionSelect();
+  }
+
+  function populateAddConnectionSelect() {
+    const id = editingId;
+    addConnectionSelect.innerHTML = '<option value="">選擇要連線的節點…</option>';
+    NODE_DATA.filter(x => x.id !== id && !adjacency[id].has(x.id)).forEach(x => {
+      const opt = document.createElement('option');
+      opt.value = x.id;
+      opt.textContent = x.name;
+      addConnectionSelect.appendChild(opt);
+    });
+  }
+
+  function renameNode(id, name) {
+    NODE_DATA.find(x => x.id === id).name = name;
+    nodeEls[id].label.textContent = name;
+    listBtnById[id].textContent = name;
+    ensureViewBoxFits(id);
+  }
+
+  function setNodeHref(id, href) {
+    NODE_DATA.find(x => x.id === id).href = href;
+  }
+
+  function setNodeSize(id, newRadius) {
+    newRadius = Math.min(60, Math.max(1, newRadius));
+    nodeRadius[id] = newRadius;
+    scaledRadius[id] = newRadius * DOT_SCALE;
+    nodeEls[id].dot.setAttribute('r', scaledRadius[id]);
+    recomputeSlack();
+    ensureViewBoxFits(id);
+    updateNode(id);
+  }
+
+  function setNodeColor(id, isSpecial) {
+    if (isSpecial) SPECIAL_IDS.add(id); else SPECIAL_IDS.delete(id);
+    nodeEls[id].dot.setAttribute('fill', isSpecial ? 'var(--special)' : 'var(--dot)');
+    nodeEls[id].label.setAttribute('fill', isSpecial ? 'var(--special)' : 'var(--text)');
+    nodeEls[id].label.setAttribute('font-weight', isSpecial ? '700' : '400');
+    listBtnById[id].classList.toggle('special', isSpecial);
+  }
+
+  function addConnection(id, otherId) {
+    if (!otherId || id === otherId || adjacency[id].has(otherId)) return;
+    adjacency[id].add(otherId);
+    adjacency[otherId].add(id);
+    createEdgeElement(id, otherId);
+    updateNode(id);
+    updateNode(otherId);
+    renderEditConnections();
+  }
+
+  function removeConnection(id, otherId) {
+    adjacency[id].delete(otherId);
+    adjacency[otherId].delete(id);
+    const idx = edgeEls.findIndex(rec => (rec.a === id && rec.b === otherId) || (rec.a === otherId && rec.b === id));
+    if (idx === -1) return;
+    const rec = edgeEls[idx];
+    edgeEls.splice(idx, 1);
+    rec.el.remove();
+    edgesByNode[id] = edgesByNode[id].filter(r => r !== rec);
+    edgesByNode[otherId] = edgesByNode[otherId].filter(r => r !== rec);
+    renderEditConnections();
+  }
+
+  editNameInput.addEventListener('input', () => {
+    if (editingId) renameNode(editingId, editNameInput.value);
+  });
+  editAngleInput.addEventListener('change', () => {
+    if (!editingId) return;
+    const deg = parseFloat(editAngleInput.value);
+    if (isNaN(deg)) { refreshEditAngleField(); return; }
+    setNodeAngle(editingId, ((deg % 360) + 360) % 360 * Math.PI / 180);
+  });
+  editSizeInput.addEventListener('change', () => {
+    if (!editingId) return;
+    const val = parseFloat(editSizeInput.value);
+    if (isNaN(val)) { editSizeInput.value = Math.round(nodeRadius[editingId] * 10) / 10; return; }
+    setNodeSize(editingId, val);
+    editSizeInput.value = Math.round(nodeRadius[editingId] * 10) / 10;
+  });
+  editColorSelect.addEventListener('change', () => {
+    if (editingId) setNodeColor(editingId, editColorSelect.value === 'special');
+  });
+  editHrefInput.addEventListener('input', () => {
+    if (editingId) setNodeHref(editingId, editHrefInput.value);
+  });
+  btnAddConnection.addEventListener('click', () => {
+    if (!editingId) return;
+    addConnectionRow.hidden = !addConnectionRow.hidden;
+    if (!addConnectionRow.hidden) populateAddConnectionSelect();
+  });
+  addConnectionSelect.addEventListener('change', () => {
+    if (!editingId) return;
+    const otherId = addConnectionSelect.value;
+    if (otherId) addConnection(editingId, otherId);
+  });
+
+  const nodeListItemsEl = document.getElementById('nodeListItems');
+
+  // Plain padlock silhouette (Material-style "lock" glyph) — same shape
+  // always, only its colour (grey → black, via the .locked class + CSS
+  // `currentColor`) shows the toggle, per the "剪影" request.
+  const LOCK_ICON_SVG = '<svg viewBox="0 0 24 24"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM8.9 6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2H8.9V6zM18 20H6V10h12v10z"/></svg>';
+
+  function updateLockButton(id) {
+    const locked = lockedIds.has(id);
+    const btn = lockBtnById[id];
+    btn.classList.toggle('locked', locked);
+    btn.setAttribute('aria-label', locked ? '解除鎖定此節點位置' : '鎖定此節點位置');
+    rowById[id] && rowById[id].classList.toggle('row-locked', locked);
+  }
+
+  function toggleNodeLock(id) {
+    if (lockedIds.has(id)) lockedIds.delete(id); else lockedIds.add(id);
+    updateLockButton(id);
+  }
+
+  // Builds one list row: drag handle (reorder, structure-edit mode only) +
+  // name (locate on click) + edit-target triangle + lock button + delete
+  // button (both structure-edit mode only). Shared by initial load, adding
+  // a new node, and rebuilding after a cancelled list-structure edit.
+  function createListRow(d) {
+    const row = document.createElement('div');
+    row.className = 'node-list-row';
+    rowById[d.id] = row;
+
+    const handle = document.createElement('span');
+    handle.className = 'node-list-handle';
+    handle.textContent = '⠿';
+    handle.addEventListener('pointerdown', (e) => startRowDrag(e, d.id));
+    row.appendChild(handle);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'node-list-item' + (SPECIAL_IDS.has(d.id) ? ' special' : '');
+    btn.textContent = d.name;
+    btn.addEventListener('click', (e) => {
+      if (structureEditing && e.shiftKey) extendSelectionTo(d.id);
+      else if (structureEditing) selectSingle(d.id);
+      else locateNode(d.id);
+    });
+    row.appendChild(btn);
+    listBtnById[d.id] = btn;
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'node-list-edit-target';
+    editBtn.textContent = '▸';
+    editBtn.setAttribute('aria-label', '指定編輯此圓點');
+    editBtn.addEventListener('click', () => toggleEditTarget(d.id));
+    row.appendChild(editBtn);
+    editBtnById[d.id] = editBtn;
+
+    const lockBtn = document.createElement('button');
+    lockBtn.type = 'button';
+    lockBtn.className = 'node-list-lock';
+    lockBtn.innerHTML = LOCK_ICON_SVG;
+    lockBtn.addEventListener('click', () => toggleNodeLock(d.id));
+    row.appendChild(lockBtn);
+    lockBtnById[d.id] = lockBtn;
+    updateLockButton(d.id);
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'node-list-delete';
+    delBtn.textContent = '🗑';
+    delBtn.setAttribute('aria-label', '刪除此節點');
+    delBtn.addEventListener('click', () => { if (deleteNodeImmediate(d.id)) pushStructureHistory(); });
+    row.appendChild(delBtn);
+
+    nodeListItemsEl.appendChild(row);
+  }
+
+  NODE_DATA.forEach(d => createListRow(d));
+
+  // Pen-mode list-structure editing: reorder rows (drag), delete nodes,
+  // add nodes. A session-only staging area — Commit just keeps whatever
+  // the list looks like and exits; Cancel tears down and rebuilds the
+  // whole diagram from a snapshot taken the moment edit mode was entered.
+  // Not tied to localStorage (that stays position-only, per the existing
+  // header buttons), so nothing here survives a page reload unless the
+  // resulting positions are separately committed via the header.
+  let structureEditing = false;
+  let structureSnapshot = null;
+  // Step-by-step undo/redo WITHIN a pen-mode session (add/delete/reorder),
+  // separate from the header's position-only history (which stays disabled
+  // the whole time structureEditing is true). structureHistory[0] is always
+  // the entry snapshot — same one Cancel restores to.
+  let structureHistory = [];
+  let structureHistoryIndex = 0;
+
+  function generateNodeId() {
+    let maxNum = 0;
+    NODE_DATA.forEach(d => {
+      const m = /^r(\d+)$/.exec(d.id);
+      if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+    });
+    return 'r' + (maxNum + 1);
+  }
+
+  // Re-anchors the WHOLE ring evenly around `anchorId` (kept in place) —
+  // same relayoutRing() a drag uses, so a node count change closes/expands
+  // gaps smoothly instead of leaving a hole or a cramped seam, and any
+  // locked node elsewhere stays exactly put too.
+  function relayoutAroundAnchor(anchorId) {
+    relayoutRing(anchorId);
+    updateNode(anchorId);
+  }
+
+  function deleteNodeImmediate(id) {
+    if (n <= 1) return false;
+    if (editingId === id) closeEditPanel();
+    if (selectedIds.includes(id)) resetSelection();
+
+    edgesByNode[id].slice().forEach(rec => {
+      const other = rec.a === id ? rec.b : rec.a;
+      adjacency[id].delete(other);
+      adjacency[other].delete(id);
+      const idx = edgeEls.indexOf(rec);
+      if (idx !== -1) edgeEls.splice(idx, 1);
+      edgesByNode[other] = edgesByNode[other].filter(r => r !== rec);
+      rec.el.remove();
+    });
+    delete edgesByNode[id];
+    delete adjacency[id];
+
+    const k = slotOf[id];
+    order.splice(k, 1);
+    delete slotOf[id];
+    order.forEach((oid, i) => { slotOf[oid] = i; });
+    n--;
+
+    nodeEls[id].g.remove();
+    delete nodeEls[id];
+    rowById[id].remove();
+    delete rowById[id];
+    delete listBtnById[id];
+    delete editBtnById[id];
+    delete lockBtnById[id];
+    delete nodeRadius[id];
+    delete scaledRadius[id];
+    delete current[id];
+    SPECIAL_IDS.delete(id);
+    lockedIds.delete(id);
+    NODE_DATA.splice(NODE_DATA.findIndex(x => x.id === id), 1);
+
+    recomputeSlack();
+    if (n > 0) relayoutAroundAnchor(order[0]);
+    return true;
+  }
+
+  function createNewNode() {
+    const id = generateNodeId();
+    const d = { id, name: '新節點', href: '' };
+    NODE_DATA.push(d);
+    n++;
+    nodeRadius[id] = R_MIN;
+    scaledRadius[id] = R_MIN * DOT_SCALE;
+    adjacency[id] = new Set();
+    edgesByNode[id] = [];
+
+    // Insert right after the current last node in ring order, next to it,
+    // then let the anchor-relayout spread everyone out to make room.
+    const prevId = order[n - 2];
+    order[n - 1] = id;
+    slotOf[id] = n - 1;
+    current[id] = prevId ? { x: current[prevId].x, y: current[prevId].y } : ringPositionAtAngle(0);
+
+    recomputeSlack();
+    createNodeElements(d);
+    createListRow(d);
+    ensureViewBoxFits(id);
+    relayoutAroundAnchor(prevId || id);
+    return id;
+  }
+
+  function snapshotStructure() {
+    return {
+      nodes: NODE_DATA.map(d => ({
+        id: d.id, name: d.name, href: d.href,
+        radius: nodeRadius[d.id],
+        special: SPECIAL_IDS.has(d.id),
+        x: current[d.id].x, y: current[d.id].y
+      })),
+      edges: edgeEls.map(rec => [rec.a, rec.b])
+    };
+  }
+
+  function teardownAllNodes() {
+    edgeEls.forEach(rec => rec.el.remove());
+    edgeEls.length = 0;
+    NODE_DATA.forEach(d => {
+      nodeEls[d.id].g.remove();
+      rowById[d.id].remove();
+    });
+    NODE_DATA.length = 0;
+    [nodeEls, edgesByNode, adjacency, current, nodeRadius, scaledRadius, listBtnById, editBtnById, lockBtnById, rowById, slotOf]
+      .forEach(map => Object.keys(map).forEach(k => delete map[k]));
+    SPECIAL_IDS.clear();
+    order.length = 0;
+    n = 0;
+  }
+
+  function rebuildFromSnapshot(snap) {
+    snap.nodes.forEach(nd => {
+      NODE_DATA.push({ id: nd.id, name: nd.name, href: nd.href });
+      nodeRadius[nd.id] = nd.radius;
+      scaledRadius[nd.id] = nd.radius * DOT_SCALE;
+      if (nd.special) SPECIAL_IDS.add(nd.id);
+      current[nd.id] = { x: nd.x, y: nd.y };
+      adjacency[nd.id] = new Set();
+      edgesByNode[nd.id] = [];
+      n++;
+    });
+    snap.edges.forEach(([a, b]) => {
+      adjacency[a].add(b);
+      adjacency[b].add(a);
+      createEdgeElement(a, b);
+    });
+    NODE_DATA.forEach(d => createNodeElements(d));
+    NODE_DATA.forEach(d => createListRow(d));
+    recomputeSlack();
+    rebuildOrderFromCurrent();
+    renderAll();
+  }
+
+  function restoreFromStructureSnapshot(snap) {
+    teardownAllNodes();
+    rebuildFromSnapshot(snap);
+    // Locks aren't part of the snapshot (they're a pure editing aid, not
+    // structural data) — but an id that no longer exists after this restore
+    // (e.g. undoing an "add node") must drop its lock entry too, or a later
+    // generateNodeId() reusing that same id would silently come back locked.
+    const keep = new Set(snap.nodes.map(nd => nd.id));
+    Array.from(lockedIds).forEach(id => { if (!keep.has(id)) lockedIds.delete(id); });
+    // Selection state is even more transient than locks — row identity
+    // across an undo/redo/cancel isn't guaranteed meaningful, so it's
+    // simplest and safest to just drop it.
+    selectionAnchorId = null;
+    selectedIds = [];
+  }
+
+  // Records one completed structural step (add / delete / a finished
+  // reorder drag) so the pen-mode toolbar's ↶/↷ buttons can step through
+  // them without leaving structure-editing mode — distinct from Cancel,
+  // which always jumps straight back to structureHistory[0] and exits.
+  function pushStructureHistory() {
+    structureHistory = structureHistory.slice(0, structureHistoryIndex + 1);
+    structureHistory.push(snapshotStructure());
+    structureHistoryIndex = structureHistory.length - 1;
+    updateStructureHistoryButtons();
+  }
+
+  function undoStructure() {
+    if (structureHistoryIndex <= 0) return;
+    structureHistoryIndex--;
+    restoreFromStructureSnapshot(structureHistory[structureHistoryIndex]);
+    updateStructureHistoryButtons();
+  }
+
+  function redoStructure() {
+    if (structureHistoryIndex >= structureHistory.length - 1) return;
+    structureHistoryIndex++;
+    restoreFromStructureSnapshot(structureHistory[structureHistoryIndex]);
+    updateStructureHistoryButtons();
+  }
+
+  function updateStructureHistoryButtons() {
+    btnListUndo.disabled = structureHistoryIndex <= 0;
+    btnListRedo.disabled = structureHistoryIndex >= structureHistory.length - 1;
+  }
+
+  // Re-appends every row in the ring's actual angular sequence (order[]),
+  // and reorders NODE_DATA to match, so the list is never left showing a
+  // stale sequence next to a ring that's since been dragged around.
+  function syncListToRingOrder() {
+    const byId = {};
+    NODE_DATA.forEach(d => { byId[d.id] = d; });
+    NODE_DATA.length = 0;
+    order.forEach(id => NODE_DATA.push(byId[id]));
+    order.forEach(id => nodeListItemsEl.appendChild(rowById[id]));
+  }
+
+  // Pure exchange of exactly two nodes' ring positions — no relayout, no
+  // effect on any other node. The list is only a sequence, so a list-driven
+  // reorder must be exactly that: two entries trade places, spacing
+  // between every OTHER point stays byte-for-byte unchanged. (The main
+  // canvas drag deliberately does the opposite — full-ring relayout on
+  // every swap — but that's a different, already-requested behaviour for
+  // dragging directly on the ring; list-row dragging is not that.)
+  function swapRingNodes(idA, idB) {
+    const posA = current[idA];
+    current[idA] = current[idB];
+    current[idB] = posA;
+    const slotA = slotOf[idA], slotB = slotOf[idB];
+    order[slotA] = idB;
+    order[slotB] = idA;
+    slotOf[idA] = slotB;
+    slotOf[idB] = slotA;
+    updateNode(idA);
+    updateNode(idB);
+  }
+
+  // Locked-neighbour variant of the swap above: `lockedId` keeps its exact
+  // (x,y) — never reassigned — while `dragId` hops past it, landing at the
+  // minimum real gap beyond the locked node's fixed angle, on whichever
+  // side it approached from. Only the two slots trade places in order[]/
+  // slotOf (dragId's index moves past lockedId's), same bookkeeping as a
+  // normal swap, but only dragId's own coordinate actually changes — so a
+  // locked node is a hole the drag can pass through without ever having to
+  // move itself, letting the cascade keep going to reach further neighbours.
+  function passLockedNode(dragId, lockedId, dir) {
+    const lockedAngle = angleOf(current[lockedId]);
+    const gap = edgeGap(dragId, lockedId) + TIE_BREAK_MARGIN;
+    current[dragId] = ringPositionAtAngle(dir > 0 ? lockedAngle + gap : lockedAngle - gap);
+    const kDrag = slotOf[dragId], kLocked = slotOf[lockedId];
+    order[kDrag] = lockedId; slotOf[lockedId] = kDrag;
+    order[kLocked] = dragId; slotOf[dragId] = kLocked;
+    updateNode(dragId);
+  }
+
+  // Redistributes spacing around the WHOLE ring after any swap, in either
+  // editing mode — a swap (plain, or hopping past a lock) leaves one gap
+  // squeezed and another oversized, since only the two participants' own
+  // coordinates were touched. This evens it back out: every node that isn't
+  // pinned gets redistributed within whichever arc it falls in between two
+  // pins, same "share the leftover slack evenly" idea the default layout
+  // itself uses. Pins are every locked node PLUS `anchorId` if given (the
+  // one live thing this call must not move — the dot under the pointer
+  // during a canvas drag, or whichever row a list-drag just placed) — with
+  // no locks at all, anchorId is the sole pin and this reduces to a single
+  // arc running all the way around back to it, i.e. relayoutAll(). (A
+  // locked node's own neighbouring gap is intentionally left as whatever
+  // the swap/pass left it at — the dedicated "reset spacing" header button
+  // is what fully re-evens the ring including locked nodes, on demand.)
+  function relayoutRing(anchorId) {
+    const pinIds = new Set(lockedIds);
+    if (anchorId != null) pinIds.add(anchorId);
+    const pinSlots = [];
+    for (let i = 0; i < n; i++) if (pinIds.has(order[i])) pinSlots.push(i);
+    if (pinSlots.length === 0) return;
+
+    const m = pinSlots.length;
+    for (let a = 0; a < m; a++) {
+      const startSlot = pinSlots[a];
+      const endSlot = pinSlots[(a + 1) % m];
+      const startId = order[startSlot];
+      const endId = order[endSlot];
+
+      const freeIds = [];
+      for (let k = (startSlot + 1) % n; k !== endSlot; k = (k + 1) % n) {
+        freeIds.push(order[k]);
+      }
+      if (freeIds.length === 0) continue;
+
+      // The arc's span comes ONLY from its two pin endpoints — both always-
+      // correct, never-drifting reference points — never from unwrapping
+      // through the free nodes' own current positions. This call runs on
+      // every frame of a live canvas drag now (not just swap crossings), so
+      // the free nodes' stored positions are themselves about to be
+      // overwritten by THIS call — chaining unwrapNear() through them let
+      // each frame's tiny rounding/relayout differences compound over
+      // hundreds of frames until one node's wound-angle guess flipped to
+      // the wrong lap, corrupting arcSlackPerGap (even negative) and
+      // cascading into runaway swapping. Two pins and plain mod-2π
+      // arithmetic have no such history to drift.
+      const startAngle = angleOf(current[startId]);
+      const chain = [startId].concat(freeIds, [endId]);
+      let minGapSum = 0;
+      for (let i = 0; i < chain.length - 1; i++) minGapSum += edgeGap(chain[i], chain[i + 1]);
+
+      let totalArcSpan;
+      if (startSlot === endSlot) {
+        totalArcSpan = 2 * Math.PI;
+      } else {
+        totalArcSpan = ((angleOf(current[endId]) - startAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+        // The live drag anchor's raw angle can end up numerically on
+        // EITHER side of a pin it's approaching, for a frame or two right
+        // at the boundary, before order[] actually reflects a swap past
+        // it (see resolveDragPosition's own TIE_BREAK_MARGIN window) — a
+        // plain "shortest forward" mod pick can then choose completely the
+        // wrong lap (a near-zero span for an arc that topologically has to
+        // cross most of the ring through every free node in `chain`).
+        // That's geometrically impossible — freeIds all need their own
+        // real minimum gap — so if the naive span can't even fit them,
+        // it's the wrong branch: the true one is one lap further out.
+        if (totalArcSpan < minGapSum) totalArcSpan += 2 * Math.PI;
+      }
+
+      const arcSlackPerGap = (totalArcSpan - minGapSum) / (chain.length - 1);
+
+      let angle = startAngle;
+      let prevId = startId;
+      freeIds.forEach(id => {
+        angle += edgeGap(prevId, id) + arcSlackPerGap;
+        current[id] = ringPositionAtAngle(angle);
+        updateNode(id);
+        prevId = id;
+      });
+    }
+  }
+
+  // "重新整理間距" header button: fully re-evens the WHOLE ring — every gap
+  // becomes its real edge-to-edge minimum plus an equal share of the
+  // leftover slack, the same formula the default layout itself uses —
+  // fixing any accumulated unevenness or overlap. Nothing gets reordered,
+  // only respaced. A currently-locked node would normally anchor an arc
+  // and block a true ring-wide even-out (everyone else could only spread
+  // evenly *around* it), so every lock is temporarily freed to take part
+  // too. They're then re-locked at their new spot.
+  function resetAllSpacing() {
+    recomputeSlack();
+    const wasLocked = Array.from(lockedIds);
+
+    // This ring's own gap layout, accumulated forward from order[0] at
+    // angle 0 — fixed by order[] and each node's real radius alone; the
+    // whole target layout is just "start at θ" for whichever θ we pick.
+    const cumOffset = [0];
+    for (let i = 1; i < n; i++) {
+      cumOffset[i] = cumOffset[i - 1] + edgeGap(order[i - 1], order[i]) + SLACK_PER_GAP;
+    }
+
+    // With no locks at all, minimize disruption to the WHOLE ring instead
+    // (still a meaningful choice, not an arbitrary one) rather than the
+    // (empty) locked set.
+    const reference = wasLocked.length > 0 ? wasLocked : order;
+
+    // Each reference point's own "zero-displacement" rotation — the θ that
+    // would leave that one point exactly where its centre already is.
+    const impliedThetas = reference.map(id => angleOf(current[id]) - cumOffset[slotOf[id]]);
+
+    // Averaging these via their SHORTEST signed offset from one reference
+    // point (not a raw vector sum) is what makes each point move by its
+    // own shortest distance, in its own natural direction: e.g. with two
+    // reference points, θ lands exactly at the midpoint of their shortest
+    // arc, so whichever one's centre is left of that midpoint shifts left
+    // and whichever is to the right shifts right, by equal amounts. A raw
+    // vector-sum mean can go unstable for near-opposite points (their
+    // vectors nearly cancel, leaving an almost arbitrary direction) —
+    // shortest-signed-offset averaging never has that failure mode.
+    const refTheta = impliedThetas[0];
+    let sumOffset = 0;
+    impliedThetas.forEach(t => {
+      let diff = (t - refTheta) % (2 * Math.PI);
+      if (diff > Math.PI) diff -= 2 * Math.PI;
+      if (diff < -Math.PI) diff += 2 * Math.PI;
+      sumOffset += diff;
+    });
+    const theta = refTheta + sumOffset / impliedThetas.length;
+
+    lockedIds.clear();
+    for (let i = 0; i < n; i++) {
+      current[order[i]] = ringPositionAtAngle(theta + cumOffset[i]);
+      updateNode(order[i]);
+    }
+    wasLocked.forEach(id => lockedIds.add(id));
+  }
+
+  // Drag-to-reorder rows (structure-edit mode only) — dragging a row down
+  // past another swaps them on the ring too (down = clockwise, matching
+  // ringPositionAtAngle's convention), via the pure swap above. Nothing
+  // about the ring changes until a swap actually fires; moving the mouse
+  // without crossing a row's midline does nothing to the ring at all.
+  let rowDragId = null;
+  let pendingRowEvent = null, rowFrameRequested = false;
+  // The trigger is each dragged row's own midline, not the raw cursor —
+  // tracked as "row's original midline + how far the cursor has moved
+  // since grab", not "row's original midline + absolute cursor position".
+  // Comparing raw cursor Y directly against target rows' midlines was the
+  // over-sensitive version: it ignored where within the row you'd grabbed
+  // it, so the effective trigger point drifted with the grab point instead
+  // of tracking the row's actual rendered position.
+  let rowDragStartClientY = 0, rowDragStartMidY = 0;
+  // Tracks whether ANY swap happened over the whole drag (not just the
+  // current frame), so onRowDragEnd can record a single structure-history
+  // step for the drag as a whole instead of one per frame.
+  let rowDragSwapped = false;
+  // The full set of rows moving together this drag: just [rowDragId] for
+  // an ordinary drag, or the whole contiguous multi-selection if the
+  // grabbed row is part of one (see selectSingle/extendSelectionTo). Each
+  // member's own natural midline at grab time is recorded too, so every
+  // member is tracked the exact same way rowDragId alone always was —
+  // own start position + the one shared cursor delta — which is what keeps
+  // the group moving as a single rigid block instead of just rowDragId.
+  let rowDragBlockIds = [];
+  let rowDragBlockStartMidY = {};
+
+  // Listeners go on `document`, not the row itself with setPointerCapture —
+  // syncListToRingOrder() re-appends every row (including whichever one is
+  // mid-drag) on each move, and per the DOM spec appendChild on a node
+  // already in the tree removes-then-reinserts it, which silently releases
+  // element-held pointer capture. document is never removed, so it isn't
+  // affected, and the drag reliably ends when the pointer is actually
+  // released instead of continuing to track the cursor afterward.
+  function startRowDrag(e, id) {
+    if (!structureEditing) return;
+    if (lockedIds.has(id)) return;
+    e.preventDefault();
+    rowDragId = id;
+    rowDragSwapped = false;
+    rowDragStartClientY = e.clientY;
+    rowDragBlockIds = selectedIds.includes(id) ? selectedIds.slice() : [id];
+    rowDragBlockStartMidY = {};
+    rowDragBlockIds.forEach(bid => {
+      const r = rowById[bid];
+      r.style.transform = '';
+      const rect = r.getBoundingClientRect();
+      rowDragBlockStartMidY[bid] = rect.top + rect.height / 2;
+    });
+    rowDragStartMidY = rowDragBlockStartMidY[id];
+    rowById[id].classList.add('row-dragging');
+    document.addEventListener('pointermove', onRowDragMove);
+    document.addEventListener('pointerup', onRowDragEnd);
+    document.addEventListener('pointercancel', onRowDragEnd);
+  }
+
+  function onRowDragMove(e) {
+    if (!rowDragId) return;
+    pendingRowEvent = e;
+    if (!rowFrameRequested) {
+      rowFrameRequested = true;
+      requestAnimationFrame(processPendingRowMove);
+    }
+  }
+
+  // Whichever block member currently sits furthest in direction `dir`
+  // (dir>0: largest slot / bottom edge, dir<0: smallest slot / top edge).
+  // Re-derived fresh every call (never cached) since a member's slot can
+  // change mid-cascade as the block bubbles past external rows.
+  function rowDragBlockEdge(dir) {
+    let best = rowDragBlockIds[0], bestSlot = slotOf[best];
+    rowDragBlockIds.forEach(id => {
+      const s = slotOf[id];
+      if (dir > 0 ? s > bestSlot : s < bestSlot) { bestSlot = s; best = id; }
+    });
+    return best;
+  }
+
+  // Bubbles one external row (just outside the block) through the whole
+  // block, one adjacent swap/pass at a time, nearest member first —
+  // composing a block-move entirely out of the same pairwise primitive a
+  // plain single-row drag uses. E.g. dragging block [A,B,C] down past D is
+  // swap(D,C) then swap(D,B) then swap(D,A), landing on D,A,B,C exactly —
+  // each step already individually correct on its own, including a locked
+  // member in the middle of the block (that step becomes a pass instead of
+  // a swap, same as it would for a single locked neighbour).
+  function bubbleExternalThroughBlock(extId, blockDir) {
+    const extDir = -blockDir; // extId moves opposite the block's own drag direction
+    const ordered = rowDragBlockIds.slice().sort((a, b) =>
+      blockDir > 0 ? slotOf[b] - slotOf[a] : slotOf[a] - slotOf[b]
+    );
+    ordered.forEach(memberId => {
+      if (lockedIds.has(memberId)) passLockedNode(extId, memberId, extDir);
+      else swapRingNodes(extId, memberId);
+    });
+  }
+
+  function processPendingRowMove() {
+    rowFrameRequested = false;
+    const e = pendingRowEvent;
+    pendingRowEvent = null;
+    if (!rowDragId || !e) return;
+
+    const cursorDelta = e.clientY - rowDragStartClientY;
+    let swapped = false;
+
+    // order[] is the RING's own indexing and IS circular (order[n-1]'s
+    // "next" is legitimately order[0] going around the circle) — but the
+    // LIST is a linear, top-to-bottom sequence, not a loop. Using order[]'s
+    // %n wraparound here treated the top row's "previous" as the bottom
+    // row (and the bottom row's "next" as the top row), so grabbing the
+    // very top row immediately found a "previous" neighbour clear at the
+    // bottom and cascaded a swap-chain the whole way there. The bounds
+    // below (k+1>=n / k-1<0 → no such neighbour, stop) are what make the
+    // list's own top/bottom actual dead ends, independent of whichever
+    // ids currently happen to occupy those two positions — checked here
+    // against the block's own leading edge in each direction, not just
+    // rowDragId, so a multi-row block respects the same dead ends.
+    for (let guard = 0; guard < n; guard++) {
+      const bottomId = rowDragBlockEdge(1);
+      const k = slotOf[bottomId];
+      if (k + 1 >= n) break;
+      const nextId = order[k + 1];
+      const rect = rowById[nextId].getBoundingClientRect();
+      if (rowDragBlockStartMidY[bottomId] + cursorDelta < rect.top + rect.height / 2) break;
+      bubbleExternalThroughBlock(nextId, 1);
+      swapped = true;
+    }
+    for (let guard = 0; guard < n; guard++) {
+      const topId = rowDragBlockEdge(-1);
+      const k = slotOf[topId];
+      if (k - 1 < 0) break;
+      const prevId = order[k - 1];
+      const rect = rowById[prevId].getBoundingClientRect();
+      if (rowDragBlockStartMidY[topId] + cursorDelta >= rect.top + rect.height / 2) break;
+      bubbleExternalThroughBlock(prevId, -1);
+      swapped = true;
+    }
+
+    // Any swap re-evens spacing around the whole ring (rowDragId is the
+    // pin — everything else redistributes around it, or around it and
+    // whichever nodes are locked, if any) — regardless of editing mode,
+    // any reorder keeps every point's spacing adjusted.
+    if (swapped) { relayoutRing(rowDragId); syncListToRingOrder(); rowDragSwapped = true; }
+
+    // Every dragged row (the whole block, not just rowDragId) tracks the
+    // cursor continuously as a rigid group — each one offset from wherever
+    // IT naturally landed, using the one shared cursor delta, so a swap
+    // that shifts the block's DOM position doesn't break the group's
+    // visual cohesion. Transforms are cleared before measuring, same
+    // reason as the single-row version: getBoundingClientRect() reports
+    // the painted (transformed) position, so last frame's offset would
+    // otherwise contaminate this frame's "natural" reading.
+    rowDragBlockIds.forEach(bid => { rowById[bid].style.transform = ''; });
+    rowDragBlockIds.forEach(bid => {
+      const row = rowById[bid];
+      const naturalRect = row.getBoundingClientRect();
+      const naturalMid = naturalRect.top + naturalRect.height / 2;
+      const trackedMid = rowDragBlockStartMidY[bid] + cursorDelta;
+      row.style.transform = 'translateY(' + (trackedMid - naturalMid) + 'px)';
+    });
+  }
+
+  function onRowDragEnd() {
+    if (!rowDragId) return;
+    rowDragBlockIds.forEach(bid => {
+      const row = rowById[bid];
+      row.classList.remove('row-dragging');
+      row.style.transform = '';
+    });
+    document.removeEventListener('pointermove', onRowDragMove);
+    document.removeEventListener('pointerup', onRowDragEnd);
+    document.removeEventListener('pointercancel', onRowDragEnd);
+    rowDragId = null;
+    rowDragBlockIds = [];
+    rowDragBlockStartMidY = {};
+    pendingRowEvent = null;
+    pushHistory();
+    if (rowDragSwapped) pushStructureHistory();
+  }
+
+  const btnPenMode = document.getElementById('btnPenMode');
+  const nodeListHeadView = document.getElementById('nodeListHeadView');
+  const nodeListHeadEdit = document.getElementById('nodeListHeadEdit');
+  const nodeListAddRow = document.getElementById('nodeListAddRow');
+  const btnAddNode = document.getElementById('btnAddNode');
+  const btnListCancel = document.getElementById('btnListCancel');
+  const btnListCommit = document.getElementById('btnListCommit');
+  const btnListUndo = document.getElementById('btnListUndo');
+  const btnListRedo = document.getElementById('btnListRedo');
+
+  function enterStructureEditing() {
+    if (!listOpen || structureEditing) return;
+    closeEditPanel();
+    // The list may be showing a stale sequence if dots were dragged around
+    // on the ring since the last sync — always start pen mode from the
+    // ring's actual current order.
+    syncListToRingOrder();
+    structureSnapshot = snapshotStructure();
+    structureHistory = [structureSnapshot];
+    structureHistoryIndex = 0;
+    resetSelection();
+    structureEditing = true;
+    nodeListEl.classList.add('structure-editing');
+    nodeListHeadView.hidden = true;
+    nodeListHeadEdit.hidden = false;
+    nodeListAddRow.hidden = false;
+    document.getElementById('btnCommit').disabled = true;
+    document.getElementById('btnCancel').disabled = true;
+    btnToggleList.disabled = true;
+    updateHistoryButtons();
+    updateStructureHistoryButtons();
+  }
+
+  function exitStructureEditing() {
+    structureEditing = false;
+    structureSnapshot = null;
+    structureHistory = [];
+    structureHistoryIndex = 0;
+    resetSelection();
+    nodeListEl.classList.remove('structure-editing');
+    nodeListHeadView.hidden = false;
+    nodeListHeadEdit.hidden = true;
+    nodeListAddRow.hidden = true;
+    document.getElementById('btnCommit').disabled = false;
+    document.getElementById('btnCancel').disabled = false;
+    btnToggleList.disabled = false;
+    // The node set may have changed — old position history could reference
+    // ids that no longer exist (or miss ones just added), so it's reset to
+    // a single fresh snapshot of wherever things ended up.
+    history = [clonePositions(current)];
+    historyIndex = 0;
+    updateHistoryButtons();
+  }
+
+  btnPenMode.addEventListener('click', enterStructureEditing);
+  btnAddNode.addEventListener('click', () => { createNewNode(); pushStructureHistory(); });
+  btnListUndo.addEventListener('click', undoStructure);
+  btnListRedo.addEventListener('click', redoStructure);
+  btnListCommit.addEventListener('click', () => {
+    exitStructureEditing();
+    showToast('已套用節點清單的變更');
+  });
+  btnListCancel.addEventListener('click', () => {
+    restoreFromStructureSnapshot(structureSnapshot);
+    exitStructureEditing();
+    showToast('已還原節點清單的變更');
+  });
+
+  updateHistoryButtons();
+})();
+</script>
+</body>
+</html>
