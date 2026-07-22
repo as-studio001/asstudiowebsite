@@ -87,11 +87,11 @@
   button.sc-btn.primary:hover { opacity: 0.85; }
   button.sc-btn:disabled,
   button.sc-btn:disabled:hover { opacity: 0.3; cursor: not-allowed; }
-  #btnUndo, #btnRedo, #btnResetSpacing, #btnThemeToggle, #btnSyncSite {
+  #btnImportSite, #btnUndo, #btnRedo, #btnResetSpacing, #btnThemeToggle, #btnSyncSite {
     padding: 9px 14px; font-size: 15px; line-height: 1;
     display: flex; align-items: center; justify-content: center;
   }
-  #btnResetSpacing svg, #btnThemeToggle svg, #btnSyncSite svg { width: 15px; height: 15px; display: block; }
+  #btnImportSite svg, #btnResetSpacing svg, #btnThemeToggle svg, #btnSyncSite svg { width: 15px; height: 15px; display: block; }
   .sc-divider { width: 1px; align-self: stretch; background: var(--border); margin: 0 4px; }
 
   /* Hover animation ported from @animate-ui/icons-send (Framer Motion) to
@@ -394,6 +394,7 @@
     padding: 10px; box-sizing: border-box;
   }
   .modal-output-sm { min-height: 60px; }
+  .modal-actions { flex-shrink: 0; display: flex; justify-content: flex-end; gap: 8px; padding: 0 18px 18px; }
 </style>
 <script>
   // Applies a previously saved explicit theme choice before first paint, so
@@ -412,6 +413,14 @@
 <header id="pageHeader">
   <h1>圓點位置編輯器　·　拖曳任意圓點調整位置</h1>
   <div class="sc-btns">
+    <button type="button" class="sc-btn" id="btnImportSite" aria-label="從主網頁匯入">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+    </button>
+    <div class="sc-divider"></div>
     <button type="button" class="sc-btn" id="btnUndo" aria-label="上一步">↶</button>
     <button type="button" class="sc-btn" id="btnRedo" aria-label="下一步">↷</button>
     <button type="button" class="sc-btn" id="btnResetSpacing" aria-label="重新整理間距">
@@ -471,6 +480,33 @@
         </div>
         <textarea id="syncOutputEdgeData" class="modal-output" readonly spellcheck="false"></textarea>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="importModalOverlay" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>從主網頁匯入</span>
+      <button type="button" id="btnCloseImportModal" class="modal-close" aria-label="關閉">✕</button>
+    </div>
+    <p class="modal-hint">從「建築事務所首頁.dc.html」複製 specialIds／nodeData／edgeData 三段中括號［ ］內的內容，分別貼到下方對應欄位，再按「套用」。這會用貼上的內容<strong>整個取代</strong>目前編輯器裡的順序、名稱、超連結、顏色與連線——尚未同步出去的編輯內容會遺失，建議在開始編輯前先做這一步。</p>
+    <div class="sync-sections">
+      <div class="sync-section">
+        <div class="sync-section-head"><span>specialIds［ ］</span></div>
+        <textarea id="importSpecialInput" class="modal-output modal-output-sm" spellcheck="false" placeholder="'r1', 'r2', ..."></textarea>
+      </div>
+      <div class="sync-section">
+        <div class="sync-section-head"><span>nodeData［ ］</span></div>
+        <textarea id="importNodeDataInput" class="modal-output" spellcheck="false" placeholder="{ id: 'r1', name: &quot;...&quot;, href: &quot;...&quot; }, ..."></textarea>
+      </div>
+      <div class="sync-section">
+        <div class="sync-section-head"><span>edgeData［ ］</span></div>
+        <textarea id="importEdgeDataInput" class="modal-output" spellcheck="false" placeholder="['r2', 'r3'], ..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" id="btnApplyImport" class="sc-btn primary">套用</button>
     </div>
   </div>
 </div>
@@ -911,6 +947,7 @@
     btnUndo.disabled = structureEditing || historyIndex <= 0;
     btnRedo.disabled = structureEditing || historyIndex >= history.length - 1;
     btnResetSpacing.disabled = structureEditing;
+    btnImportSite.disabled = structureEditing;
   }
 
   const nodeEls = {};
@@ -1381,6 +1418,134 @@
       }
     });
   });
+
+  // Reverse direction of buildSyncParts(): parses pasted specialIds/
+  // nodeData/edgeData bracket-interior text (same literal format the
+  // production file uses — and the same format the sync-out modal
+  // produces) back into plain JS values, so this editor can be reset to
+  // whatever's actually live on the main site before editing starts.
+  function parseImportSpecialIds(text) {
+    const ids = [];
+    const re = /'([^']+)'/g;
+    let m;
+    while ((m = re.exec(text))) ids.push(m[1]);
+    return ids;
+  }
+
+  function parseImportNodeData(text) {
+    const nodes = [];
+    const re = /\{\s*id:\s*'([^']+)'\s*,\s*name:\s*"((?:[^"\\]|\\.)*)"\s*,\s*href:\s*"((?:[^"\\]|\\.)*)"\s*\}/g;
+    let m;
+    while ((m = re.exec(text))) {
+      let name, href;
+      try { name = JSON.parse('"' + m[2] + '"'); } catch (err) { name = m[2]; }
+      try { href = JSON.parse('"' + m[3] + '"'); } catch (err) { href = m[3]; }
+      nodes.push({ id: m[1], name, href });
+    }
+    return nodes;
+  }
+
+  function parseImportEdgeData(text) {
+    const edges = [];
+    const re = /\[\s*'([^']+)'\s*,\s*'([^']+)'\s*\]/g;
+    let m;
+    while ((m = re.exec(text))) edges.push([m[1], m[2]]);
+    return edges;
+  }
+
+  // Lays out the imported node list exactly the way the production page
+  // (and this editor's own initial computeRingLayout()) does: walk forward
+  // from a fixed 12-o'clock start (-90°), each gap = real edge-to-edge
+  // minimum + an equal share of the ring's leftover slack. RING_RADIUS
+  // itself is never recomputed here either, matching the established
+  // "add/delete node" behaviour elsewhere in this file — only the per-gap
+  // slack absorbs however many nodes/edges came in.
+  function computeImportLayout(nodesList, edgesList) {
+    const degree = {};
+    nodesList.forEach(d => { degree[d.id] = 0; });
+    edgesList.forEach(([a, b]) => {
+      if (degree[a] !== undefined) degree[a]++;
+      if (degree[b] !== undefined) degree[b]++;
+    });
+    const maxDeg = Math.max(1, ...Object.values(degree));
+    const radius = {};
+    const scaled = {};
+    nodesList.forEach(d => {
+      radius[d.id] = R_MIN + (degree[d.id] / maxDeg) * (R_MAX - R_MIN);
+      scaled[d.id] = radius[d.id] * DOT_SCALE;
+    });
+    const gap = (a, b) => (scaled[a] + scaled[b] + GAP_PADDING) / RING_RADIUS;
+
+    const nn = nodesList.length;
+    const totalMinGap = (2 * nodesList.reduce((s, d) => s + scaled[d.id], 0) + nn * GAP_PADDING) / RING_RADIUS;
+    const slackPerGap = (2 * Math.PI - totalMinGap) / nn;
+
+    const cumOffset = [0];
+    for (let i = 1; i < nn; i++) {
+      cumOffset[i] = cumOffset[i - 1] + gap(nodesList[i - 1].id, nodesList[i].id) + slackPerGap;
+    }
+    const theta = -Math.PI / 2;
+    const positions = {};
+    nodesList.forEach((d, i) => {
+      const angle = theta + cumOffset[i];
+      positions[d.id] = { x: CX + RING_RADIUS * Math.cos(angle), y: CY + RING_RADIUS * Math.sin(angle) };
+    });
+    return { radius, positions };
+  }
+
+  function applyImport() {
+    const parsedNodes = parseImportNodeData(document.getElementById('importNodeDataInput').value);
+    if (parsedNodes.length === 0) {
+      showToast('nodeData 內容無法解析，請確認格式');
+      return;
+    }
+    const parsedSpecial = parseImportSpecialIds(document.getElementById('importSpecialInput').value);
+    const parsedEdges = parseImportEdgeData(document.getElementById('importEdgeDataInput').value);
+
+    const validIds = new Set(parsedNodes.map(d => d.id));
+    const filteredEdges = parsedEdges.filter(([a, b]) => validIds.has(a) && validIds.has(b));
+    const specialSet = new Set(parsedSpecial.filter(id => validIds.has(id)));
+
+    if (!window.confirm('這會用貼上的內容整個取代目前編輯器裡的順序、名稱、超連結、顏色與連線，尚未同步出去的編輯內容會遺失。確定要套用嗎？')) {
+      return;
+    }
+
+    const { radius, positions } = computeImportLayout(parsedNodes, filteredEdges);
+    const snap = {
+      nodes: parsedNodes.map(d => ({
+        id: d.id, name: d.name, href: d.href,
+        radius: radius[d.id],
+        special: specialSet.has(d.id),
+        x: positions[d.id].x, y: positions[d.id].y
+      })),
+      edges: filteredEdges
+    };
+
+    closeEditPanel();
+    restoreFromStructureSnapshot(snap);
+    // Position undo history is meaningless across a wholesale node-set
+    // replacement (same reasoning as exitStructureEditing() after an
+    // add/delete session) — reset to a single fresh snapshot of the result.
+    history = [clonePositions(current)];
+    historyIndex = 0;
+    updateHistoryButtons();
+
+    importModalOverlay.hidden = true;
+    showToast('已從主網頁內容更新（' + parsedNodes.length + ' 個節點）');
+  }
+
+  const importModalOverlay = document.getElementById('importModalOverlay');
+  const btnImportSite = document.getElementById('btnImportSite');
+  btnImportSite.addEventListener('click', () => {
+    importModalOverlay.hidden = false;
+  });
+  document.getElementById('btnCloseImportModal').addEventListener('click', () => {
+    importModalOverlay.hidden = true;
+  });
+  importModalOverlay.addEventListener('click', (e) => {
+    if (e.target === importModalOverlay) importModalOverlay.hidden = true;
+  });
+  document.getElementById('btnApplyImport').addEventListener('click', applyImport);
 
   const btnUndo = document.getElementById('btnUndo');
   const btnRedo = document.getElementById('btnRedo');
