@@ -363,6 +363,12 @@
     background: var(--bg); color: var(--text); border: 1px solid var(--border);
     border-radius: 8px; width: min(720px, 92vw); max-height: 82vh;
     display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    /* html/body set user-select:none globally (avoids accidental text
+       selection while dragging dots/rows) — the modals are pure read/copy
+       surfaces with no drag interactions, so text here should select like
+       any normal page (e.g. selecting "specialIds" to search for it in
+       the source). */
+    user-select: text;
   }
   .modal-head {
     flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
