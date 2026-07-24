@@ -19,6 +19,20 @@
   var vid = document.getElementById('sc-intro-video');
   if (!overlay || !vid) return;
 
+  // 從站內任何子頁（點連結或瀏覽器上一頁）回到首頁時不要重播開場影片：
+  // referrer 是同網域、且不是首頁自己，就代表是從站內子頁過來的，直接移除覆蓋層。
+  // （瀏覽器上一頁多半會用 bfcache 還原上次離開時的畫面，那時覆蓋層本來就已經被移除，
+  //   通常不會再執行到這段程式碼；這裡的 referrer 判斷主要處理「點連結」回首頁的情況。）
+  try {
+    if (document.referrer) {
+      var ref = new URL(document.referrer);
+      if (ref.origin === location.origin && ref.pathname !== location.pathname) {
+        overlay.remove();
+        return;
+      }
+    }
+  } catch (err) {}
+
   var revealed = false;
   function reveal() {
     if (revealed) return;
