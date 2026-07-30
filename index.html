@@ -19,19 +19,30 @@
   var vid = document.getElementById('sc-intro-video');
   if (!overlay || !vid) return;
 
-  // 從站內任何子頁（點連結或瀏覽器上一頁）回到首頁時不要重播開場影片：
-  // referrer 是同網域、且不是首頁自己，就代表是從站內子頁過來的，直接移除覆蓋層。
-  // （瀏覽器上一頁多半會用 bfcache 還原上次離開時的畫面，那時覆蓋層本來就已經被移除，
-  //   通常不會再執行到這段程式碼；這裡的 referrer 判斷主要處理「點連結」回首頁的情況。）
+  // 開場影片只在「真正從瀏覽器進入網站」時播一次：用 sessionStorage 記一個
+  // 「這個分頁這次工作階段已經播過」的旗標，只要旗標存在，不管是點子頁連結
+  // 回首頁、按瀏覽器上一頁（不管有沒有吃到 bfcache）、或重新整理，一律不重播。
+  // 分頁關閉、或使用者直接開新分頁進站，sessionStorage 會是空的，才會再播一次。
+  var SESSION_KEY = 'sc_introPlayed';
   try {
-    if (document.referrer) {
-      var ref = new URL(document.referrer);
-      if (ref.origin === location.origin && ref.pathname !== location.pathname) {
-        overlay.remove();
-        return;
-      }
+    if (sessionStorage.getItem(SESSION_KEY)) {
+      overlay.remove();
+      return;
     }
-  } catch (err) {}
+    sessionStorage.setItem(SESSION_KEY, '1');
+  } catch (err) {
+    // sessionStorage 被瀏覽器封鎖（例如嚴格隱私模式）時，退回用 referrer 判斷：
+    // 同網域、且不是首頁自己，視為從站內子頁過來，一樣不播。
+    try {
+      if (document.referrer) {
+        var ref = new URL(document.referrer);
+        if (ref.origin === location.origin && ref.pathname !== location.pathname) {
+          overlay.remove();
+          return;
+        }
+      }
+    } catch (err2) {}
+  }
 
   var revealed = false;
   function reveal() {
@@ -85,8 +96,32 @@
 </helmet>
 <div style="background:{{ bgColor }}; color:{{ textColor }}; font-family:'Helvetica Neue',Helvetica,Arial,'PingFang TC','Microsoft JhengHei',sans-serif; width:100%; min-height:100vh; transition:background-color 0.3s, color 0.3s;">
 
+  <!-- MOBILE SEARCH BAR（手機搜尋展開時，蓋在頁首上方，同一列換成輸入框 + 關閉鈕） -->
+  <sc-if value="{{ showMobileSearchBar }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; top:0; left:0; right:0; z-index:1001; padding:16px; display:flex; align-items:center; gap:10px; background-color:{{ bgColor }}; transition:background-color 0.3s;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ textColor }}; flex-shrink:0;">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input type="text" data-search-input="1" placeholder="搜尋此頁面..." value="{{ searchInput }}" onInput="{{ handleSearchInput }}" autofocus="" style="flex:1; min-width:0; background:none; border:none; outline:none; color:{{ textColor }}; font-size:16px; padding:0;">
+      <button onClick="{{ closeMobileSearch }}" style="background:none; border:none; cursor:pointer; padding:8px; color:{{ textColor }}; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute; top:100%; left:16px; right:16px; margin-top:8px; background-color:{{ isDarkMode ? 'oklch(0.12 0 0)' : 'oklch(0.98 0 0)' }}; border:1px solid {{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)' }}; border-radius:8px; max-height:280px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+          <sc-for list="{{ searchResults }}" as="result" hint-placeholder-count="3">
+            <div onClick="{{ result.go }}" style="padding:14px 16px; cursor:pointer; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }}; font-size:14px; color:{{ textColor }};">{{ result.name }}</div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
   <!-- HEADER -->
-  <header style="position:fixed; top:0; left:0; right:0; z-index:1000; padding:24px 40px; display:flex; justify-content:space-between; align-items:center;">
+  <header style="position:fixed; top:0; left:0; right:0; z-index:1000; padding:{{ headerPadding }}; display:flex; justify-content:space-between; align-items:center;">
     <div style="display:flex; align-items:center; gap:20px;">
       <button data-menu-box="1" onClick="{{ toggleMaterialMenu }}" style="background:none; border:none; cursor:pointer; padding:8px; display:flex; flex-direction:column; gap:5px; justify-content:center; align-items:center; width:36px; height:36px;">
         <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
@@ -105,7 +140,7 @@
         <img src="uploads/logo_20210310101340.png" alt="Logo" style="height:40px; filter:{{ isDarkMode ? 'invert(1)' : 'none' }}; transition:filter 0.3s;">
       </a>
     </div>
-    <div data-search-box="1" style="position:absolute; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center;">
+    <div data-search-box="1" style="position:absolute; left:50%; transform:translateX(-50%); display:{{ searchBoxDisplay }}; flex-direction:column; align-items:center;">
       <div style="display:flex; align-items:center; gap:10px; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:10px 16px; transition:background-color 0.3s;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ textColor }}; transition:color 0.3s; flex-shrink:0;">
           <circle cx="11" cy="11" r="8"></circle>
@@ -121,10 +156,20 @@
         </div>
       </sc-if>
     </div>
-    <div style="display:flex; gap:32px; align-items:center; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:16px 24px; transition:background-color 0.3s;">
-      <a href="https://www.mashup.com.tw/as%20studio/?page=service" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Team</a>
-      <a href="https://www.mashup.com.tw/as%20studio/?page=movies" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Film</a>
-      <a href="https://www.mashup.com.tw/as%20studio/?page=contact" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Contact</a>
+    <div style="display:flex; gap:{{ navPillGap }}; align-items:center; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:{{ navPillPadding }}; transition:background-color 0.3s;">
+      <sc-if value="{{ !isMobile }}" hint-placeholder-val="{{ true }}">
+        <a href="https://www.mashup.com.tw/as%20studio/?page=service" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Team</a>
+        <a href="https://www.mashup.com.tw/as%20studio/?page=movies" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Film</a>
+        <a href="https://www.mashup.com.tw/as%20studio/?page=contact" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Contact</a>
+      </sc-if>
+      <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ toggleMobileSearch }}" style="background:none; border:none; cursor:pointer; padding:8px; color:{{ textColor }}; display:flex; align-items:center; justify-content:center; width:36px; height:36px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </button>
+      </sc-if>
       <button onClick="{{ toggleDarkMode }}" style="background:none; border:1px solid {{ textColor }}; border-radius:4px; padding:8px 12px; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.3s; color:{{ textColor }}; display:flex; align-items:center; justify-content:center; width:44px; height:44px;">
         <sc-if value="{{ isDarkMode }}" hint-placeholder-val="{{ true }}">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -150,7 +195,7 @@
 
   <!-- NETWORK DIAGRAM -->
   <section id="works" style="padding:450px 12px; position:relative; z-index:2;">
-    <div style="width:min(90vw, 86vh); max-width:2000px; margin:0 auto; aspect-ratio:1/1;">
+    <div style="width:{{ diagramContainerWidth }}; max-width:2000px; margin:0 auto; aspect-ratio:1/1;">
       
     <svg viewBox="0 0 900 900" width="100%" height="100%" style="overflow: visible; fill: #930707">
         <sc-if value="{{ hasSpotlight }}" hint-placeholder-val="{{ false }}">
@@ -170,7 +215,7 @@
         <sc-for list="{{ nodes }}" as="node" hint-placeholder-count="14">
           <a href="{{ node.href }}" style="cursor:pointer;">
             <g data-node="{{ node.id }}" onMouseEnter="{{ node.onEnter }}" onMouseLeave="{{ node.onLeave }}" style="opacity: {{ node.opacity }}; transition: opacity 0.25s ease;">
-              <circle cx="{{ node.cx }}" cy="{{ node.cy }}" r="26" fill="transparent"></circle>
+              <circle cx="{{ node.cx }}" cy="{{ node.cy }}" r="{{ node.hitR }}" fill="transparent"></circle>
               <circle data-dot="{{ node.id }}" cx="{{ node.cx }}" cy="{{ node.cy }}" r="{{ node.r }}" fill="{{ node.dotFill }}" style="transition:fill 0.3s;"></circle>
               <g transform="rotate({{ node.rotateDeg }} {{ node.pivotX }} {{ node.pivotY }})">
                 <foreignObject x="{{ node.boxX }}" y="{{ node.boxY }}" width="{{ node.boxW }}" height="{{ node.boxH }}" style="overflow:visible;">
@@ -228,16 +273,17 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { hoveredId: null, isDarkMode: false, showSearchModal: false, searchInput: '', searchResults: [], flashId: null, showMaterialMenu: false };
+  state = { hoveredId: null, isDarkMode: false, showSearchModal: false, searchInput: '', searchResults: [], flashId: null, showMaterialMenu: false, viewportW: (typeof window !== 'undefined' ? window.innerWidth : 1200), showMobileSearch: false };
 
   // Node names and hrefs from uploaded spreadsheet (活頁簿1-24674e73.xlsx):
   // Column B provides the node names, Column A provides the target URLs.
   // Category/section-header nodes get a fixed accent color and bold weight
   // regardless of light/dark mode. Each entry maps a node id to its color.
-  specialIds = ['r2', 'r11', 'r22', 'r23', 'r28', 'r59', 'r100', 'r101', 'r109', 'r115', 'r1'];
+  specialIds = ['r1', 'r28', 'r59', 'r100', 'r2', 'r11', 'r22', 'r23', 'r101', 'r109', 'r115'];
 
   nodeData = [
-       { id: 'r2', name: "原型教學", href: "./原型教學.dc.html" },
+    { id: 'r1', name: "章 architecture design", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r2', name: "原型教學", href: "./原型教學.dc.html" },
     { id: 'r3', name: "實習", href: "./原型教學.dc.html" },
     { id: 'r4', name: "美感教育", href: "./原型教學.dc.html" },
     { id: 'r5', name: "孩童", href: "./原型教學.dc.html" },
@@ -258,7 +304,7 @@ class Component extends DCLogic {
     { id: 'r20', name: "原型三時期", href: "./原型原點.dc.html" },
     { id: 'r21', name: "一人", href: "./原型原點.dc.html" },
     { id: 'r22', name: "原型建築+原型結構", href: "./原型原點.dc.html" },
-    { id: 'r23', name: "原型結構", href: "https://www.mashup.com.tw/as%20studio/" },
+    { id: 'r23', name: "原型結構", href: "./原型結構.dc.html" },
     { id: 'r24', name: "木構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=27070" },
     { id: 'r25', name: "竹構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25396" },
     { id: 'r26', name: "RC構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25397" },
@@ -351,21 +397,20 @@ class Component extends DCLogic {
     { id: 'r112', name: "南寧老屋", href: "#" },
     { id: 'r113', name: "2025原型1號宅", href: "https://asstudio029.wixsite.com/ashouse1" },
     { id: 'r114', name: "2025台南咾咕石芳宅", href: "https://e64872170.wixsite.com/mysite" },
-    { id: 'r115', name: "原型獲獎", href: "./原型獲獎.dc.html" },
-    { id: 'r1', name: "章 architecture design", href: "https://www.mashup.com.tw/as%20studio/?page=about" }
+    { id: 'r115', name: "原型獲獎", href: "./原型獲獎.dc.html" }
   ];
 
   // Relationships derived from columns C onward of the spreadsheet: each row's
   // column B node connects to whichever other rows' B-names appear across it.
   edgeData = [
-       ['r2', 'r3'],
+    ['r2', 'r3'],
     ['r2', 'r4'],
     ['r2', 'r5'],
     ['r2', 'r6'],
     ['r2', 'r7'],
     ['r2', 'r8'],
     ['r2', 'r9'],
-    ['r2', 'r10'],
+    ['r10', 'r2'],
     ['r11', 'r12'],
     ['r11', 'r13'],
     ['r11', 'r14'],
@@ -400,27 +445,6 @@ class Component extends DCLogic {
     ['r23', 'r91'],
     ['r23', 'r94'],
     ['r23', 'r95'],
-    ['r23', 'r60'],
-    ['r23', 'r66'],
-    ['r23', 'r68'],
-    ['r23', 'r74'],
-    ['r23', 'r75'],
-    ['r23', 'r77'],
-    ['r23', 'r81'],
-    ['r23', 'r82'],
-    ['r23', 'r83'],
-    ['r23', 'r85'],
-    ['r23', 'r87'],
-    ['r23', 'r88'],
-    ['r23', 'r89'],
-    ['r23', 'r90'],
-    ['r23', 'r92'],
-    ['r23', 'r93'],
-    ['r23', 'r96'],
-    ['r23', 'r97'],
-    ['r23', 'r98'],
-    ['r23', 'r99'],
-    ['r23', 'r116'],
     ['r24', 'r48'],
     ['r24', 'r53'],
     ['r24', 'r54'],
@@ -429,36 +453,13 @@ class Component extends DCLogic {
     ['r24', 'r64'],
     ['r24', 'r67'],
     ['r24', 'r71'],
-    ['r24', 'r39'],
-    ['r24', 'r41'],
-    ['r24', 'r42'],
-    ['r24', 'r45'],
-    ['r24', 'r49'],
-    ['r24', 'r65'],
-    ['r24', 'r66'],
-    ['r24', 'r74'],
-    ['r24', 'r75'],
-    ['r24', 'r78'],
-    ['r24', 'r81'],
-    ['r24', 'r95'],
-    ['r24', 'r114'],
-    ['r24', 'r116'],
     ['r25', 'r90'],
     ['r25', 'r91'],
     ['r25', 'r92'],
-    ['r25', 'r47'],
-    ['r25', 'r50'],
-    ['r25', 'r60'],
-    ['r25', 'r84'],
-    ['r25', 'r96'],
-    ['r25', 'r97'],
     ['r26', 'r46'],
     ['r26', 'r56'],
     ['r26', 'r72'],
     ['r26', 'r76'],
-    ['r26', 'r73'],
-    ['r26', 'r77'],
-    ['r26', 'r87'],
     ['r27', 'r37'],
     ['r27', 'r38'],
     ['r27', 'r40'],
@@ -472,44 +473,39 @@ class Component extends DCLogic {
     ['r27', 'r79'],
     ['r27', 'r80'],
     ['r27', 'r94'],
-    ['r27', 'r35'],
-    ['r27', 'r36'],
-    ['r27', 'r52'],
-    ['r27', 'r62'],
-    ['r27', 'r68'],
-    ['r27', 'r82'],
-    ['r27', 'r83'],
-    ['r27', 'r85'],
-    ['r27', 'r86'],
-    ['r27', 'r88'],
-    ['r27', 'r89'],
-    ['r27', 'r93'],
-    ['r27', 'r98'],
-    ['r27', 'r99'],
     ['r30', 'r115'],
     ['r31', 'r115'],
     ['r32', 'r115'],
     ['r33', 'r115'],
     ['r34', 'r115'],
+    ['r35', 'r27'],
     ['r35', 'r115'],
+    ['r36', 'r27'],
     ['r36', 'r115'],
     ['r37', 'r115'],
     ['r38', 'r115'],
+    ['r39', 'r24'],
     ['r39', 'r115'],
     ['r40', 'r115'],
+    ['r41', 'r24'],
     ['r41', 'r115'],
+    ['r42', 'r24'],
     ['r42', 'r115'],
     ['r43', 'r115'],
     ['r44', 'r115'],
+    ['r45', 'r24'],
     ['r45', 'r115'],
     ['r46', 'r115'],
+    ['r47', 'r25'],
     ['r47', 'r115'],
     ['r48', 'r115'],
     ['r48', 'r109'],
+    ['r49', 'r24'],
     ['r49', 'r115'],
-    ['r49', 'r101'],
+    ['r50', 'r25'],
     ['r50', 'r115'],
     ['r51', 'r115'],
+    ['r52', 'r27'],
     ['r52', 'r115'],
     ['r53', 'r115'],
     ['r54', 'r115'],
@@ -518,10 +514,53 @@ class Component extends DCLogic {
     ['r56', 'r109'],
     ['r57', 'r115'],
     ['r57', 'r109'],
-    ['r57', 'r101'],
     ['r58', 'r115'],
-    ['r67', 'r116'],
+    ['r60', 'r25'],
+    ['r60', 'r23'],
+    ['r62', 'r27'],
+    ['r65', 'r24'],
+    ['r66', 'r24'],
+    ['r66', 'r23'],
+    ['r68', 'r27'],
+    ['r68', 'r23'],
     ['r70', 'r109'],
+    ['r73', 'r26'],
+    ['r74', 'r24'],
+    ['r74', 'r23'],
+    ['r75', 'r24'],
+    ['r75', 'r23'],
+    ['r77', 'r26'],
+    ['r77', 'r23'],
+    ['r78', 'r24'],
+    ['r81', 'r24'],
+    ['r81', 'r23'],
+    ['r82', 'r27'],
+    ['r82', 'r23'],
+    ['r83', 'r27'],
+    ['r83', 'r23'],
+    ['r84', 'r25'],
+    ['r85', 'r23'],
+    ['r85', 'r27'],
+    ['r86', 'r27'],
+    ['r87', 'r23'],
+    ['r87', 'r26'],
+    ['r88', 'r23'],
+    ['r88', 'r27'],
+    ['r89', 'r27'],
+    ['r89', 'r23'],
+    ['r90', 'r23'],
+    ['r92', 'r23'],
+    ['r93', 'r23'],
+    ['r93', 'r27'],
+    ['r95', 'r24'],
+    ['r96', 'r25'],
+    ['r96', 'r23'],
+    ['r97', 'r25'],
+    ['r97', 'r23'],
+    ['r98', 'r23'],
+    ['r98', 'r27'],
+    ['r99', 'r27'],
+    ['r99', 'r23'],
     ['r101', 'r105'],
     ['r101', 'r106'],
     ['r101', 'r107'],
@@ -529,14 +568,20 @@ class Component extends DCLogic {
     ['r101', 'r111'],
     ['r101', 'r113'],
     ['r101', 'r114'],
-    ['r101', 'r112'],
-    ['r101', 'r116'],
-    ['r116', 'r114'],
+    ['r101', 'r57'],
     ['r109', 'r110'],
     ['r109', 'r111'],
     ['r109', 'r113'],
     ['r109', 'r114'],
-    ['r109', 'r112']
+    ['r112', 'r109'],
+    ['r112', 'r101'],
+    ['r114', 'r24'],
+    ['r101', 'r49'],
+    ['r116', 'r101'],
+    ['r116', 'r24'],
+    ['r116', 'r67'],
+    ['r116', 'r114'],
+    ['r116', 'r23']
   ];
 
   setHover(id) {
@@ -555,6 +600,14 @@ class Component extends DCLogic {
     this.setState(s => ({ showMaterialMenu: !s.showMaterialMenu }));
   }
 
+  toggleMobileSearch() {
+    this.setState(s => ({ showMobileSearch: !s.showMobileSearch }));
+  }
+
+  closeMobileSearch() {
+    this.setState({ showMobileSearch: false, searchInput: '', searchResults: [] });
+  }
+
   toggleSearchModal() {
     this.setState(s => ({ showSearchModal: !s.showSearchModal, searchInput: '', searchResults: [] }));
   }
@@ -570,10 +623,23 @@ class Component extends DCLogic {
       if (!inMenu && this.state.showMaterialMenu) this.setState({ showMaterialMenu: false });
     };
     document.addEventListener('mousedown', this._onDocMouseDown);
+
+    // 手機／平板適配：追蹤 viewport 寬度，驅動 renderVals() 裡的 isMobile 判斷。
+    // debounce 一下，避免拖曳視窗縮放時瘋狂觸發 setState。
+    this._resizeTimer = null;
+    this._onResize = () => {
+      if (this._resizeTimer) clearTimeout(this._resizeTimer);
+      this._resizeTimer = setTimeout(() => {
+        this.setState({ viewportW: window.innerWidth });
+      }, 150);
+    };
+    window.addEventListener('resize', this._onResize);
   }
 
   componentWillUnmount() {
     if (this._onDocMouseDown) document.removeEventListener('mousedown', this._onDocMouseDown);
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
+    if (this._resizeTimer) clearTimeout(this._resizeTimer);
     if (this._raf) cancelAnimationFrame(this._raf);
     if (this._fadeTimer) clearTimeout(this._fadeTimer);
     if (this._flash) this._flash.remove();
@@ -692,11 +758,39 @@ class Component extends DCLogic {
     this._raf = requestAnimationFrame(() => this.tick());
   }
 
+  // 共用給 renderVals()（決定圓環上畫哪些節點）跟 handleSearchInput()
+  // （決定手機版搜尋結果只能挑得到畫得出來的節點）用，兩邊的門檻數字只寫在
+  // 這一個地方，不要各自複製一份，否則以後調整很容易漏改其中一邊。
+  computeDegree() {
+    const degree = {};
+    this.nodeData.forEach(d => { degree[d.id] = 0; });
+    this.edgeData.forEach(([a, b]) => {
+      if (a in degree) degree[a]++;
+      if (b in degree) degree[b]++;
+    });
+    return degree;
+  }
+
+  getMobileVisibleIds(degree) {
+    const ids = new Set();
+    this.nodeData.forEach(d => {
+      if (degree[d.id] > 3 || this.specialIds.includes(d.id)) ids.add(d.id);
+    });
+    return ids;
+  }
+
   handleSearchInput(e) {
     const query = e.target.value;
     this.setState({ searchInput: query });
     if (query.trim()) {
-      const results = this.nodeData.filter(n => n.name.toLowerCase().includes(query.toLowerCase()));
+      let results = this.nodeData.filter(n => n.name.toLowerCase().includes(query.toLowerCase()));
+      // 手機版圓環只畫連線數 >3（或分類大標）的節點（見 renderVals()），搜尋結果
+      // 如果還是全部 116 筆都給選，點到一個沒畫出來的節點時，黃色亮點沒有實體
+      // 圓點可以「騎上去」，就會完全不顯示——所以手機版搜尋結果要一併篩掉那些節點。
+      if (this.state.viewportW < 768) {
+        const visibleIds = this.getMobileVisibleIds(this.computeDegree());
+        results = results.filter(n => visibleIds.has(n.id));
+      }
       this.setState({ searchResults: results });
     } else {
       this.setState({ searchResults: [] });
@@ -710,6 +804,9 @@ class Component extends DCLogic {
     // for the container's typical size, so font-size / radius values below
     // read as their literal px sizes on screen (not scaled down by the SVG).
     const cx = 450, cy = 450;
+    // 手機／平板適配：斷點依實測結果選定——820px 平板寬度下頁首與圓環圖都已經正常，
+    // 768px 也是常見 iPad portrait 寬度，所以窄於這個值才視為手機、套用放大過的最小尺寸。
+    const isMobile = this.state.viewportW < 768;
     const hoveredId = this.state.hoveredId;
     const isDarkMode = this.state.isDarkMode;
     const bgColor = isDarkMode ? 'oklch(0.15 0 0)' : 'oklch(0.99 0 0)';
@@ -722,21 +819,32 @@ class Component extends DCLogic {
     // site's circular layout. Node size scales with its connection count
     // (degree), and nodes are spaced so the gap between adjacent circles
     // stays a constant ~0.5mm regardless of each node's size.
-    const ordered = this.nodeData;
-    const n = ordered.length;
-
-    const degree = {};
-    ordered.forEach(d => { degree[d.id] = 0; });
-    this.edgeData.forEach(([a, b]) => {
-      if (a in degree) degree[a]++;
-      if (b in degree) degree[b]++;
-    });
+    // Degree is always computed from the FULL graph first (so hiding nodes
+    // on mobile never changes anyone else's degree/size), then on mobile
+    // we drop the least-connected nodes from the ring itself — except
+    // specialIds (章/成/法/構 section headers), which stay even though they
+    // have no edges of their own. Threshold lives in getMobileVisibleIds()
+    // (shared with handleSearchInput(), so mobile search can never suggest
+    // a node that isn't actually drawn on the ring — nothing to flash-highlight
+    // otherwise).
+    const degree = this.computeDegree();
     const maxDegree = Math.max(1, ...Object.values(degree));
+    const mobileVisibleIds = isMobile ? this.getMobileVisibleIds(degree) : null;
+    const ordered = isMobile
+      ? this.nodeData.filter(d => mobileVisibleIds.has(d.id))
+      : this.nodeData;
+    const n = ordered.length;
     // Measured: this container renders the 900-unit viewBox at roughly a
     // 0.54 px-per-unit ratio (min(96vw,90vh) container / 900 viewBox), so
     // these constants are sized ~1.85x their literal on-screen target to
     // land in a legible range after that scale-down.
-    const rMin = 4, rMax = 24;
+    // Mobile radii sized so the leftover ring circumference (after the 19
+    // surviving nodes' own diameters) lands the auto-redistributed gap
+    // between adjacent dots at roughly 20px on a ~390px-wide phone —
+    // verified empirically via screenshot, not purely by this formula,
+    // since the 420-unit minimum-radius clamp further down overrides
+    // whatever raw gapVB is requested once node count drops this low.
+    const rMin = isMobile ? 33 : 4, rMax = isMobile ? 92 : 24;
     const nodeRadius = {};
     ordered.forEach(d => {
       const deg = degree[d.id];
@@ -814,7 +922,7 @@ class Component extends DCLogic {
       const angleDeg = pos.angle * 180 / Math.PI;
       const rotateDeg = isRight ? angleDeg : angleDeg + 180;
       const dimmed = hoveredId && !relatedIds.has(d.id);
-      const fontSize = 15;
+      const fontSize = isMobile ? 24 : 15;
       const isSpecial = this.specialIds.includes(d.id);
       const fontWeight = isSpecial ? 700 : 400;
       const isHoveredSelf = hoveredId === d.id;
@@ -833,6 +941,7 @@ class Component extends DCLogic {
         cx: pos.x,
         cy: pos.y,
         r: r * dotScale,
+        hitR: isMobile ? 38 : 26,
         boxX: isRight ? labelPointX : labelPointX - boxW,
         boxY: labelPointY - boxH / 2,
         boxW,
@@ -851,20 +960,38 @@ class Component extends DCLogic {
       };
     });
 
-    const edges = this.edgeData.map(([a, b], i) => {
-      const pa = positions[a], pb = positions[b];
-      const dimmed = hoveredId && !(hoveredId === a || hoveredId === b);
-      return {
-        id: 'e' + i,
-        x1: pa.x, y1: pa.y,
-        x2: pb.x, y2: pb.y,
-        opacity: dimmed ? 0.3 : 1
-      };
-    });
+    // On mobile, some edges now point at a node we filtered out of `ordered`
+    // above (no entry in `positions`) — skip those rather than draw a line
+    // to nowhere.
+    const edges = this.edgeData
+      .filter(([a, b]) => positions[a] && positions[b])
+      .map(([a, b], i) => {
+        const pa = positions[a], pb = positions[b];
+        const dimmed = hoveredId && !(hoveredId === a || hoveredId === b);
+        return {
+          id: 'e' + i,
+          x1: pa.x, y1: pa.y,
+          x2: pb.x, y2: pb.y,
+          opacity: dimmed ? 0.3 : 1
+        };
+      });
 
     return {
       nodes, edges, bgColor, textColor, lineColor, dotColor, isDarkMode,
-      spotlight, hasSpotlight: !!spotlight,
+      // 手機版節點少、圓點又放大很多，原本在桌機密集線海裡不顯眼的「原型結構
+      // 朝中央標題的光暈」在手機上會變成一條特別粗大、指向空無一物的錐形色塊，
+      // 容易被誤認成「一條沒有終點的連線」——手機版直接不畫這個裝飾效果。
+      spotlight, hasSpotlight: isMobile ? false : !!spotlight,
+      isMobile,
+      headerPadding: isMobile ? '16px 16px' : '24px 40px',
+      diagramContainerWidth: isMobile ? 'min(94vw, 82vh)' : 'min(90vw, 86vh)',
+      searchBoxDisplay: isMobile ? 'none' : 'flex',
+      navPillGap: isMobile ? '12px' : '32px',
+      navPillPadding: isMobile ? '10px 12px' : '16px 24px',
+      showMobileSearchBar: isMobile && this.state.showMobileSearch,
+      showMobileSearch: this.state.showMobileSearch,
+      toggleMobileSearch: () => this.toggleMobileSearch(),
+      closeMobileSearch: () => this.closeMobileSearch(),
       toggleDarkMode: () => this.toggleDarkMode(),
       showMaterialMenu: this.state.showMaterialMenu,
       toggleMaterialMenu: () => this.toggleMaterialMenu(),
