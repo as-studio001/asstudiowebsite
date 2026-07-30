@@ -735,7 +735,12 @@ class Component extends DCLogic {
       const dr = dot.getBoundingClientRect();
       const cxp = dr.left + dr.width / 2;
       const cyp = dr.top + dr.height / 2;
-      const vw = window.innerWidth, vh = window.innerHeight, margin = 52;
+      // 手機版圓環容器幾乎貼滿整個 viewport 寬度（見 renderVals() 的
+      // diagramContainerWidth），52px 邊界對窄螢幕來說占比太大——實測手機上
+      // 19 個可見節點裡有 9 個會被判定「太靠邊」而顯示三角形指示，不顯示黃色
+      // 亮點，讓人以為搜尋定位整個沒作用。手機版縮小邊界到 16px，讓亮點正常顯示。
+      const isMobileTick = window.innerWidth < 768;
+      const vw = window.innerWidth, vh = window.innerHeight, margin = isMobileTick ? 16 : 52;
       const inView = cxp >= margin && cxp <= vw - margin && cyp >= margin && cyp <= vh - margin;
       // Circle rides the dot.
       if (this._flash) {
