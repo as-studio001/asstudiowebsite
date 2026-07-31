@@ -19,19 +19,30 @@
   var vid = document.getElementById('sc-intro-video');
   if (!overlay || !vid) return;
 
-  // 從站內任何子頁（點連結或瀏覽器上一頁）回到首頁時不要重播開場影片：
-  // referrer 是同網域、且不是首頁自己，就代表是從站內子頁過來的，直接移除覆蓋層。
-  // （瀏覽器上一頁多半會用 bfcache 還原上次離開時的畫面，那時覆蓋層本來就已經被移除，
-  //   通常不會再執行到這段程式碼；這裡的 referrer 判斷主要處理「點連結」回首頁的情況。）
+  // 開場影片只在「真正從瀏覽器進入網站」時播一次：用 sessionStorage 記一個
+  // 「這個分頁這次工作階段已經播過」的旗標，只要旗標存在，不管是點子頁連結
+  // 回首頁、按瀏覽器上一頁（不管有沒有吃到 bfcache）、或重新整理，一律不重播。
+  // 分頁關閉、或使用者直接開新分頁進站，sessionStorage 會是空的，才會再播一次。
+  var SESSION_KEY = 'sc_introPlayed';
   try {
-    if (document.referrer) {
-      var ref = new URL(document.referrer);
-      if (ref.origin === location.origin && ref.pathname !== location.pathname) {
-        overlay.remove();
-        return;
-      }
+    if (sessionStorage.getItem(SESSION_KEY)) {
+      overlay.remove();
+      return;
     }
-  } catch (err) {}
+    sessionStorage.setItem(SESSION_KEY, '1');
+  } catch (err) {
+    // sessionStorage 被瀏覽器封鎖（例如嚴格隱私模式）時，退回用 referrer 判斷：
+    // 同網域、且不是首頁自己，視為從站內子頁過來，一樣不播。
+    try {
+      if (document.referrer) {
+        var ref = new URL(document.referrer);
+        if (ref.origin === location.origin && ref.pathname !== location.pathname) {
+          overlay.remove();
+          return;
+        }
+      }
+    } catch (err2) {}
+  }
 
   var revealed = false;
   function reveal() {
@@ -85,8 +96,32 @@
 </helmet>
 <div style="background:{{ bgColor }}; color:{{ textColor }}; font-family:'Helvetica Neue',Helvetica,Arial,'PingFang TC','Microsoft JhengHei',sans-serif; width:100%; min-height:100vh; transition:background-color 0.3s, color 0.3s;">
 
+  <!-- MOBILE SEARCH BAR（手機搜尋展開時，蓋在頁首上方，同一列換成輸入框 + 關閉鈕） -->
+  <sc-if value="{{ showMobileSearchBar }}" hint-placeholder-val="{{ false }}">
+    <div data-search-box="1" style="position:fixed; top:0; left:0; right:0; z-index:1001; padding:16px; display:flex; align-items:center; gap:10px; background-color:{{ bgColor }}; transition:background-color 0.3s;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ textColor }}; flex-shrink:0;">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input type="text" data-search-input="1" placeholder="搜尋此頁面..." value="{{ searchInput }}" onInput="{{ handleSearchInput }}" autofocus="" style="flex:1; min-width:0; background:none; border:none; outline:none; color:{{ textColor }}; font-size:16px; padding:0;">
+      <button onClick="{{ closeMobileSearch }}" style="background:none; border:none; cursor:pointer; padding:8px; color:{{ textColor }}; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute; top:100%; left:16px; right:16px; margin-top:8px; background-color:{{ isDarkMode ? 'oklch(0.12 0 0)' : 'oklch(0.98 0 0)' }}; border:1px solid {{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)' }}; border-radius:8px; max-height:280px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+          <sc-for list="{{ searchResults }}" as="result" hint-placeholder-count="3">
+            <div onClick="{{ result.go }}" style="padding:14px 16px; cursor:pointer; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }}; font-size:14px; color:{{ textColor }};">{{ result.name }}</div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
   <!-- HEADER -->
-  <header style="position:fixed; top:0; left:0; right:0; z-index:1000; padding:24px 40px; display:flex; justify-content:space-between; align-items:center;">
+  <header style="position:fixed; top:0; left:0; right:0; z-index:1000; padding:{{ headerPadding }}; display:flex; justify-content:space-between; align-items:center;">
     <div style="display:flex; align-items:center; gap:20px;">
       <button data-menu-box="1" onClick="{{ toggleMaterialMenu }}" style="background:none; border:none; cursor:pointer; padding:8px; display:flex; flex-direction:column; gap:5px; justify-content:center; align-items:center; width:36px; height:36px;">
         <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
@@ -105,7 +140,7 @@
         <img src="uploads/logo_20210310101340.png" alt="Logo" style="height:40px; filter:{{ isDarkMode ? 'invert(1)' : 'none' }}; transition:filter 0.3s;">
       </a>
     </div>
-    <div data-search-box="1" style="position:absolute; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center;">
+    <div data-search-box="1" style="position:absolute; left:50%; transform:translateX(-50%); display:{{ searchBoxDisplay }}; flex-direction:column; align-items:center;">
       <div style="display:flex; align-items:center; gap:10px; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:10px 16px; transition:background-color 0.3s;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ textColor }}; transition:color 0.3s; flex-shrink:0;">
           <circle cx="11" cy="11" r="8"></circle>
@@ -121,10 +156,20 @@
         </div>
       </sc-if>
     </div>
-    <div style="display:flex; gap:32px; align-items:center; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:16px 24px; transition:background-color 0.3s;">
-      <a href="https://www.mashup.com.tw/as%20studio/?page=service" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Team</a>
-      <a href="https://www.mashup.com.tw/as%20studio/?page=movies" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Film</a>
-      <a href="https://www.mashup.com.tw/as%20studio/?page=contact" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Contact</a>
+    <div style="display:flex; gap:{{ navPillGap }}; align-items:center; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:{{ navPillPadding }}; transition:background-color 0.3s;">
+      <sc-if value="{{ !isMobile }}" hint-placeholder-val="{{ true }}">
+        <a href="https://www.mashup.com.tw/as%20studio/?page=service" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Team</a>
+        <a href="https://www.mashup.com.tw/as%20studio/?page=movies" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Film</a>
+        <a href="https://www.mashup.com.tw/as%20studio/?page=contact" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Contact</a>
+      </sc-if>
+      <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ toggleMobileSearch }}" style="background:none; border:none; cursor:pointer; padding:8px; color:{{ textColor }}; display:flex; align-items:center; justify-content:center; width:36px; height:36px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </button>
+      </sc-if>
       <button onClick="{{ toggleDarkMode }}" style="background:none; border:1px solid {{ textColor }}; border-radius:4px; padding:8px 12px; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.3s; color:{{ textColor }}; display:flex; align-items:center; justify-content:center; width:44px; height:44px;">
         <sc-if value="{{ isDarkMode }}" hint-placeholder-val="{{ true }}">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -150,7 +195,7 @@
 
   <!-- NETWORK DIAGRAM -->
   <section id="works" style="padding:450px 12px; position:relative; z-index:2;">
-    <div style="width:min(90vw, 86vh); max-width:2000px; margin:0 auto; aspect-ratio:1/1;">
+    <div style="width:{{ diagramContainerWidth }}; max-width:2000px; margin:0 auto; aspect-ratio:1/1;">
       
     <svg viewBox="0 0 900 900" width="100%" height="100%" style="overflow: visible; fill: #930707">
         <sc-if value="{{ hasSpotlight }}" hint-placeholder-val="{{ false }}">
@@ -164,13 +209,13 @@
           <polygon points="{{ spotlight.points }}" fill="url(#spotlightGrad)" style="pointer-events:none;"></polygon>
         </sc-if>
         <sc-for list="{{ edges }}" as="edge" hint-placeholder-count="10">
-          <line x1="{{ edge.x1 }}" y1="{{ edge.y1 }}" x2="{{ edge.x2 }}" y2="{{ edge.y2 }}" stroke="{{ lineColor }}" stroke-width="1" style="opacity: {{ edge.opacity }}; transition: opacity 0.25s ease, stroke 0.3s;"></line>
+          <line x1="{{ edge.x1 }}" y1="{{ edge.y1 }}" x2="{{ edge.x2 }}" y2="{{ edge.y2 }}" stroke="{{ lineColor }}" stroke-width="{{ edgeStrokeWidth }}" style="opacity: {{ edge.opacity }}; transition: opacity 0.25s ease, stroke 0.3s;"></line>
         </sc-for>
 
         <sc-for list="{{ nodes }}" as="node" hint-placeholder-count="14">
           <a href="{{ node.href }}" style="cursor:pointer;">
             <g data-node="{{ node.id }}" onMouseEnter="{{ node.onEnter }}" onMouseLeave="{{ node.onLeave }}" style="opacity: {{ node.opacity }}; transition: opacity 0.25s ease;">
-              <circle cx="{{ node.cx }}" cy="{{ node.cy }}" r="26" fill="transparent"></circle>
+              <circle cx="{{ node.cx }}" cy="{{ node.cy }}" r="{{ node.hitR }}" fill="transparent"></circle>
               <circle data-dot="{{ node.id }}" cx="{{ node.cx }}" cy="{{ node.cy }}" r="{{ node.r }}" fill="{{ node.dotFill }}" style="transition:fill 0.3s;"></circle>
               <g transform="rotate({{ node.rotateDeg }} {{ node.pivotX }} {{ node.pivotY }})">
                 <foreignObject x="{{ node.boxX }}" y="{{ node.boxY }}" width="{{ node.boxW }}" height="{{ node.boxH }}" style="overflow:visible;">
@@ -181,10 +226,10 @@
           </a>
         </sc-for>
 
-        <foreignObject x="240" y="350" width="420" height="200" style="overflow:visible; pointer-events:none;">
+        <foreignObject x="{{ titleBoxX }}" y="350" width="{{ titleBoxWidth }}" height="200" style="overflow:visible; pointer-events:none;">
           <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;">
-            <div style="font-size:62px; font-weight:600; letter-spacing:0.02em; color:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:color 0.3s;">原型 × 未來</div>
-            <div style="font-size:22px; letter-spacing:0.06em; color:{{ textColor }}; opacity:0.55; margin-top:10px; transition:color 0.3s;">Architecture + Structure</div>
+            <div style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; color:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; white-space:nowrap; transition:color 0.3s;">原型 × 未來</div>
+            <div style="font-size:{{ subtitleFontSize }}px; letter-spacing:0.06em; color:{{ textColor }}; opacity:0.55; margin-top:10px; white-space:nowrap; transition:color 0.3s;">Architecture + Structure</div>
           </div>
         </foreignObject>
       </svg></div>
@@ -228,7 +273,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { hoveredId: null, isDarkMode: false, showSearchModal: false, searchInput: '', searchResults: [], flashId: null, showMaterialMenu: false };
+  state = { hoveredId: null, isDarkMode: false, showSearchModal: false, searchInput: '', searchResults: [], flashId: null, showMaterialMenu: false, viewportW: (typeof window !== 'undefined' ? window.innerWidth : 1200), showMobileSearch: false };
 
   // Node names and hrefs from uploaded spreadsheet (活頁簿1-24674e73.xlsx):
   // Column B provides the node names, Column A provides the target URLs.
@@ -555,6 +600,14 @@ class Component extends DCLogic {
     this.setState(s => ({ showMaterialMenu: !s.showMaterialMenu }));
   }
 
+  toggleMobileSearch() {
+    this.setState(s => ({ showMobileSearch: !s.showMobileSearch }));
+  }
+
+  closeMobileSearch() {
+    this.setState({ showMobileSearch: false, searchInput: '', searchResults: [] });
+  }
+
   toggleSearchModal() {
     this.setState(s => ({ showSearchModal: !s.showSearchModal, searchInput: '', searchResults: [] }));
   }
@@ -570,10 +623,23 @@ class Component extends DCLogic {
       if (!inMenu && this.state.showMaterialMenu) this.setState({ showMaterialMenu: false });
     };
     document.addEventListener('mousedown', this._onDocMouseDown);
+
+    // 手機／平板適配：追蹤 viewport 寬度，驅動 renderVals() 裡的 isMobile 判斷。
+    // debounce 一下，避免拖曳視窗縮放時瘋狂觸發 setState。
+    this._resizeTimer = null;
+    this._onResize = () => {
+      if (this._resizeTimer) clearTimeout(this._resizeTimer);
+      this._resizeTimer = setTimeout(() => {
+        this.setState({ viewportW: window.innerWidth });
+      }, 150);
+    };
+    window.addEventListener('resize', this._onResize);
   }
 
   componentWillUnmount() {
     if (this._onDocMouseDown) document.removeEventListener('mousedown', this._onDocMouseDown);
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
+    if (this._resizeTimer) clearTimeout(this._resizeTimer);
     if (this._raf) cancelAnimationFrame(this._raf);
     if (this._fadeTimer) clearTimeout(this._fadeTimer);
     if (this._flash) this._flash.remove();
@@ -669,7 +735,12 @@ class Component extends DCLogic {
       const dr = dot.getBoundingClientRect();
       const cxp = dr.left + dr.width / 2;
       const cyp = dr.top + dr.height / 2;
-      const vw = window.innerWidth, vh = window.innerHeight, margin = 52;
+      // 52px 邊界對窄螢幕來說占比太大，手機版縮小邊界到 16px，避免節點被誤判
+      // 「太靠邊」而顯示三角形指示、不顯示黃色亮點。目前手機版容器本來就縮得
+      // 比 viewport 小很多（見 renderVals() 的 diagramContainerWidth），所有
+      // 116 個節點都落在安全範圍內，但仍保留這個較小邊界作為未來調整的緩衝。
+      const isMobileTick = window.innerWidth < 768;
+      const vw = window.innerWidth, vh = window.innerHeight, margin = isMobileTick ? 16 : 52;
       const inView = cxp >= margin && cxp <= vw - margin && cyp >= margin && cyp <= vh - margin;
       // Circle rides the dot.
       if (this._flash) {
@@ -692,10 +763,25 @@ class Component extends DCLogic {
     this._raf = requestAnimationFrame(() => this.tick());
   }
 
+  // 共用給 renderVals()（決定圓環上畫哪些節點）跟 handleSearchInput()
+  // （決定手機版搜尋結果只能挑得到畫得出來的節點）用，兩邊的門檻數字只寫在
+  // 這一個地方，不要各自複製一份，否則以後調整很容易漏改其中一邊。
+  computeDegree() {
+    const degree = {};
+    this.nodeData.forEach(d => { degree[d.id] = 0; });
+    this.edgeData.forEach(([a, b]) => {
+      if (a in degree) degree[a]++;
+      if (b in degree) degree[b]++;
+    });
+    return degree;
+  }
+
   handleSearchInput(e) {
     const query = e.target.value;
     this.setState({ searchInput: query });
     if (query.trim()) {
+      // 手機版現在跟桌機一樣畫出全部 116 個節點（見 renderVals()），
+      // 搜尋結果不需要再依 viewport 篩掉任何節點。
       const results = this.nodeData.filter(n => n.name.toLowerCase().includes(query.toLowerCase()));
       this.setState({ searchResults: results });
     } else {
@@ -710,6 +796,9 @@ class Component extends DCLogic {
     // for the container's typical size, so font-size / radius values below
     // read as their literal px sizes on screen (not scaled down by the SVG).
     const cx = 450, cy = 450;
+    // 手機／平板適配：斷點依實測結果選定——820px 平板寬度下頁首與圓環圖都已經正常，
+    // 768px 也是常見 iPad portrait 寬度，所以窄於這個值才視為手機、套用放大過的最小尺寸。
+    const isMobile = this.state.viewportW < 768;
     const hoveredId = this.state.hoveredId;
     const isDarkMode = this.state.isDarkMode;
     const bgColor = isDarkMode ? 'oklch(0.15 0 0)' : 'oklch(0.99 0 0)';
@@ -717,25 +806,31 @@ class Component extends DCLogic {
     const lineColor = isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)';
     const dotColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
 
+    // Center title ("原型 × 未來" / "Architecture + Structure"). Mobile now
+    // reuses the exact same desktop sizes — the whole ring (dots, labels,
+    // title) is meant to be one uniform proportional shrink of the desktop
+    // layout down to the phone's width, not a redesigned/enlarged mobile
+    // variant. white-space:nowrap on the actual divs is what prevents the
+    // two lines from wrapping/drifting apart in some mobile browsers.
+    const titleFontSize = 62;
+    const subtitleFontSize = 22;
+    const titleBoxWidth = 420;
+    const titleBoxX = cx - titleBoxWidth / 2;
+
     // Every node from column B sits on a single ring around the center
     // ("原型 x 未來"), in spreadsheet row order — matching the reference
     // site's circular layout. Node size scales with its connection count
     // (degree), and nodes are spaced so the gap between adjacent circles
     // stays a constant ~0.5mm regardless of each node's size.
+    // Mobile draws the exact same full node set as desktop (same
+    // completeness) — nothing is hidden by connection count. The ring is
+    // simply the same layout rendered into a smaller container.
+    const degree = this.computeDegree();
+    const maxDegree = Math.max(1, ...Object.values(degree));
     const ordered = this.nodeData;
     const n = ordered.length;
-
-    const degree = {};
-    ordered.forEach(d => { degree[d.id] = 0; });
-    this.edgeData.forEach(([a, b]) => {
-      if (a in degree) degree[a]++;
-      if (b in degree) degree[b]++;
-    });
-    const maxDegree = Math.max(1, ...Object.values(degree));
-    // Measured: this container renders the 900-unit viewBox at roughly a
-    // 0.54 px-per-unit ratio (min(96vw,90vh) container / 900 viewBox), so
-    // these constants are sized ~1.85x their literal on-screen target to
-    // land in a legible range after that scale-down.
+    // Same radii on mobile and desktop — the container shrinks, not the
+    // math, so the rendered ring is a true proportional scale-down.
     const rMin = 4, rMax = 24;
     const nodeRadius = {};
     ordered.forEach(d => {
@@ -807,6 +902,7 @@ class Component extends DCLogic {
     const nodes = ordered.map(d => {
       const pos = positions[d.id];
       const r = nodeRadius[d.id];
+      // Same label offset/size on mobile and desktop — see rMin/rMax note above.
       const gap = 20;
       const isRight = Math.cos(pos.angle) >= 0;
       const labelPointX = pos.x + Math.cos(pos.angle) * (r + gap);
@@ -833,6 +929,10 @@ class Component extends DCLogic {
         cx: pos.x,
         cy: pos.y,
         r: r * dotScale,
+        // Hit-target radius stays enlarged on mobile even though the visible
+        // dot/label sizing is now identical to desktop — this is an invisible
+        // touch-target padding, not part of the "same completeness" visual math.
+        hitR: isMobile ? 38 : 26,
         boxX: isRight ? labelPointX : labelPointX - boxW,
         boxY: labelPointY - boxH / 2,
         boxW,
@@ -851,20 +951,46 @@ class Component extends DCLogic {
       };
     });
 
-    const edges = this.edgeData.map(([a, b], i) => {
-      const pa = positions[a], pb = positions[b];
-      const dimmed = hoveredId && !(hoveredId === a || hoveredId === b);
-      return {
-        id: 'e' + i,
-        x1: pa.x, y1: pa.y,
-        x2: pb.x, y2: pb.y,
-        opacity: dimmed ? 0.3 : 1
-      };
-    });
+    const edges = this.edgeData
+      .filter(([a, b]) => positions[a] && positions[b])
+      .map(([a, b], i) => {
+        const pa = positions[a], pb = positions[b];
+        const dimmed = hoveredId && !(hoveredId === a || hoveredId === b);
+        return {
+          id: 'e' + i,
+          x1: pa.x, y1: pa.y,
+          x2: pb.x, y2: pb.y,
+          opacity: dimmed ? 0.3 : 1
+        };
+      });
 
     return {
       nodes, edges, bgColor, textColor, lineColor, dotColor, isDarkMode,
+      // 手機版現在跟桌機一樣完整（全部 116 個節點、同樣的圓點/字級數學），
+      // 光暈效果不再是「稀疏圖上特別顯眼」的例外情況，兩邊維持一致。
       spotlight, hasSpotlight: !!spotlight,
+      isMobile,
+      headerPadding: isMobile ? '16px 16px' : '24px 40px',
+      // 手機版不再放大圓點/字級、不再隱藏節點——圓環圖的排版數學（rMin/rMax、
+      // fontSize、gap...）跟桌機版完全相同，是同一份圖單純等比例縮小。
+      // 但容器寬度公式不能直接沿用桌機版的 90vw：實測發現節點文字框本來就會
+      // 略微超出 SVG viewBox 的 0-900 範圍（桌機版能容納，是因為桌機視窗夠寬、
+      // 容器旁邊留的空白邊距夠大，超出的部分還在瀏覽器可視範圍內；桌機版容器
+      // 其實常常是被 86vh 卡住而不是 90vw，等於天生留了很大的水平邊距）。
+      // 手機直向螢幕又窄又高，90vw 幾乎必定被 vw 卡住，邊距只剩 5vw，不夠容納
+      // 那些超出 viewBox 的文字，會被切到螢幕外。用 Playwright 逐一測量 116 個
+      // 節點文字框在 360-430px 常見手機寬度下的邊界，55vw 是文字框開始完全不
+      // 超出螢幕的臨界值，53vw 留一點安全邊界。
+      diagramContainerWidth: isMobile ? 'min(53vw, 48vh)' : 'min(90vw, 86vh)',
+      edgeStrokeWidth: isMobile ? 2 : 1,
+      titleBoxX, titleBoxWidth, titleFontSize, subtitleFontSize,
+      searchBoxDisplay: isMobile ? 'none' : 'flex',
+      navPillGap: isMobile ? '12px' : '32px',
+      navPillPadding: isMobile ? '10px 12px' : '16px 24px',
+      showMobileSearchBar: isMobile && this.state.showMobileSearch,
+      showMobileSearch: this.state.showMobileSearch,
+      toggleMobileSearch: () => this.toggleMobileSearch(),
+      closeMobileSearch: () => this.closeMobileSearch(),
       toggleDarkMode: () => this.toggleDarkMode(),
       showMaterialMenu: this.state.showMaterialMenu,
       toggleMaterialMenu: () => this.toggleMaterialMenu(),
