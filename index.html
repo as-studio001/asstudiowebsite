@@ -98,7 +98,7 @@
 
   <!-- MOBILE SEARCH BAR（手機搜尋展開時，蓋在頁首上方，同一列換成輸入框 + 關閉鈕） -->
   <sc-if value="{{ showMobileSearchBar }}" hint-placeholder-val="{{ false }}">
-    <div style="position:fixed; top:0; left:0; right:0; z-index:1001; padding:16px; display:flex; align-items:center; gap:10px; background-color:{{ bgColor }}; transition:background-color 0.3s;">
+    <div data-search-box="1" style="position:fixed; top:0; left:0; right:0; z-index:1001; padding:16px; display:flex; align-items:center; gap:10px; background-color:{{ bgColor }}; transition:background-color 0.3s;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ textColor }}; flex-shrink:0;">
         <circle cx="11" cy="11" r="8"></circle>
         <path d="m21 21-4.35-4.35"></path>
@@ -209,7 +209,7 @@
           <polygon points="{{ spotlight.points }}" fill="url(#spotlightGrad)" style="pointer-events:none;"></polygon>
         </sc-if>
         <sc-for list="{{ edges }}" as="edge" hint-placeholder-count="10">
-          <line x1="{{ edge.x1 }}" y1="{{ edge.y1 }}" x2="{{ edge.x2 }}" y2="{{ edge.y2 }}" stroke="{{ lineColor }}" stroke-width="1" style="opacity: {{ edge.opacity }}; transition: opacity 0.25s ease, stroke 0.3s;"></line>
+          <line x1="{{ edge.x1 }}" y1="{{ edge.y1 }}" x2="{{ edge.x2 }}" y2="{{ edge.y2 }}" stroke="{{ lineColor }}" stroke-width="{{ edgeStrokeWidth }}" style="opacity: {{ edge.opacity }}; transition: opacity 0.25s ease, stroke 0.3s;"></line>
         </sc-for>
 
         <sc-for list="{{ nodes }}" as="node" hint-placeholder-count="14">
@@ -226,10 +226,10 @@
           </a>
         </sc-for>
 
-        <foreignObject x="240" y="350" width="420" height="200" style="overflow:visible; pointer-events:none;">
+        <foreignObject x="{{ titleBoxX }}" y="350" width="{{ titleBoxWidth }}" height="200" style="overflow:visible; pointer-events:none;">
           <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;">
-            <div style="font-size:62px; font-weight:600; letter-spacing:0.02em; color:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:color 0.3s;">原型 × 未來</div>
-            <div style="font-size:22px; letter-spacing:0.06em; color:{{ textColor }}; opacity:0.55; margin-top:10px; transition:color 0.3s;">Architecture + Structure</div>
+            <div style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; color:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; white-space:nowrap; transition:color 0.3s;">原型 × 未來</div>
+            <div style="font-size:{{ subtitleFontSize }}px; letter-spacing:0.06em; color:{{ textColor }}; opacity:0.55; margin-top:10px; white-space:nowrap; transition:color 0.3s;">Architecture + Structure</div>
           </div>
         </foreignObject>
       </svg></div>
@@ -735,10 +735,10 @@ class Component extends DCLogic {
       const dr = dot.getBoundingClientRect();
       const cxp = dr.left + dr.width / 2;
       const cyp = dr.top + dr.height / 2;
-      // 手機版圓環容器幾乎貼滿整個 viewport 寬度（見 renderVals() 的
-      // diagramContainerWidth），52px 邊界對窄螢幕來說占比太大——實測手機上
-      // 19 個可見節點裡有 9 個會被判定「太靠邊」而顯示三角形指示，不顯示黃色
-      // 亮點，讓人以為搜尋定位整個沒作用。手機版縮小邊界到 16px，讓亮點正常顯示。
+      // 52px 邊界對窄螢幕來說占比太大，手機版縮小邊界到 16px，避免節點被誤判
+      // 「太靠邊」而顯示三角形指示、不顯示黃色亮點。目前手機版容器本來就縮得
+      // 比 viewport 小很多（見 renderVals() 的 diagramContainerWidth），所有
+      // 116 個節點都落在安全範圍內，但仍保留這個較小邊界作為未來調整的緩衝。
       const isMobileTick = window.innerWidth < 768;
       const vw = window.innerWidth, vh = window.innerHeight, margin = isMobileTick ? 16 : 52;
       const inView = cxp >= margin && cxp <= vw - margin && cyp >= margin && cyp <= vh - margin;
@@ -776,26 +776,13 @@ class Component extends DCLogic {
     return degree;
   }
 
-  getMobileVisibleIds(degree) {
-    const ids = new Set();
-    this.nodeData.forEach(d => {
-      if (degree[d.id] > 3 || this.specialIds.includes(d.id)) ids.add(d.id);
-    });
-    return ids;
-  }
-
   handleSearchInput(e) {
     const query = e.target.value;
     this.setState({ searchInput: query });
     if (query.trim()) {
-      let results = this.nodeData.filter(n => n.name.toLowerCase().includes(query.toLowerCase()));
-      // 手機版圓環只畫連線數 >3（或分類大標）的節點（見 renderVals()），搜尋結果
-      // 如果還是全部 116 筆都給選，點到一個沒畫出來的節點時，黃色亮點沒有實體
-      // 圓點可以「騎上去」，就會完全不顯示——所以手機版搜尋結果要一併篩掉那些節點。
-      if (this.state.viewportW < 768) {
-        const visibleIds = this.getMobileVisibleIds(this.computeDegree());
-        results = results.filter(n => visibleIds.has(n.id));
-      }
+      // 手機版現在跟桌機一樣畫出全部 116 個節點（見 renderVals()），
+      // 搜尋結果不需要再依 viewport 篩掉任何節點。
+      const results = this.nodeData.filter(n => n.name.toLowerCase().includes(query.toLowerCase()));
       this.setState({ searchResults: results });
     } else {
       this.setState({ searchResults: [] });
@@ -819,37 +806,32 @@ class Component extends DCLogic {
     const lineColor = isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)';
     const dotColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
 
+    // Center title ("原型 × 未來" / "Architecture + Structure"). Mobile now
+    // reuses the exact same desktop sizes — the whole ring (dots, labels,
+    // title) is meant to be one uniform proportional shrink of the desktop
+    // layout down to the phone's width, not a redesigned/enlarged mobile
+    // variant. white-space:nowrap on the actual divs is what prevents the
+    // two lines from wrapping/drifting apart in some mobile browsers.
+    const titleFontSize = 62;
+    const subtitleFontSize = 22;
+    const titleBoxWidth = 420;
+    const titleBoxX = cx - titleBoxWidth / 2;
+
     // Every node from column B sits on a single ring around the center
     // ("原型 x 未來"), in spreadsheet row order — matching the reference
     // site's circular layout. Node size scales with its connection count
     // (degree), and nodes are spaced so the gap between adjacent circles
     // stays a constant ~0.5mm regardless of each node's size.
-    // Degree is always computed from the FULL graph first (so hiding nodes
-    // on mobile never changes anyone else's degree/size), then on mobile
-    // we drop the least-connected nodes from the ring itself — except
-    // specialIds (章/成/法/構 section headers), which stay even though they
-    // have no edges of their own. Threshold lives in getMobileVisibleIds()
-    // (shared with handleSearchInput(), so mobile search can never suggest
-    // a node that isn't actually drawn on the ring — nothing to flash-highlight
-    // otherwise).
+    // Mobile draws the exact same full node set as desktop (same
+    // completeness) — nothing is hidden by connection count. The ring is
+    // simply the same layout rendered into a smaller container.
     const degree = this.computeDegree();
     const maxDegree = Math.max(1, ...Object.values(degree));
-    const mobileVisibleIds = isMobile ? this.getMobileVisibleIds(degree) : null;
-    const ordered = isMobile
-      ? this.nodeData.filter(d => mobileVisibleIds.has(d.id))
-      : this.nodeData;
+    const ordered = this.nodeData;
     const n = ordered.length;
-    // Measured: this container renders the 900-unit viewBox at roughly a
-    // 0.54 px-per-unit ratio (min(96vw,90vh) container / 900 viewBox), so
-    // these constants are sized ~1.85x their literal on-screen target to
-    // land in a legible range after that scale-down.
-    // Mobile radii sized so the leftover ring circumference (after the 19
-    // surviving nodes' own diameters) lands the auto-redistributed gap
-    // between adjacent dots at roughly 20px on a ~390px-wide phone —
-    // verified empirically via screenshot, not purely by this formula,
-    // since the 420-unit minimum-radius clamp further down overrides
-    // whatever raw gapVB is requested once node count drops this low.
-    const rMin = isMobile ? 33 : 4, rMax = isMobile ? 92 : 24;
+    // Same radii on mobile and desktop — the container shrinks, not the
+    // math, so the rendered ring is a true proportional scale-down.
+    const rMin = 4, rMax = 24;
     const nodeRadius = {};
     ordered.forEach(d => {
       const deg = degree[d.id];
@@ -920,6 +902,7 @@ class Component extends DCLogic {
     const nodes = ordered.map(d => {
       const pos = positions[d.id];
       const r = nodeRadius[d.id];
+      // Same label offset/size on mobile and desktop — see rMin/rMax note above.
       const gap = 20;
       const isRight = Math.cos(pos.angle) >= 0;
       const labelPointX = pos.x + Math.cos(pos.angle) * (r + gap);
@@ -927,7 +910,7 @@ class Component extends DCLogic {
       const angleDeg = pos.angle * 180 / Math.PI;
       const rotateDeg = isRight ? angleDeg : angleDeg + 180;
       const dimmed = hoveredId && !relatedIds.has(d.id);
-      const fontSize = isMobile ? 24 : 15;
+      const fontSize = 15;
       const isSpecial = this.specialIds.includes(d.id);
       const fontWeight = isSpecial ? 700 : 400;
       const isHoveredSelf = hoveredId === d.id;
@@ -946,6 +929,9 @@ class Component extends DCLogic {
         cx: pos.x,
         cy: pos.y,
         r: r * dotScale,
+        // Hit-target radius stays enlarged on mobile even though the visible
+        // dot/label sizing is now identical to desktop — this is an invisible
+        // touch-target padding, not part of the "same completeness" visual math.
         hitR: isMobile ? 38 : 26,
         boxX: isRight ? labelPointX : labelPointX - boxW,
         boxY: labelPointY - boxH / 2,
@@ -965,9 +951,6 @@ class Component extends DCLogic {
       };
     });
 
-    // On mobile, some edges now point at a node we filtered out of `ordered`
-    // above (no entry in `positions`) — skip those rather than draw a line
-    // to nowhere.
     const edges = this.edgeData
       .filter(([a, b]) => positions[a] && positions[b])
       .map(([a, b], i) => {
@@ -983,13 +966,24 @@ class Component extends DCLogic {
 
     return {
       nodes, edges, bgColor, textColor, lineColor, dotColor, isDarkMode,
-      // 手機版節點少、圓點又放大很多，原本在桌機密集線海裡不顯眼的「原型結構
-      // 朝中央標題的光暈」在手機上會變成一條特別粗大、指向空無一物的錐形色塊，
-      // 容易被誤認成「一條沒有終點的連線」——手機版直接不畫這個裝飾效果。
-      spotlight, hasSpotlight: isMobile ? false : !!spotlight,
+      // 手機版現在跟桌機一樣完整（全部 116 個節點、同樣的圓點/字級數學），
+      // 光暈效果不再是「稀疏圖上特別顯眼」的例外情況，兩邊維持一致。
+      spotlight, hasSpotlight: !!spotlight,
       isMobile,
       headerPadding: isMobile ? '16px 16px' : '24px 40px',
-      diagramContainerWidth: isMobile ? 'min(94vw, 82vh)' : 'min(90vw, 86vh)',
+      // 手機版不再放大圓點/字級、不再隱藏節點——圓環圖的排版數學（rMin/rMax、
+      // fontSize、gap...）跟桌機版完全相同，是同一份圖單純等比例縮小。
+      // 但容器寬度公式不能直接沿用桌機版的 90vw：實測發現節點文字框本來就會
+      // 略微超出 SVG viewBox 的 0-900 範圍（桌機版能容納，是因為桌機視窗夠寬、
+      // 容器旁邊留的空白邊距夠大，超出的部分還在瀏覽器可視範圍內；桌機版容器
+      // 其實常常是被 86vh 卡住而不是 90vw，等於天生留了很大的水平邊距）。
+      // 手機直向螢幕又窄又高，90vw 幾乎必定被 vw 卡住，邊距只剩 5vw，不夠容納
+      // 那些超出 viewBox 的文字，會被切到螢幕外。用 Playwright 逐一測量 116 個
+      // 節點文字框在 360-430px 常見手機寬度下的邊界，55vw 是文字框開始完全不
+      // 超出螢幕的臨界值，53vw 留一點安全邊界。
+      diagramContainerWidth: isMobile ? 'min(53vw, 48vh)' : 'min(90vw, 86vh)',
+      edgeStrokeWidth: isMobile ? 2 : 1,
+      titleBoxX, titleBoxWidth, titleFontSize, subtitleFontSize,
       searchBoxDisplay: isMobile ? 'none' : 'flex',
       navPillGap: isMobile ? '12px' : '32px',
       navPillPadding: isMobile ? '10px 12px' : '16px 24px',
