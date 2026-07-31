@@ -195,7 +195,7 @@
 
   <!-- NETWORK DIAGRAM -->
   <section id="works" style="padding:450px 12px; position:relative; z-index:2;">
-    <div style="width:{{ diagramContainerWidth }}; max-width:2000px; margin:0 auto; aspect-ratio:1/1;">
+    <div data-globe-surface="1" style="width:{{ diagramContainerWidth }}; max-width:2000px; margin:0 auto; aspect-ratio:1/1; touch-action:{{ globeTouchAction }};">
       
     <svg viewBox="0 0 900 900" width="100%" height="100%" style="overflow: visible; fill: #930707">
         <sc-if value="{{ hasSpotlight }}" hint-placeholder-val="{{ false }}">
@@ -209,15 +209,15 @@
           <polygon points="{{ spotlight.points }}" fill="url(#spotlightGrad)" style="pointer-events:none;"></polygon>
         </sc-if>
         <sc-for list="{{ edges }}" as="edge" hint-placeholder-count="10">
-          <line x1="{{ edge.x1 }}" y1="{{ edge.y1 }}" x2="{{ edge.x2 }}" y2="{{ edge.y2 }}" stroke="{{ lineColor }}" stroke-width="{{ edgeStrokeWidth }}" style="opacity: {{ edge.opacity }}; transition: opacity 0.25s ease, stroke 0.3s;"></line>
+          <line data-edge="{{ edge.id }}" x1="{{ edge.x1 }}" y1="{{ edge.y1 }}" x2="{{ edge.x2 }}" y2="{{ edge.y2 }}" stroke="{{ lineColor }}" stroke-width="{{ edgeStrokeWidth }}" style="opacity: {{ edge.opacity }}; transition: {{ edgeTransition }};"></line>
         </sc-for>
 
         <sc-for list="{{ nodes }}" as="node" hint-placeholder-count="14">
           <a href="{{ node.href }}" style="cursor:pointer;">
-            <g data-node="{{ node.id }}" onMouseEnter="{{ node.onEnter }}" onMouseLeave="{{ node.onLeave }}" style="opacity: {{ node.opacity }}; transition: opacity 0.25s ease;">
+            <g data-node="{{ node.id }}" onMouseEnter="{{ node.onEnter }}" onMouseLeave="{{ node.onLeave }}" style="opacity: {{ node.opacity }}; transition: {{ nodeTransition }};">
               <circle cx="{{ node.cx }}" cy="{{ node.cy }}" r="{{ node.hitR }}" fill="transparent"></circle>
               <circle data-dot="{{ node.id }}" cx="{{ node.cx }}" cy="{{ node.cy }}" r="{{ node.r }}" fill="{{ node.dotFill }}" style="transition:fill 0.3s;"></circle>
-              <g transform="rotate({{ node.rotateDeg }} {{ node.pivotX }} {{ node.pivotY }})">
+              <g transform="rotate({{ node.rotateDeg }} {{ node.pivotX }} {{ node.pivotY }})" style="display:{{ node.labelDisplay }};">
                 <foreignObject x="{{ node.boxX }}" y="{{ node.boxY }}" width="{{ node.boxW }}" height="{{ node.boxH }}" style="overflow:visible;">
                   <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:{{ node.fontSize }}px; font-weight:{{ node.fontWeight }}; line-height:1.4; font-family:'Helvetica Neue',Helvetica,Arial,'PingFang TC','Microsoft JhengHei',sans-serif; color:{{ node.labelColor }}; text-align:{{ node.textAlign }}; white-space:nowrap; pointer-events:auto; transition:color 0.3s;">{{ node.name }}</div>
                 </foreignObject>
@@ -280,6 +280,29 @@ class Component extends DCLogic {
   // Category/section-header nodes get a fixed accent color and bold weight
   // regardless of light/dark mode. Each entry maps a node id to its color.
   specialIds = ['r1', 'r28', 'r59', 'r100', 'r2', 'r11', 'r22', 'r23', 'r101', 'r109', 'r115'];
+
+  // Shared by both the desktop 2D ring and the mobile 3D globe (renderVals()
+  // and buildGlobeGeometry()/paintGlobe() below) so a dot's "visual weight"
+  // bump is defined in exactly one place.
+  dotScale = 1.18;
+
+  // 手機版 3D 球體：球半徑（viewBox 單位）、節點文字基準字級、目前的旋轉角度
+  // （yaw 繞垂直軸、pitch 繞水平軸，單位皆為弧度）跟拖曳/慣性狀態。這幾個是
+  // instance field（不是 state）——旋轉是由 paintGlobe()/globeTick() 每一影格
+  // 直接寫 DOM 屬性驅動，刻意不透過 setState()，避免 60fps 都觸發一次完整的
+  // reconcile（跟 tick()/startFlash() 現有的「動畫用原生 DOM、不用 setState」
+  // 是同一個理由）。renderVals() 依然會讀這幾個 field 來算初次渲染的位置，
+  // 所以就算中途因為別的原因（例如切換深色模式）觸發了一次正常的 re-render，
+  // 畫出來的位置也是「目前轉到哪」，不會跳回初始角度。
+  _GLOBE_SPHERE_RADIUS_VB = 260;
+  _GLOBE_BASE_FONT_SIZE = 15;
+  _globeYaw = 0.5;
+  _globePitch = -0.22;
+  _globeVelYaw = 0;
+  _globeDragging = false;
+  _globeDragDist = 0;
+  _globeLastX = 0;
+  _globeLastY = 0;
 
   nodeData = [
     { id: 'r1', name: "章 architecture design", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
@@ -634,11 +657,79 @@ class Component extends DCLogic {
       }, 150);
     };
     window.addEventListener('resize', this._onResize);
+
+    // 手機版 3D 球體：拖曳旋轉。掛在圓環的容器（data-globe-surface）上，用
+    // Pointer Events 統一處理滑鼠／觸控。桌機（viewportW >= 768）完全不接
+    // 這幾個事件的實際邏輯，只是掛著監聽器本身沒有副作用。
+    //
+    // ⚠️ 刻意不用 setPointerCapture()：一開始有用，但實測發現一旦在
+    // pointerdown 當下 setPointerCapture 到 surface，接下來這個手勢產生的
+    // pointerup／click 都會被瀏覽器整個「重新指向」到 surface 這個 <div>
+    // 本身，不會再送到手指底下真正的節點（<circle>/<a>）——結果就是「輕點
+    // 節點完全沒反應、連結永遠點不進去」，而且是靜止點擊也一樣壞掉，不是
+    // 只有拖曳時才會這樣。改成拖曳開始後把 pointermove/pointerup 監聽器
+    // 掛到 document 上（拖曳期間手指滑出 surface 範圍也還追蹤得到，效果
+    // 跟 setPointerCapture 想要達到的一樣），放開後就把這兩個監聽器移除，
+    // click 事件的目標元素就不會被動過手腳，點擊節點才能正常導覽到子頁。
+    const surface = document.querySelector('[data-globe-surface]');
+    this._onGlobePointerDown = (e) => {
+      if (this.state.viewportW >= 768) return;
+      this._globeDragging = true;
+      this._globeVelYaw = 0;
+      this._globeDragDist = 0;
+      this._globeLastX = e.clientX;
+      this._globeLastY = e.clientY;
+      document.addEventListener('pointermove', this._onGlobePointerMove);
+      document.addEventListener('pointerup', this._onGlobePointerUp);
+      document.addEventListener('pointercancel', this._onGlobePointerUp);
+    };
+    this._onGlobePointerMove = (e) => {
+      if (!this._globeDragging) return;
+      const dx = e.clientX - this._globeLastX;
+      const dy = e.clientY - this._globeLastY;
+      this._globeLastX = e.clientX;
+      this._globeLastY = e.clientY;
+      this._globeDragDist += Math.abs(dx) + Math.abs(dy);
+      const sens = 0.012;
+      this._globeYaw += dx * sens;
+      this._globeVelYaw = dx * sens;
+      const maxPitch = 1.15;
+      this._globePitch = Math.max(-maxPitch, Math.min(maxPitch, this._globePitch - dy * sens));
+      this.paintGlobe();
+    };
+    this._onGlobePointerUp = () => {
+      this._globeDragging = false;
+      document.removeEventListener('pointermove', this._onGlobePointerMove);
+      document.removeEventListener('pointerup', this._onGlobePointerUp);
+      document.removeEventListener('pointercancel', this._onGlobePointerUp);
+    };
+    // 拖曳距離超過一點點門檻，放開時視為「在轉球體」而不是「點節點」，
+    // 攔截緊接在後面的 click，避免拖曳結束時誤觸連結跳轉到子頁。
+    this._onGlobeClickCapture = (e) => {
+      if (this._globeDragDist > 6) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    if (surface) {
+      surface.addEventListener('pointerdown', this._onGlobePointerDown);
+      surface.addEventListener('click', this._onGlobeClickCapture, true);
+    }
+    this._globeRaf = requestAnimationFrame(() => this.globeTick());
   }
 
   componentWillUnmount() {
     if (this._onDocMouseDown) document.removeEventListener('mousedown', this._onDocMouseDown);
     if (this._onResize) window.removeEventListener('resize', this._onResize);
+    const surface = document.querySelector('[data-globe-surface]');
+    if (surface) {
+      surface.removeEventListener('pointerdown', this._onGlobePointerDown);
+      surface.removeEventListener('click', this._onGlobeClickCapture, true);
+    }
+    document.removeEventListener('pointermove', this._onGlobePointerMove);
+    document.removeEventListener('pointerup', this._onGlobePointerUp);
+    document.removeEventListener('pointercancel', this._onGlobePointerUp);
+    if (this._globeRaf) cancelAnimationFrame(this._globeRaf);
     if (this._resizeTimer) clearTimeout(this._resizeTimer);
     if (this._raf) cancelAnimationFrame(this._raf);
     if (this._fadeTimer) clearTimeout(this._fadeTimer);
@@ -763,9 +854,7 @@ class Component extends DCLogic {
     this._raf = requestAnimationFrame(() => this.tick());
   }
 
-  // 共用給 renderVals()（決定圓環上畫哪些節點）跟 handleSearchInput()
-  // （決定手機版搜尋結果只能挑得到畫得出來的節點）用，兩邊的門檻數字只寫在
-  // 這一個地方，不要各自複製一份，否則以後調整很容易漏改其中一邊。
+  // 每個節點的連線數，決定圓點大小（degree 越高，圓點越大）。
   computeDegree() {
     const degree = {};
     this.nodeData.forEach(d => { degree[d.id] = 0; });
@@ -774,6 +863,203 @@ class Component extends DCLogic {
       if (b in degree) degree[b]++;
     });
     return degree;
+  }
+
+  // 依連線數算出的圓點半徑（viewBox 單位，未乘 dotScale），桌機 2D 圓環、
+  // 手機 3D 球體都用同一份數字，而且 paintGlobe() 這種在 renderVals() 之外
+  // 單獨跑的方法也需要用到，所以算過一次就記住，不用每次重算。
+  computeNodeRadiusMap() {
+    if (this._nodeRadiusMap) return this._nodeRadiusMap;
+    const degree = this.computeDegree();
+    const maxDegree = Math.max(1, ...Object.values(degree));
+    const rMin = 4, rMax = 24;
+    const map = {};
+    this.nodeData.forEach(d => {
+      map[d.id] = rMin + (degree[d.id] / maxDegree) * (rMax - rMin);
+    });
+    this._nodeRadiusMap = map;
+    return map;
+  }
+
+  // 手機版 3D 球體：把 116 個節點平均分布在單位球面上（Fibonacci sphere
+  // 演算法），照 nodeData 的原始順序（跟桌機圓環一樣沿用試算表列順序）決定
+  // 每個節點在球面上的固定位置——旋轉只會轉動這些點的「觀察角度」，點跟點
+  // 之間的相對位置（也就是資料結構本身）不會變。這份配置不依賴旋轉角度，
+  // 算一次記住即可。
+  computeSphereUnits() {
+    if (this._sphereUnits) return this._sphereUnits;
+    const list = this.nodeData;
+    const n = list.length;
+    const units = {};
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    list.forEach((d, i) => {
+      const y = n > 1 ? 1 - (i / (n - 1)) * 2 : 0;
+      const rAtY = Math.sqrt(Math.max(0, 1 - y * y));
+      const theta = goldenAngle * i;
+      units[d.id] = { x: Math.cos(theta) * rAtY, y, z: Math.sin(theta) * rAtY };
+    });
+    this._sphereUnits = units;
+    return units;
+  }
+
+  // 把單位球面上的一點依目前的 yaw（繞垂直軸）／pitch（繞水平軸）旋轉，
+  // 回傳旋轉後的座標——z 是「面向使用者的程度」（+1 正對螢幕、-1 在球體
+  // 背面），用來算深度相關的大小/透明度/文字顯示與否。
+  rotateProject(u, yaw, pitch) {
+    const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
+    const x1 = u.x * cosY + u.z * sinY;
+    const z1 = -u.x * sinY + u.z * cosY;
+    const cosP = Math.cos(pitch), sinP = Math.sin(pitch);
+    const y2 = u.y * cosP - z1 * sinP;
+    const z2 = u.y * sinP + z1 * cosP;
+    return { x: x1, y: y2, z: z2 };
+  }
+
+  // 算出手機版球體上每個節點「這一影格」該畫在哪、多大、標籤要不要顯示。
+  // renderVals()（決定樣板初次/常規渲染的內容）跟 paintGlobe()（拖曳/慣性
+  // 旋轉時繞過 setState、直接寫 DOM 屬性的高頻更新）共用同一份幾何計算，
+  // 避免兩邊算法兜不起來、旋轉到一半又被另一邊的舊數字蓋回去。
+  buildGlobeGeometry() {
+    const cx = 450, cy = 450;
+    const sphereR = this._GLOBE_SPHERE_RADIUS_VB;
+    const baseFontSize = this._GLOBE_BASE_FONT_SIZE;
+    const units = this.computeSphereUnits();
+    const nodeRadiusMap = this.computeNodeRadiusMap();
+    const yaw = this._globeYaw, pitch = this._globePitch;
+    const geo = {};
+    this.nodeData.forEach(d => {
+      const p = this.rotateProject(units[d.id], yaw, pitch);
+      // depthT: 0 = 球體最遠端、1 = 正對螢幕最近端。
+      const depthT = (p.z + 1) / 2;
+      const scale = 0.5 + depthT * 0.8;
+      const baseR = nodeRadiusMap[d.id] * this.dotScale;
+      const r = baseR * scale;
+      const screenX = cx + p.x * sphereR;
+      const screenY = cy + p.y * sphereR;
+      const isRight = p.x >= 0;
+      const fontSize = Math.round(baseFontSize * Math.min(1.25, Math.max(0.8, scale)));
+      const labelGap = 12;
+      const labelPointX = screenX + (isRight ? 1 : -1) * (r + labelGap);
+      geo[d.id] = {
+        cx: screenX, cy: screenY, r, depthT, scale, isRight,
+        fontSize, labelPointX, labelPointY: screenY,
+        // 只給正面（面向螢幕這一側）的節點顯示文字——116 個節點的文字如果
+        // 全部同時顯示在球面上，前後文字會疊成一團完全看不清楚；只顯示面向
+        // 使用者這一側，效果比較接近「轉到面前才看得到標籤」的地球儀讀法。
+        labelVisible: depthT > 0.72,
+        hitR: Math.max(20, 30 * scale)
+      };
+    });
+    return geo;
+  }
+
+  // 同上，但算連線兩端點的螢幕座標跟「這條線該多透明」（越靠球體背面的連線
+  // 越淡，維持「連線構成球體輪廓」的視覺，同時不會讓背面線條搶過正面內容）。
+  buildGlobeEdgeGeometry() {
+    const cx = 450, cy = 450;
+    const sphereR = this._GLOBE_SPHERE_RADIUS_VB;
+    const units = this.computeSphereUnits();
+    const yaw = this._globeYaw, pitch = this._globePitch;
+    return this.edgeData
+      .map(([a, b], i) => {
+        const ua = units[a], ub = units[b];
+        if (!ua || !ub) return null;
+        const pa = this.rotateProject(ua, yaw, pitch);
+        const pb = this.rotateProject(ub, yaw, pitch);
+        const avgDepth = (((pa.z + 1) / 2) + ((pb.z + 1) / 2)) / 2;
+        return {
+          id: 'e' + i, a, b,
+          x1: cx + pa.x * sphereR, y1: cy + pa.y * sphereR,
+          x2: cx + pb.x * sphereR, y2: cy + pb.y * sphereR,
+          avgDepth
+        };
+      })
+      .filter(Boolean);
+  }
+
+  // 建一次「節點 id -> DOM 元素」的對照表，讓 paintGlobe() 每一影格可以直接
+  // 寫屬性，不用每次都重新 querySelector 一次全部節點/連線。因為 sc-for
+  // 是用陣列索引當 React key（見 support.js 的 walkFor()），只要陣列長度、
+  // 順序不變（桌機/手機兩種模式畫的都是固定 116 個節點、同樣的 edgeData），
+  // 這些 DOM 元素在整個頁面生命週期裡不會被換掉，快取起來是安全的。
+  _ensureGlobeElCache() {
+    if (this._globeElCache) return this._globeElCache;
+    const cache = { nodes: {}, edges: {} };
+    this.nodeData.forEach(d => {
+      const group = document.querySelector('[data-node="' + d.id + '"]');
+      if (!group) return;
+      cache.nodes[d.id] = {
+        group,
+        hit: group.querySelector('circle'),
+        dot: group.querySelector('[data-dot]'),
+        fo: group.querySelector('foreignObject'),
+        div: group.querySelector('foreignObject div')
+      };
+    });
+    this.edgeData.forEach((_pair, i) => {
+      const id = 'e' + i;
+      const el = document.querySelector('[data-edge="' + id + '"]');
+      if (el) cache.edges[id] = el;
+    });
+    this._globeElCache = cache;
+    return cache;
+  }
+
+  // 拖曳／慣性旋轉時的高頻畫面更新——刻意不呼叫 setState()，直接改 DOM
+  // 屬性，理由跟 tick()/startFlash() 一樣（見上面 field 宣告處的說明）。
+  paintGlobe() {
+    if (this.state.viewportW >= 768) return;
+    const nodeGeo = this.buildGlobeGeometry();
+    const edgeGeo = this.buildGlobeEdgeGeometry();
+    const cache = this._ensureGlobeElCache();
+
+    this.nodeData.forEach(d => {
+      const g = nodeGeo[d.id];
+      const els = cache.nodes[d.id];
+      if (!g || !els) return;
+      if (els.dot) { els.dot.setAttribute('cx', g.cx); els.dot.setAttribute('cy', g.cy); els.dot.setAttribute('r', g.r); }
+      if (els.hit) { els.hit.setAttribute('cx', g.cx); els.hit.setAttribute('cy', g.cy); els.hit.setAttribute('r', g.hitR); }
+      const depthOpacity = 0.15 + g.depthT * 0.85;
+      if (els.group) els.group.style.opacity = String(depthOpacity);
+      if (els.fo) {
+        const boxW = Math.max(140, d.name.length * g.fontSize + 16);
+        const boxH = g.fontSize * 1.4 + 4;
+        els.fo.setAttribute('x', String(g.isRight ? g.labelPointX : g.labelPointX - boxW));
+        els.fo.setAttribute('y', String(g.labelPointY - boxH / 2));
+        els.fo.setAttribute('width', String(boxW));
+        els.fo.setAttribute('height', String(boxH));
+        els.fo.style.display = g.labelVisible ? '' : 'none';
+      }
+      if (els.div) {
+        els.div.style.fontSize = g.fontSize + 'px';
+        els.div.style.textAlign = g.isRight ? 'left' : 'right';
+      }
+    });
+
+    edgeGeo.forEach(e => {
+      const el = cache.edges[e.id];
+      if (!el) return;
+      el.setAttribute('x1', String(e.x1));
+      el.setAttribute('y1', String(e.y1));
+      el.setAttribute('x2', String(e.x2));
+      el.setAttribute('y2', String(e.y2));
+      el.style.opacity = String(0.04 + e.avgDepth * 0.5);
+    });
+  }
+
+  // 常駐的球體動畫迴圈：拖曳中什麼都不做（pointermove 已經直接呼叫過
+  // paintGlobe()），放開後讓拖曳當下的角速度用摩擦力慢慢衰減到 0，同時疊加
+  // 一個很慢的閒置自轉，讓球體感覺「活著」而不是靜止的裝飾圖。桌機（viewportW
+  // >= 768）不執行任何動作，只是每影格檢查一次，成本可以忽略。
+  globeTick() {
+    if (this.state.viewportW < 768 && !this._globeDragging) {
+      this._globeVelYaw *= 0.94;
+      if (Math.abs(this._globeVelYaw) < 0.0006) this._globeVelYaw = 0;
+      const idleSpeed = 0.0022;
+      this._globeYaw += this._globeVelYaw + idleSpeed;
+      this.paintGlobe();
+    }
+    this._globeRaf = requestAnimationFrame(() => this.globeTick());
   }
 
   handleSearchInput(e) {
@@ -817,77 +1103,14 @@ class Component extends DCLogic {
     const titleBoxWidth = 420;
     const titleBoxX = cx - titleBoxWidth / 2;
 
-    // Every node from column B sits on a single ring around the center
-    // ("原型 x 未來"), in spreadsheet row order — matching the reference
-    // site's circular layout. Node size scales with its connection count
-    // (degree), and nodes are spaced so the gap between adjacent circles
-    // stays a constant ~0.5mm regardless of each node's size.
-    // Mobile draws the exact same full node set as desktop (same
-    // completeness) — nothing is hidden by connection count. The ring is
-    // simply the same layout rendered into a smaller container.
-    const degree = this.computeDegree();
-    const maxDegree = Math.max(1, ...Object.values(degree));
+    // Every node from column B, in spreadsheet row order. Desktop/tablet
+    // lays them out on a flat 2D ring around the center ("原型 × 未來");
+    // mobile (2026-07-31) instead wraps them around a draggable 3D sphere
+    // (see buildGlobeGeometry()/paintGlobe() above) — same node set, same
+    // connection data, same degree-based sizing, just a different projection.
+    // Node size scales with its connection count (degree) either way.
     const ordered = this.nodeData;
-    const n = ordered.length;
-    // Same radii on mobile and desktop — the container shrinks, not the
-    // math, so the rendered ring is a true proportional scale-down.
-    const rMin = 4, rMax = 24;
-    const nodeRadius = {};
-    ordered.forEach(d => {
-      const deg = degree[d.id];
-      nodeRadius[d.id] = rMin + (deg / maxDegree) * (rMax - rMin);
-    });
-    // Slightly larger dots for visual weight, WITHOUT moving the ring layout,
-    // label positions, or label sizing — those all keep using nodeRadius above.
-    const dotScale = 1.18;
-
-    const gapVB = 2.5;
-
-    const diameterSum = ordered.reduce((sum, d) => sum + 2 * nodeRadius[d.id], 0);
-    const circumference = diameterSum + n * gapVB;
-    // Keep the ring well clear of the center "原型 × 未來" title regardless
-    // of how tightly the nodes would otherwise pack.
-    const radius = Math.max(circumference / (2 * Math.PI), 420);
-    // Once radius is clamped up, re-derive the per-node gap so the arc walk
-    // below still sums to exactly 2π·radius — otherwise the ring doesn't close.
-    const effectiveGapVB = (2 * Math.PI * radius - diameterSum) / n;
-
-    const positions = {};
-    let arcPos = 0;
-    ordered.forEach(d => {
-      const r = nodeRadius[d.id];
-      const angle = ((arcPos + r) / radius) - Math.PI / 2;
-      positions[d.id] = {
-        x: cx + radius * Math.cos(angle),
-        y: cy + radius * Math.sin(angle),
-        angle
-      };
-      arcPos += 2 * r + effectiveGapVB;
-    });
-
-    // Soft "spotlight" glow cast from the 原型結構 dot toward the center
-    // title — same visual read as the existing connecting lines, just an
-    // added faint glow layer. Narrow at the dot, widening as it reaches the
-    // title so it reads as light spreading over distance.
-    let spotlight = null;
-    const spotlightSrc = positions['r23'];
-    if (spotlightSrc) {
-      const dirX = cx - spotlightSrc.x, dirY = cy - spotlightSrc.y;
-      const len = Math.hypot(dirX, dirY) || 1;
-      const ux = dirX / len, uy = dirY / len;
-      const perpX = -uy, perpY = ux;
-      const coneLen = len + 170;
-      const halfWidth = 230;
-      const baseX = spotlightSrc.x + ux * coneLen, baseY = spotlightSrc.y + uy * coneLen;
-      const leftX = baseX + perpX * halfWidth, leftY = baseY + perpY * halfWidth;
-      const rightX = baseX - perpX * halfWidth, rightY = baseY - perpY * halfWidth;
-      spotlight = {
-        points: spotlightSrc.x + ',' + spotlightSrc.y + ' ' + leftX + ',' + leftY + ' ' + rightX + ',' + rightY,
-        x1: spotlightSrc.x, y1: spotlightSrc.y, x2: baseX, y2: baseY,
-        color: isDarkMode ? '#FFFFFF' : '#EDEDED',
-        peakOpacity: isDarkMode ? 0.045 : 0.55
-      };
-    }
+    const nodeRadius = this.computeNodeRadiusMap();
 
     const relatedIds = new Set();
     if (hoveredId) {
@@ -898,91 +1121,205 @@ class Component extends DCLogic {
       });
     }
 
-    const boxH = 20;
-    const nodes = ordered.map(d => {
-      const pos = positions[d.id];
-      const r = nodeRadius[d.id];
-      // Same label offset/size on mobile and desktop — see rMin/rMax note above.
-      const gap = 20;
-      const isRight = Math.cos(pos.angle) >= 0;
-      const labelPointX = pos.x + Math.cos(pos.angle) * (r + gap);
-      const labelPointY = pos.y + Math.sin(pos.angle) * (r + gap);
-      const angleDeg = pos.angle * 180 / Math.PI;
-      const rotateDeg = isRight ? angleDeg : angleDeg + 180;
-      const dimmed = hoveredId && !relatedIds.has(d.id);
-      const fontSize = 15;
-      const isSpecial = this.specialIds.includes(d.id);
-      const fontWeight = isSpecial ? 700 : 400;
-      const isHoveredSelf = hoveredId === d.id;
-      const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : '#9B9B9B');
-      const dotFill = isSpecial ? specialColor : dotColor;
-      const labelColor = isSpecial ? specialColor : textColor;
-      // Size the box to comfortably fit the text (worst-case full-width CJK
-      // glyphs) so nowrap text never overflows its box — overflow can shift
-      // where the text-align anchor edge (the end nearest the node) actually
-      // lands, breaking the otherwise-uniform node-to-label gap.
-      const boxW = Math.max(160, d.name.length * fontSize + 20);
-      return {
-        id: d.id,
-        name: d.name,
-        href: d.href,
-        cx: pos.x,
-        cy: pos.y,
-        r: r * dotScale,
-        // Hit-target radius stays enlarged on mobile even though the visible
-        // dot/label sizing is now identical to desktop — this is an invisible
-        // touch-target padding, not part of the "same completeness" visual math.
-        hitR: isMobile ? 38 : 26,
-        boxX: isRight ? labelPointX : labelPointX - boxW,
-        boxY: labelPointY - boxH / 2,
-        boxW,
-        boxH,
-        textAlign: isRight ? 'left' : 'right',
-        fontSize,
-        fontWeight,
-        dotFill,
-        labelColor,
-        rotateDeg,
-        pivotX: labelPointX,
-        pivotY: labelPointY,
-        opacity: dimmed ? 0.3 : 1,
-        onEnter: () => this.setHover(d.id),
-        onLeave: () => this.clearHover()
-      };
-    });
+    let nodes, edges, spotlight, hasSpotlight;
 
-    const edges = this.edgeData
-      .filter(([a, b]) => positions[a] && positions[b])
-      .map(([a, b], i) => {
-        const pa = positions[a], pb = positions[b];
-        const dimmed = hoveredId && !(hoveredId === a || hoveredId === b);
+    if (isMobile) {
+      // --- 3D 球體（手機版）---
+      const nodeGeo = this.buildGlobeGeometry();
+      nodes = ordered.map(d => {
+        const g = nodeGeo[d.id];
+        const dimmed = hoveredId && !relatedIds.has(d.id);
+        const isSpecial = this.specialIds.includes(d.id);
+        const fontWeight = isSpecial ? 700 : 400;
+        const isHoveredSelf = hoveredId === d.id;
+        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : '#9B9B9B');
+        const dotFill = isSpecial ? specialColor : dotColor;
+        const labelColor = isSpecial ? specialColor : textColor;
+        const boxW = Math.max(140, d.name.length * g.fontSize + 16);
+        const boxH = g.fontSize * 1.4 + 4;
+        const depthOpacity = 0.15 + g.depthT * 0.85;
         return {
-          id: 'e' + i,
-          x1: pa.x, y1: pa.y,
-          x2: pb.x, y2: pb.y,
-          opacity: dimmed ? 0.3 : 1
+          id: d.id,
+          name: d.name,
+          href: d.href,
+          cx: g.cx,
+          cy: g.cy,
+          r: g.r,
+          hitR: g.hitR,
+          boxX: g.isRight ? g.labelPointX : g.labelPointX - boxW,
+          boxY: g.labelPointY - boxH / 2,
+          boxW,
+          boxH,
+          textAlign: g.isRight ? 'left' : 'right',
+          fontSize: g.fontSize,
+          fontWeight,
+          dotFill,
+          labelColor,
+          // 3D 球體上的文字一律水平放置，不像 2D 圓環那樣沿半徑旋轉——旋轉
+          // 0 度等於不轉，跟桌機共用同一個樣板屬性。
+          rotateDeg: 0,
+          pivotX: g.labelPointX,
+          pivotY: g.labelPointY,
+          opacity: (dimmed ? 0.3 : 1) * depthOpacity,
+          labelDisplay: g.labelVisible ? 'block' : 'none',
+          onEnter: () => this.setHover(d.id),
+          onLeave: () => this.clearHover()
         };
       });
 
+      edges = this.buildGlobeEdgeGeometry().map(e => {
+        const dimmed = hoveredId && !(hoveredId === e.a || hoveredId === e.b);
+        const depthOpacity = 0.04 + e.avgDepth * 0.5;
+        return {
+          id: e.id, x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2,
+          opacity: dimmed ? 0.1 : depthOpacity
+        };
+      });
+
+      // 球體會自轉、使用者也能拖著轉，光暈這種假設「固定朝中央」的平面裝飾
+      // 效果套在會動的 3D 球體上會很奇怪（原型結構轉到背面時，光暈仍然是
+      // 一條攤平的線，看起來會像穿透球體），手機版直接不畫。
+      spotlight = null;
+      hasSpotlight = false;
+    } else {
+      // --- 2D 圓環（桌機／平板，邏輯與數值完全未變）---
+      const n = ordered.length;
+      const dotScale = this.dotScale;
+      const gapVB = 2.5;
+
+      const diameterSum = ordered.reduce((sum, d) => sum + 2 * nodeRadius[d.id], 0);
+      const circumference = diameterSum + n * gapVB;
+      // Keep the ring well clear of the center "原型 × 未來" title regardless
+      // of how tightly the nodes would otherwise pack.
+      const radius = Math.max(circumference / (2 * Math.PI), 420);
+      // Once radius is clamped up, re-derive the per-node gap so the arc walk
+      // below still sums to exactly 2π·radius — otherwise the ring doesn't close.
+      const effectiveGapVB = (2 * Math.PI * radius - diameterSum) / n;
+
+      const positions = {};
+      let arcPos = 0;
+      ordered.forEach(d => {
+        const r = nodeRadius[d.id];
+        const angle = ((arcPos + r) / radius) - Math.PI / 2;
+        positions[d.id] = {
+          x: cx + radius * Math.cos(angle),
+          y: cy + radius * Math.sin(angle),
+          angle
+        };
+        arcPos += 2 * r + effectiveGapVB;
+      });
+
+      // Soft "spotlight" glow cast from the 原型結構 dot toward the center
+      // title — same visual read as the existing connecting lines, just an
+      // added faint glow layer. Narrow at the dot, widening as it reaches the
+      // title so it reads as light spreading over distance.
+      spotlight = null;
+      const spotlightSrc = positions['r23'];
+      if (spotlightSrc) {
+        const dirX = cx - spotlightSrc.x, dirY = cy - spotlightSrc.y;
+        const len = Math.hypot(dirX, dirY) || 1;
+        const ux = dirX / len, uy = dirY / len;
+        const perpX = -uy, perpY = ux;
+        const coneLen = len + 170;
+        const halfWidth = 230;
+        const baseX = spotlightSrc.x + ux * coneLen, baseY = spotlightSrc.y + uy * coneLen;
+        const leftX = baseX + perpX * halfWidth, leftY = baseY + perpY * halfWidth;
+        const rightX = baseX - perpX * halfWidth, rightY = baseY - perpY * halfWidth;
+        spotlight = {
+          points: spotlightSrc.x + ',' + spotlightSrc.y + ' ' + leftX + ',' + leftY + ' ' + rightX + ',' + rightY,
+          x1: spotlightSrc.x, y1: spotlightSrc.y, x2: baseX, y2: baseY,
+          color: isDarkMode ? '#FFFFFF' : '#EDEDED',
+          peakOpacity: isDarkMode ? 0.045 : 0.55
+        };
+      }
+      hasSpotlight = !!spotlight;
+
+      const boxH = 20;
+      nodes = ordered.map(d => {
+        const pos = positions[d.id];
+        const r = nodeRadius[d.id];
+        const gap = 20;
+        const isRight = Math.cos(pos.angle) >= 0;
+        const labelPointX = pos.x + Math.cos(pos.angle) * (r + gap);
+        const labelPointY = pos.y + Math.sin(pos.angle) * (r + gap);
+        const angleDeg = pos.angle * 180 / Math.PI;
+        const rotateDeg = isRight ? angleDeg : angleDeg + 180;
+        const dimmed = hoveredId && !relatedIds.has(d.id);
+        const fontSize = 15;
+        const isSpecial = this.specialIds.includes(d.id);
+        const fontWeight = isSpecial ? 700 : 400;
+        const isHoveredSelf = hoveredId === d.id;
+        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : '#9B9B9B');
+        const dotFill = isSpecial ? specialColor : dotColor;
+        const labelColor = isSpecial ? specialColor : textColor;
+        // Size the box to comfortably fit the text (worst-case full-width CJK
+        // glyphs) so nowrap text never overflows its box — overflow can shift
+        // where the text-align anchor edge (the end nearest the node) actually
+        // lands, breaking the otherwise-uniform node-to-label gap.
+        const boxW = Math.max(160, d.name.length * fontSize + 20);
+        return {
+          id: d.id,
+          name: d.name,
+          href: d.href,
+          cx: pos.x,
+          cy: pos.y,
+          r: r * dotScale,
+          hitR: 26,
+          boxX: isRight ? labelPointX : labelPointX - boxW,
+          boxY: labelPointY - boxH / 2,
+          boxW,
+          boxH,
+          textAlign: isRight ? 'left' : 'right',
+          fontSize,
+          fontWeight,
+          dotFill,
+          labelColor,
+          rotateDeg,
+          pivotX: labelPointX,
+          pivotY: labelPointY,
+          opacity: dimmed ? 0.3 : 1,
+          labelDisplay: 'block',
+          onEnter: () => this.setHover(d.id),
+          onLeave: () => this.clearHover()
+        };
+      });
+
+      edges = this.edgeData
+        .filter(([a, b]) => positions[a] && positions[b])
+        .map(([a, b], i) => {
+          const pa = positions[a], pb = positions[b];
+          const dimmed = hoveredId && !(hoveredId === a || hoveredId === b);
+          return {
+            id: 'e' + i,
+            x1: pa.x, y1: pa.y,
+            x2: pb.x, y2: pb.y,
+            opacity: dimmed ? 0.3 : 1
+          };
+        });
+    }
+
     return {
       nodes, edges, bgColor, textColor, lineColor, dotColor, isDarkMode,
-      // 手機版現在跟桌機一樣完整（全部 116 個節點、同樣的圓點/字級數學），
-      // 光暈效果不再是「稀疏圖上特別顯眼」的例外情況，兩邊維持一致。
-      spotlight, hasSpotlight: !!spotlight,
+      spotlight, hasSpotlight,
       isMobile,
       headerPadding: isMobile ? '16px 16px' : '24px 40px',
-      // 手機版不再放大圓點/字級、不再隱藏節點——圓環圖的排版數學（rMin/rMax、
-      // fontSize、gap...）跟桌機版完全相同，是同一份圖單純等比例縮小。
-      // 但容器寬度公式不能直接沿用桌機版的 90vw：實測發現節點文字框本來就會
-      // 略微超出 SVG viewBox 的 0-900 範圍（桌機版能容納，是因為桌機視窗夠寬、
-      // 容器旁邊留的空白邊距夠大，超出的部分還在瀏覽器可視範圍內；桌機版容器
-      // 其實常常是被 86vh 卡住而不是 90vw，等於天生留了很大的水平邊距）。
-      // 手機直向螢幕又窄又高，90vw 幾乎必定被 vw 卡住，邊距只剩 5vw，不夠容納
-      // 那些超出 viewBox 的文字，會被切到螢幕外。用 Playwright 逐一測量 116 個
-      // 節點文字框在 360-430px 常見手機寬度下的邊界，55vw 是文字框開始完全不
-      // 超出螢幕的臨界值，53vw 留一點安全邊界。
-      diagramContainerWidth: isMobile ? 'min(53vw, 48vh)' : 'min(90vw, 86vh)',
+      // 手機版（2026-07-31 起）是可拖曳旋轉的 3D 球體，容器寬度公式因此
+      // 跟桌機版的 2D 圓環是兩回事、不能沿用同一個數字。量測方式也不一樣：
+      // 2D 圓環是靜態的，量一次就夠；3D 球體使用者可以拖到任何角度，同一組
+      // 文字可能這一刻在安全範圍內、轉個角度就跑到螢幕外，所以用 Playwright
+      // 模擬拖曳到大量不同 yaw/pitch 角度（含密集掃描），每個角度都量一次
+      // 目前「正面顯示中」的文字框邊界，取全部角度裡最差的那個。88vw 在預設
+      // 角度看起來沒問題，但轉到某些角度會有節點文字超出螢幕（最多到 9 個）；
+      // 縮到 60vw 之後，密集掃描全部角度都是 0 個超出螢幕，才定案。
+      diagramContainerWidth: isMobile ? 'min(60vw, 56vh)' : 'min(90vw, 86vh)',
       edgeStrokeWidth: isMobile ? 2 : 1,
+      // 3D 球體用 paintGlobe() 每影格直接寫 cx/cy/r/opacity 等屬性做旋轉動畫，
+      // 如果 CSS transition 還留著，每一次直接寫入都會被拖著跑 0.25s 的緩動，
+      // 反而讓拖曳跟手感變得黏滯、有延遲；手機版直接關掉這兩個 transition。
+      nodeTransition: isMobile ? 'none' : 'opacity 0.25s ease',
+      edgeTransition: isMobile ? 'none' : 'opacity 0.25s ease, stroke 0.3s',
+      // 拖曳球體時不要讓瀏覽器把手勢當成「頁面垂直捲動」搶走。
+      globeTouchAction: isMobile ? 'none' : 'auto',
       titleBoxX, titleBoxWidth, titleFontSize, subtitleFontSize,
       searchBoxDisplay: isMobile ? 'none' : 'flex',
       navPillGap: isMobile ? '12px' : '32px',
