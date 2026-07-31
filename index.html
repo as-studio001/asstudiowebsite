@@ -1026,7 +1026,21 @@ class Component extends DCLogic {
           const g = this._pinGrowStart ? Math.min(1, (performance.now() - this._pinGrowStart) / growMs) : 1;
           const eased = 1 - Math.pow(1 - g, 3);
           const startY = cyp - dotR;
-          const endY = startY - lineLen * eased;
+          // 球體裁切框（見 renderVals() 的 globeSurfaceHeight 說明）2026-07-31
+          // 改成直接貼齊頁首下緣之後，釘在北極點（畫面最上方）的搜尋標註，
+          // 虛線往上長很容易一路長到頁首底下——頁首是 z-index:1000 的固定
+          // 定位元素，蓋在地標 icon（z-index:951）上面，圖示看得到但點不到。
+          // 夾住虛線終點的最高位置，不讓它跑進頁首範圍，圖示就一定留在頁首
+          // 下方、點得到的地方。
+          // 夾住的是虛線終點（也是地標 icon 靠 transform:translate(-50%,-100%)
+          // 錨定的「圖示底部尖角」那一點），但圖示本身還會從那個錨點再往上
+          // 長 38px（icon 的 SVG 高度）——只夾住錨點的話，圖示的可視範圍還是
+          // 會露出一截在安全線之上。安全線要再往下多留 38px，讓整個圖示（不
+          // 只是它的錨點）都清空頁首。
+          const headerEl = document.querySelector('header');
+          const pinIconHeight = 38;
+          const safeTop = (headerEl ? headerEl.getBoundingClientRect().bottom : 96) + 12 + pinIconHeight;
+          const endY = Math.max(startY - lineLen * eased, safeTop);
           // 淺色模式黑線、深色模式金線（跟 specialColor 深色模式用的金色是
           // 同一個色號）——不是黃色亮點那種填色強調，純粹線條，所以每影格
           // 直接依目前 isDarkMode 設定顏色，深色模式切換當下也會立刻跟著換。
