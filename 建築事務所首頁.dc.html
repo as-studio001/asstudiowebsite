@@ -1178,16 +1178,22 @@ class Component extends DCLogic {
           const g = this._pinGrowStart ? Math.min(1, (performance.now() - this._pinGrowStart) / growMs) : 1;
           const eased = 1 - Math.pow(1 - g, 3);
           const startY = cyp - dotR;
-          // 地標的 z-index 已經拉到比頁首／搜尋列都高（見 ensureLandmark()），
-          // 圖示不會再被頁首擋住，這裡不需要再夾「頁首下緣」這條線——但還是
-          // 要留一個「螢幕最上緣」的下限，否則長得夠高時 icon 會被推到 y<0、
-          // 整個跑出螢幕外（2026-07-31 調整，取代原本夾頁首下緣的 safeTop
-          // 邏輯）。夾住的是虛線終點／icon 錨點，icon 本身靠
-          // transform:translate(-50%,-100%) 還會從錨點再往上長 19px（icon
-          // 目前的實際高度，見 ensureLandmark()），所以下限要把這段也算進去，
-          // 才是「icon 頂端」真正貼齊螢幕上緣 8px 的位置。
+          // 地標的 z-index 雖然拉到比頁首／搜尋列都高（見 ensureLandmark()），
+          // 疊圖順序上不會被頁首「擋住」，但使用者這次明確要求 icon 的高度
+          // 要低於頁首下緣——不是疊圖順序的問題，是位置本身就不該跑到頁首
+          // 那一段去（2026-07-31 再次調整，重新加回夾頁首下緣的邏輯，取代
+          // 上一版只夾「螢幕最上緣」的做法）。夾住的是虛線終點／icon 錨點，
+          // icon 本身靠 transform:translate(-50%,-100%) 還會從錨點再往上長
+          // 19px（icon 目前的實際高度，見 ensureLandmark()），下限要把這段
+          // 也算進去，才是「icon 頂端」真正貼齊頁首下緣（留 8px 緩衝）的
+          // 位置；同時保留「螢幕最上緣」那個下限當防呆（正常情況下頁首下緣
+          // 這條線一定比較嚴格，螢幕上緣那條理論上用不到，但留著避免萬一
+          // 頁首量不到時 icon 還是有機會跑出螢幕外）。
           const pinIconHeight = 19;
-          const endY = Math.max(startY - lineLen * eased, 8 + pinIconHeight);
+          const headerEl = document.querySelector('header');
+          const headerBottomY = headerEl ? headerEl.getBoundingClientRect().bottom : 96;
+          const minY = Math.max(8 + pinIconHeight, headerBottomY + pinIconHeight + 8);
+          const endY = Math.max(startY - lineLen * eased, minY);
           // 淺色模式黑線、深色模式金線（跟 specialColor 深色模式用的金色是
           // 同一個色號）——不是黃色亮點那種填色強調，純粹線條，所以每影格
           // 直接依目前 isDarkMode 設定顏色，深色模式切換當下也會立刻跟著換。
@@ -1925,7 +1931,23 @@ class Component extends DCLogic {
       // 很多，旋轉/縮放時的安全邊界更寬，同時裁切框的上下緣精確貼齊頁首/
       // 頁尾。桌機/平板這個框跟視覺球體是同一塊大小（height:auto、
       // display:block，讓外層直接收縮包住內層的正方形），跟改動前完全一樣。
-      globeSurfaceHeight: isMobile ? '100%' : 'auto',
+      //
+      // ⚠️ 手機版原本寫 height:100%，實測發現這個百分比在這層巢狀 flex
+      // 結構裡會靜默解析失敗（#works 是 display:flex、預設 flex-direction:
+      // row，data-globe-surface 是它唯一的 flex item——即使 #works 本身有
+      // 明確的算出高度，data-globe-surface 的 height:100% 還是解析不出來，
+      // 瀏覽器退回用「內容自己的高度」撐開，也就是內層那個正方形本身的
+      // 高度，比 #works 實際可用高度矮很多）。用 Playwright 直接量測
+      // getBoundingClientRect() 確認過：height:100% 時裁切框只有 363px 高
+      // （幾乎等於正方形本身的邊長），但 #works 實際可用高度是 636px——
+      // 裁切框沒有撐滿，球體因此整個往上偏、下面留一大截空白，這正是
+      // 2026-07-31 使用者回報「主視覺位置偏高」的根本原因。改成 height:auto
+      // 後，靠 #works 預設的 align-items:normal（在 flex 容器裡等同
+      // stretch）把 data-globe-surface 撐滿剩餘高度，不需要百分比解析，
+      // 量測確認裁切框變回 636px、精確貼齊頁首下緣到頁尾上緣，球體置中在
+      // 正中央。桌機版本來就是 'auto'，這次改完手機/桌機這個值統一，直接
+      // 拿掉三元判斷。
+      globeSurfaceHeight: 'auto',
       globeSurfaceDisplay: isMobile ? 'flex' : 'block',
       diagramContainerWidth: isMobile ? 'min(92vw, 88vh)' : 'min(90vw, 86vh)',
       globeOverflow: isMobile ? 'hidden' : 'visible',
