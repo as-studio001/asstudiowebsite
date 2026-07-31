@@ -195,7 +195,7 @@
 
   <!-- NETWORK DIAGRAM -->
   <section id="works" style="padding:450px 12px; position:relative; z-index:2;">
-    <div data-globe-surface="1" style="width:{{ diagramContainerWidth }}; max-width:2000px; margin:0 auto; aspect-ratio:1/1; touch-action:{{ globeTouchAction }};">
+    <div data-globe-surface="1" style="width:{{ diagramContainerWidth }}; max-width:2000px; margin:0 auto; aspect-ratio:1/1; touch-action:{{ globeTouchAction }}; overflow:{{ globeOverflow }};">
       
     <svg viewBox="0 0 900 900" width="100%" height="100%" style="overflow: visible; fill: #930707">
         <sc-if value="{{ hasSpotlight }}" hint-placeholder-val="{{ false }}">
@@ -213,7 +213,7 @@
         </sc-for>
 
         <sc-for list="{{ nodes }}" as="node" hint-placeholder-count="14">
-          <a href="{{ node.href }}" style="cursor:pointer;">
+          <a href="{{ node.href }}" style="cursor:{{ node.cursorStyle }}; pointer-events:{{ node.pointerEvents }};">
             <g data-node="{{ node.id }}" onMouseEnter="{{ node.onEnter }}" onMouseLeave="{{ node.onLeave }}" style="opacity: {{ node.opacity }}; transition: {{ nodeTransition }};">
               <circle cx="{{ node.cx }}" cy="{{ node.cy }}" r="{{ node.hitR }}" fill="transparent"></circle>
               <circle data-dot="{{ node.id }}" cx="{{ node.cx }}" cy="{{ node.cy }}" r="{{ node.r }}" fill="{{ node.dotFill }}" style="transition:fill 0.3s;"></circle>
@@ -279,7 +279,7 @@ class Component extends DCLogic {
   // Column B provides the node names, Column A provides the target URLs.
   // Category/section-header nodes get a fixed accent color and bold weight
   // regardless of light/dark mode. Each entry maps a node id to its color.
-  specialIds = ['r2', 'r11', 'r22', 'r23', 'r28', 'r59', 'r100', 'r101', 'r109', 'r115', 'r1'];
+  specialIds = ['r1', 'r28', 'r59', 'r100', 'r2', 'r11', 'r22', 'r23', 'r101', 'r109', 'r115'];
 
   // Shared by both the desktop 2D ring and the mobile 3D globe (renderVals()
   // and buildGlobeGeometry()/paintGlobe() below) so a dot's "visual weight"
@@ -296,16 +296,63 @@ class Component extends DCLogic {
   // 畫出來的位置也是「目前轉到哪」，不會跳回初始角度。
   _GLOBE_SPHERE_RADIUS_VB = 260;
   _GLOBE_BASE_FONT_SIZE = 15;
-  _globeYaw = 0.5;
-  _globePitch = -0.22;
+  // 預設角度 0/0，旋轉完全交給使用者拖曳/閒置自轉決定。
+  _globeYaw = 0;
+  _globePitch = 0;
   _globeVelYaw = 0;
   _globeDragging = false;
   _globeDragDist = 0;
   _globeLastX = 0;
   _globeLastY = 0;
+  // 雙指縮放：_globeZoom 是縮放倍率（1 = 預設大小），乘進
+  // buildGlobeGeometry()/buildGlobeEdgeGeometry() 的螢幕座標、圓點半徑、字級
+  // 計算裡（見這兩個方法）。_globeActivePointers 記錄目前放在螢幕上的每根
+  // 手指（Map: pointerId -> {x,y}），兩根手指同時按著時才進入縮放模式。
+  _globeZoom = 1;
+  _GLOBE_ZOOM_MIN = 0.55;
+  _GLOBE_ZOOM_MAX = 2.6;
+  _globeActivePointers = new Map();
+  _globePinching = false;
+  _globePinchStartDist = 0;
+  _globePinchStartZoom = 1;
+  // ⚠️ 搜尋「飛到北極點」需要把旋轉拆成兩層，不能只靠 _globeYaw/_globePitch
+  // 一組角度就做到——這是實作時繞了一次彎才發現的，記下來避免以後重踩：
+  // 「_globeYaw 持續增加、y 軸上的點不會動」這個性質，只在該點的*原始*球面
+  // 座標本身就滿足 x=z=0 時成立（也就是只有 Fibonacci sphere 排列時天生在
+  // 兩極的 r1/r116）——對任何其他（絕大多數）節點，就算算出一組 (yaw0,
+  // pitch0) 讓它「這一刻」剛好轉到北極點畫面座標，只要 yaw 繼續變動，它就會
+  // 沿著一個小緯度圈慢慢飄走，不會真的釘住（實測：搜尋後等 1.5 秒，目標點
+  // 還是飄了近 10px，不是完全不動）。
+  //
+  // 正確做法是兩層旋轉合成：_globeBaseYaw/_globeBasePitch 是「校準」層——
+  // 搜尋時算一次、之後固定不變，把整顆球轉到「目標節點剛好在北極點」的
+  // 姿勢；_globeYaw/_globePitch 維持原本的意義（自轉/拖曳），但現在是疊加在
+  // 校準層*之上*的旋轉——疊加後再對北極點 (0,-1,0) 做 yaw 旋轉，這次才真的
+  // 對，因為北極點在「校準後的座標系」裡本來就是 x=z=0。沒有搜尋過（或還
+  // 沒點過搜尋結果）時 base 是 (0,0) 单位矩陣，行為跟以前完全一樣。
+  // renderVals()/buildGlobeGeometry() 用 projectUnit() 這個方法做兩層合成，
+  // 不要繞過它直接呼叫 rotateProject() 兩次自己兜。
+  _globeBaseYaw = 0;
+  _globeBasePitch = 0;
+
+  // 搜尋後「飛到北極點」動畫：goToNode() 呼叫 startFlyTo() 時算出目前
+  // base 到目標校準角度的補間終點，globeTick() 每影格用 easing 往目標推進
+  // _globeBaseYaw/_globeBasePitch；同時把 _globePitch（自轉的上下傾斜）
+  // 一併補間回 0，確保飛到定位那一刻，目標節點剛好落在畫面正上方置中，
+  // 不會被使用者飛行前留下的傾斜角度帶偏。_globeYaw（左右自轉）不受影響、
+  // 飛行中維持不變，飛完後繼續正常自轉——見上面 _globeYaw 為什麼不用重置。
+  _globeFlying = false;
+  _globeFlyStartBaseYaw = 0;
+  _globeFlyStartBasePitch = 0;
+  _globeFlyTargetBaseYaw = 0;
+  _globeFlyTargetBasePitch = 0;
+  _globeFlyStartSpinPitch = 0;
+  _globeFlyStartTime = 0;
+  _globeFlyDuration = 700;
 
   nodeData = [
-      { id: 'r2', name: "原型教學", href: "./原型教學.dc.html" },
+    { id: 'r1', name: "章 architecture design", href: "https://www.mashup.com.tw/as%20studio/?page=about" },
+    { id: 'r2', name: "原型教學", href: "./原型教學.dc.html" },
     { id: 'r3', name: "實習", href: "./原型教學.dc.html" },
     { id: 'r4', name: "美感教育", href: "./原型教學.dc.html" },
     { id: 'r5', name: "孩童", href: "./原型教學.dc.html" },
@@ -326,7 +373,7 @@ class Component extends DCLogic {
     { id: 'r20', name: "原型三時期", href: "./原型原點.dc.html" },
     { id: 'r21', name: "一人", href: "./原型原點.dc.html" },
     { id: 'r22', name: "原型建築+原型結構", href: "./原型原點.dc.html" },
-    { id: 'r23', name: "原型結構", href: "https://www.mashup.com.tw/as%20studio/" },
+    { id: 'r23', name: "原型結構", href: "./原型結構.dc.html" },
     { id: 'r24', name: "木構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=27070" },
     { id: 'r25', name: "竹構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25396" },
     { id: 'r26', name: "RC構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25397" },
@@ -419,21 +466,20 @@ class Component extends DCLogic {
     { id: 'r112', name: "南寧老屋", href: "#" },
     { id: 'r113', name: "2025原型1號宅", href: "https://asstudio029.wixsite.com/ashouse1" },
     { id: 'r114', name: "2025台南咾咕石芳宅", href: "https://e64872170.wixsite.com/mysite" },
-    { id: 'r115', name: "原型獲獎", href: "./原型獲獎.dc.html" },
-    { id: 'r1', name: "章 architecture design", href: "https://www.mashup.com.tw/as%20studio/?page=about" }
+    { id: 'r115', name: "原型獲獎", href: "./原型獲獎.dc.html" }
   ];
 
   // Relationships derived from columns C onward of the spreadsheet: each row's
   // column B node connects to whichever other rows' B-names appear across it.
   edgeData = [
-       ['r2', 'r3'],
+    ['r2', 'r3'],
     ['r2', 'r4'],
     ['r2', 'r5'],
     ['r2', 'r6'],
     ['r2', 'r7'],
     ['r2', 'r8'],
     ['r2', 'r9'],
-    ['r2', 'r10'],
+    ['r10', 'r2'],
     ['r11', 'r12'],
     ['r11', 'r13'],
     ['r11', 'r14'],
@@ -468,27 +514,6 @@ class Component extends DCLogic {
     ['r23', 'r91'],
     ['r23', 'r94'],
     ['r23', 'r95'],
-    ['r23', 'r60'],
-    ['r23', 'r66'],
-    ['r23', 'r68'],
-    ['r23', 'r74'],
-    ['r23', 'r75'],
-    ['r23', 'r77'],
-    ['r23', 'r81'],
-    ['r23', 'r82'],
-    ['r23', 'r83'],
-    ['r23', 'r85'],
-    ['r23', 'r87'],
-    ['r23', 'r88'],
-    ['r23', 'r89'],
-    ['r23', 'r90'],
-    ['r23', 'r92'],
-    ['r23', 'r93'],
-    ['r23', 'r96'],
-    ['r23', 'r97'],
-    ['r23', 'r98'],
-    ['r23', 'r99'],
-    ['r23', 'r116'],
     ['r24', 'r48'],
     ['r24', 'r53'],
     ['r24', 'r54'],
@@ -497,36 +522,13 @@ class Component extends DCLogic {
     ['r24', 'r64'],
     ['r24', 'r67'],
     ['r24', 'r71'],
-    ['r24', 'r39'],
-    ['r24', 'r41'],
-    ['r24', 'r42'],
-    ['r24', 'r45'],
-    ['r24', 'r49'],
-    ['r24', 'r65'],
-    ['r24', 'r66'],
-    ['r24', 'r74'],
-    ['r24', 'r75'],
-    ['r24', 'r78'],
-    ['r24', 'r81'],
-    ['r24', 'r95'],
-    ['r24', 'r114'],
-    ['r24', 'r116'],
     ['r25', 'r90'],
     ['r25', 'r91'],
     ['r25', 'r92'],
-    ['r25', 'r47'],
-    ['r25', 'r50'],
-    ['r25', 'r60'],
-    ['r25', 'r84'],
-    ['r25', 'r96'],
-    ['r25', 'r97'],
     ['r26', 'r46'],
     ['r26', 'r56'],
     ['r26', 'r72'],
     ['r26', 'r76'],
-    ['r26', 'r73'],
-    ['r26', 'r77'],
-    ['r26', 'r87'],
     ['r27', 'r37'],
     ['r27', 'r38'],
     ['r27', 'r40'],
@@ -540,44 +542,39 @@ class Component extends DCLogic {
     ['r27', 'r79'],
     ['r27', 'r80'],
     ['r27', 'r94'],
-    ['r27', 'r35'],
-    ['r27', 'r36'],
-    ['r27', 'r52'],
-    ['r27', 'r62'],
-    ['r27', 'r68'],
-    ['r27', 'r82'],
-    ['r27', 'r83'],
-    ['r27', 'r85'],
-    ['r27', 'r86'],
-    ['r27', 'r88'],
-    ['r27', 'r89'],
-    ['r27', 'r93'],
-    ['r27', 'r98'],
-    ['r27', 'r99'],
     ['r30', 'r115'],
     ['r31', 'r115'],
     ['r32', 'r115'],
     ['r33', 'r115'],
     ['r34', 'r115'],
+    ['r35', 'r27'],
     ['r35', 'r115'],
+    ['r36', 'r27'],
     ['r36', 'r115'],
     ['r37', 'r115'],
     ['r38', 'r115'],
+    ['r39', 'r24'],
     ['r39', 'r115'],
     ['r40', 'r115'],
+    ['r41', 'r24'],
     ['r41', 'r115'],
+    ['r42', 'r24'],
     ['r42', 'r115'],
     ['r43', 'r115'],
     ['r44', 'r115'],
+    ['r45', 'r24'],
     ['r45', 'r115'],
     ['r46', 'r115'],
+    ['r47', 'r25'],
     ['r47', 'r115'],
     ['r48', 'r115'],
     ['r48', 'r109'],
+    ['r49', 'r24'],
     ['r49', 'r115'],
-    ['r49', 'r101'],
+    ['r50', 'r25'],
     ['r50', 'r115'],
     ['r51', 'r115'],
+    ['r52', 'r27'],
     ['r52', 'r115'],
     ['r53', 'r115'],
     ['r54', 'r115'],
@@ -586,10 +583,53 @@ class Component extends DCLogic {
     ['r56', 'r109'],
     ['r57', 'r115'],
     ['r57', 'r109'],
-    ['r57', 'r101'],
     ['r58', 'r115'],
-    ['r67', 'r116'],
+    ['r60', 'r25'],
+    ['r60', 'r23'],
+    ['r62', 'r27'],
+    ['r65', 'r24'],
+    ['r66', 'r24'],
+    ['r66', 'r23'],
+    ['r68', 'r27'],
+    ['r68', 'r23'],
     ['r70', 'r109'],
+    ['r73', 'r26'],
+    ['r74', 'r24'],
+    ['r74', 'r23'],
+    ['r75', 'r24'],
+    ['r75', 'r23'],
+    ['r77', 'r26'],
+    ['r77', 'r23'],
+    ['r78', 'r24'],
+    ['r81', 'r24'],
+    ['r81', 'r23'],
+    ['r82', 'r27'],
+    ['r82', 'r23'],
+    ['r83', 'r27'],
+    ['r83', 'r23'],
+    ['r84', 'r25'],
+    ['r85', 'r23'],
+    ['r85', 'r27'],
+    ['r86', 'r27'],
+    ['r87', 'r23'],
+    ['r87', 'r26'],
+    ['r88', 'r23'],
+    ['r88', 'r27'],
+    ['r89', 'r27'],
+    ['r89', 'r23'],
+    ['r90', 'r23'],
+    ['r92', 'r23'],
+    ['r93', 'r23'],
+    ['r93', 'r27'],
+    ['r95', 'r24'],
+    ['r96', 'r25'],
+    ['r96', 'r23'],
+    ['r97', 'r25'],
+    ['r97', 'r23'],
+    ['r98', 'r23'],
+    ['r98', 'r27'],
+    ['r99', 'r27'],
+    ['r99', 'r23'],
     ['r101', 'r105'],
     ['r101', 'r106'],
     ['r101', 'r107'],
@@ -597,14 +637,20 @@ class Component extends DCLogic {
     ['r101', 'r111'],
     ['r101', 'r113'],
     ['r101', 'r114'],
-    ['r101', 'r112'],
-    ['r101', 'r116'],
-    ['r116', 'r114'],
+    ['r101', 'r57'],
     ['r109', 'r110'],
     ['r109', 'r111'],
     ['r109', 'r113'],
     ['r109', 'r114'],
-    ['r109', 'r112']
+    ['r112', 'r109'],
+    ['r112', 'r101'],
+    ['r114', 'r24'],
+    ['r101', 'r49'],
+    ['r116', 'r101'],
+    ['r116', 'r24'],
+    ['r116', 'r67'],
+    ['r116', 'r114'],
+    ['r116', 'r23']
   ];
 
   setHover(id) {
@@ -640,8 +686,14 @@ class Component extends DCLogic {
       const inBox = e.target && e.target.closest && e.target.closest('[data-search-box]');
       // Clicking anywhere except the search box closes the suggestion list.
       if (!inBox && this.state.searchResults.length) this.setState({ searchResults: [] });
-      // ...and dismisses (fades out) an active flash highlight.
-      if (!inBox && this.state.flashId != null) this.dismissFlash();
+      // ...and dismisses (fades out) an active flash highlight — desktop only.
+      // 手機版（2026-07-31 修正）不再這樣做：黃色標註現在代表「球體正釘在
+      // 這個節點上」，使用者拖曳/縮放球體本來就會點在 [data-search-box] 以外
+      // 的地方，如果沿用桌機這套「點框外就淡出」的邏輯，只要一開始拖曳旋轉
+      // 就會立刻把標註滅掉，跟「保持黃色標註」的需求直接衝突。手機版現在
+      // 只有搜尋到新節點（goToNode() 換了 flashId）才會讓標註换位置，不會
+      // 無故消失。
+      if (!inBox && this.state.flashId != null && this.state.viewportW >= 768) this.dismissFlash();
       const inMenu = e.target && e.target.closest && e.target.closest('[data-menu-box]');
       if (!inMenu && this.state.showMaterialMenu) this.setState({ showMaterialMenu: false });
     };
@@ -671,19 +723,49 @@ class Component extends DCLogic {
     // 掛到 document 上（拖曳期間手指滑出 surface 範圍也還追蹤得到，效果
     // 跟 setPointerCapture 想要達到的一樣），放開後就把這兩個監聽器移除，
     // click 事件的目標元素就不會被動過手腳，點擊節點才能正常導覽到子頁。
+    // 雙指縮放：_globeActivePointers 追蹤目前放在螢幕上的每根手指
+    // （pointerId -> 目前座標）。一根手指＝拖曳旋轉（跟原本邏輯一樣）；兩根
+    // 手指同時按著＝縮放模式，改用兩指之間的距離變化算縮放倍率，這段時間
+    // 不會同時觸發旋轉，避免兩種手勢互相干擾、角度跟縮放同時亂跳。
     const surface = document.querySelector('[data-globe-surface]');
     this._onGlobePointerDown = (e) => {
       if (this.state.viewportW >= 768) return;
-      this._globeDragging = true;
-      this._globeVelYaw = 0;
-      this._globeDragDist = 0;
-      this._globeLastX = e.clientX;
-      this._globeLastY = e.clientY;
-      document.addEventListener('pointermove', this._onGlobePointerMove);
-      document.addEventListener('pointerup', this._onGlobePointerUp);
-      document.addEventListener('pointercancel', this._onGlobePointerUp);
+      this._globeActivePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this._globeActivePointers.size === 1) {
+        // 使用者主動抓住球體，取消還在跑的「飛到北極點」動畫，改由手勢接管。
+        this._globeFlying = false;
+        this._globeDragging = true;
+        this._globeVelYaw = 0;
+        this._globeDragDist = 0;
+        this._globeLastX = e.clientX;
+        this._globeLastY = e.clientY;
+        document.addEventListener('pointermove', this._onGlobePointerMove);
+        document.addEventListener('pointerup', this._onGlobePointerUp);
+        document.addEventListener('pointercancel', this._onGlobePointerUp);
+      } else if (this._globeActivePointers.size === 2) {
+        this._globeFlying = false;
+        this._globePinching = true;
+        this._globeDragging = false;
+        const pts = Array.from(this._globeActivePointers.values());
+        this._globePinchStartDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+        this._globePinchStartZoom = this._globeZoom;
+        // 兩指手勢結束後放開的 click 一律不當成點擊節點。
+        this._globeDragDist += 999;
+      }
     };
     this._onGlobePointerMove = (e) => {
+      if (!this._globeActivePointers.has(e.pointerId)) return;
+      this._globeActivePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (this._globePinching && this._globeActivePointers.size >= 2) {
+        const pts = Array.from(this._globeActivePointers.values());
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+        const ratio = dist / this._globePinchStartDist;
+        this._globeZoom = Math.max(this._GLOBE_ZOOM_MIN, Math.min(this._GLOBE_ZOOM_MAX, this._globePinchStartZoom * ratio));
+        this.paintGlobe();
+        return;
+      }
+
       if (!this._globeDragging) return;
       const dx = e.clientX - this._globeLastX;
       const dy = e.clientY - this._globeLastY;
@@ -693,17 +775,32 @@ class Component extends DCLogic {
       const sens = 0.012;
       this._globeYaw += dx * sens;
       this._globeVelYaw = dx * sens;
-      const maxPitch = 1.15;
-      this._globePitch = Math.max(-maxPitch, Math.min(maxPitch, this._globePitch - dy * sens));
+      // pitch 不夾限範圍（原本限制在 ±1.15 弧度內，避免手動拖曳把球體整個
+      // 「翻過去」）。搜尋飛到北極點（startFlyTo()）常常需要把 pitch 轉到
+      // 這個範圍以外才能把目標節點轉到畫面正上方——如果拖曳還夾在 ±1.15，
+      // 飛到定位後只要使用者一伸手拖曳，pitch 會瞬間被夾回範圍內，畫面會
+      // 明顯跳一下。乾脆讓拖曳跟飛行共用同一個「pitch 沒有邊界」的規則。
+      this._globePitch -= dy * sens;
       this.paintGlobe();
     };
-    this._onGlobePointerUp = () => {
-      this._globeDragging = false;
-      document.removeEventListener('pointermove', this._onGlobePointerMove);
-      document.removeEventListener('pointerup', this._onGlobePointerUp);
-      document.removeEventListener('pointercancel', this._onGlobePointerUp);
+    this._onGlobePointerUp = (e) => {
+      this._globeActivePointers.delete(e.pointerId);
+      if (this._globeActivePointers.size < 2) this._globePinching = false;
+      if (this._globeActivePointers.size === 1) {
+        // 從兩指縮放收回成一根手指——把單指拖曳的基準點重設到剩下那根手指
+        // 目前的位置，避免手指數量切換的瞬間角度跳一下。
+        const remaining = Array.from(this._globeActivePointers.values())[0];
+        this._globeLastX = remaining.x;
+        this._globeLastY = remaining.y;
+        this._globeDragging = true;
+      } else if (this._globeActivePointers.size === 0) {
+        this._globeDragging = false;
+        document.removeEventListener('pointermove', this._onGlobePointerMove);
+        document.removeEventListener('pointerup', this._onGlobePointerUp);
+        document.removeEventListener('pointercancel', this._onGlobePointerUp);
+      }
     };
-    // 拖曳距離超過一點點門檻，放開時視為「在轉球體」而不是「點節點」，
+    // 拖曳距離超過一點點門檻，放開時視為「在轉球體/縮放」而不是「點節點」，
     // 攔截緊接在後面的 click，避免拖曳結束時誤觸連結跳轉到子頁。
     this._onGlobeClickCapture = (e) => {
       if (this._globeDragDist > 6) {
@@ -744,6 +841,10 @@ class Component extends DCLogic {
     this.ensureFlash();
     this.ensureTriangle();
     this.startFlash(id);
+    // 手機版 3D 球體：把搜到的節點飛轉到北極點固定住，其餘節點照常繞著這個
+    // 軸自轉（見 startFlyTo()/computeSpherePoseFor() 的說明）。桌機是平面
+    // 2D 圓環，沒有這個旋轉系統，不受影響。
+    if (this.state.viewportW < 768) this.startFlyTo(id);
     if (this._raf) cancelAnimationFrame(this._raf);
     this._raf = requestAnimationFrame(() => this.tick());
   }
@@ -902,9 +1003,9 @@ class Component extends DCLogic {
     return units;
   }
 
-  // 把單位球面上的一點依目前的 yaw（繞垂直軸）／pitch（繞水平軸）旋轉，
-  // 回傳旋轉後的座標——z 是「面向使用者的程度」（+1 正對螢幕、-1 在球體
-  // 背面），用來算深度相關的大小/透明度/文字顯示與否。
+  // 把一個點依給定的 yaw（繞垂直軸）／pitch（繞水平軸）旋轉，回傳旋轉後的
+  // 座標——純粹的旋轉「原語」，不管傳進來的是原始球面座標還是已經被校準層
+  // 轉過一次的中間結果，都可以用同一個函式再轉一次（見 projectUnit()）。
   rotateProject(u, yaw, pitch) {
     const cosY = Math.cos(yaw), sinY = Math.sin(yaw);
     const x1 = u.x * cosY + u.z * sinY;
@@ -915,31 +1016,104 @@ class Component extends DCLogic {
     return { x: x1, y: y2, z: z2 };
   }
 
+  // 把一個節點的原始球面座標投影成目前該畫在螢幕上的座標，套用兩層旋轉：
+  // 先套「校準層」（_globeBaseYaw/_globeBasePitch，搜尋定位後固定不變），
+  // 再套「自轉層」（_globeYaw/_globePitch，拖曳/閒置自轉持續改變）。z 是
+  // 「面向使用者的程度」（+1 正對螢幕、-1 在球體背面），用來算深度相關的
+  // 大小/透明度/文字顯示與否。沒有搜尋定位過的話 base 是 (0,0)，這一步是
+  // 恆等變換，效果跟只套自轉層完全一樣（向下相容）。
+  projectUnit(u) {
+    const aligned = (this._globeBaseYaw === 0 && this._globeBasePitch === 0)
+      ? u
+      : this.rotateProject(u, this._globeBaseYaw, this._globeBasePitch);
+    return this.rotateProject(aligned, this._globeYaw, this._globePitch);
+  }
+
+  // 解出一組 (yaw, pitch)，讓 rotateProject(該節點的球面座標, yaw, pitch)
+  // 剛好落在 (0,-1,0)——畫面正中央「上方」、y 軸上的「北極點」（SVG 的 y
+  // 座標往下遞增，screenY = cy + p.y·球半徑，所以 p.y=-1 對應畫面上緣，
+  // 不是 +1；p.y=+1 會是「南極點」，落在畫面下緣）。
+  //
+  // ⚠️ 這組角度只能拿來當「校準層」（_globeBaseYaw/_globeBasePitch）用，
+  // 不能直接疊到自轉層上：yaw 是繞 y 軸轉，「y 軸上的點不會因為 yaw 改變
+  // 而移動」這件事，只在該點本身的座標滿足 x=z=0 時才成立——而這裡算出來
+  // 的 (yaw,pitch) 只保證「這個節點被轉到 x=z=0、y=-1 的那一刻」，如果直接
+  // 把這組角度當成之後會持續變動的自轉角度基準，节点球面座標一開始 x,z
+  // 通常都不是 0，繼續改變角度時它就會沿著一個小緯度圈慢慢飄走，不會真的
+  // 釘住（實測過，飄移約 10px／1.5 秒，不是完全靜止）。正確用法是當成
+  // projectUnit() 的「校準層」：先用這組角度把目標點轉到北極點，之後的
+  // 自轉層在「已經轉過校準層」的座標系裡對北極點做 yaw 旋轉，這時候北極點
+  // 座標確實是 x=z=0，旋轉不動的性質才會成立。
+  //
+  // 推導：先選 yaw 讓旋轉後的 x 分量歸零（x1 = u.x·cosYaw + u.z·sinYaw = 0
+  // 的其中一組解），再選 pitch 把剩下的 (y1,z1)（此時已經是單位向量）轉到
+  // (-1,0)——先算出轉到 (1,0) 的角度，再加 π 剛好翻到反向。
+  computeSpherePoseFor(nodeId) {
+    const u = this.computeSphereUnits()[nodeId];
+    if (!u) return null;
+    const yaw0 = (Math.abs(u.x) < 1e-9 && Math.abs(u.z) < 1e-9) ? 0 : Math.atan2(-u.x, u.z);
+    const x1 = u.x * Math.cos(yaw0) + u.z * Math.sin(yaw0);
+    const z1 = -u.x * Math.sin(yaw0) + u.z * Math.cos(yaw0);
+    const y1 = u.y;
+    const pitch0 = Math.atan2(-z1, y1) + Math.PI;
+    return { yaw: yaw0, pitch: pitch0 };
+  }
+
+  // 開始「飛到北極點」的補間動畫：把「校準層」（_globeBaseYaw/
+  // _globeBasePitch）從目前值動畫到 computeSpherePoseFor() 算出的目標角度，
+  // globeTick() 每影格推進；同時把「自轉層」的上下傾斜（_globePitch）一併
+  // 補間回 0，讓飛到定位那一刻目標節點剛好落在畫面正上方置中，不會被飛行
+  // 前使用者留下的傾斜角度帶偏。左右自轉（_globeYaw）完全不受影響、飛行中
+  // 維持原樣繼續轉——反正自轉層是疊加在校準層「之上」的，北極點在校準後
+  // 的座標系裡本來就是 x=z=0，yaw 轉多少都不影響它，不需要在飛行時特地
+  // 暫停或歸零。base 角度會先換算成跟目前角度差距最小的等效角度（因為
+  // 角度會一直累加、可能已經轉了很多圈），確保動畫走最短路徑，不會憑空
+  // 多繞好幾圈或轉錯方向。
+  startFlyTo(nodeId) {
+    const pose = this.computeSpherePoseFor(nodeId);
+    if (!pose) return;
+    this._globeDragging = false;
+    this._globeVelYaw = 0;
+    const TWO_PI = Math.PI * 2;
+    const kYaw = Math.round((this._globeBaseYaw - pose.yaw) / TWO_PI);
+    const kPitch = Math.round((this._globeBasePitch - pose.pitch) / TWO_PI);
+    this._globeFlyStartBaseYaw = this._globeBaseYaw;
+    this._globeFlyStartBasePitch = this._globeBasePitch;
+    this._globeFlyTargetBaseYaw = pose.yaw + kYaw * TWO_PI;
+    this._globeFlyTargetBasePitch = pose.pitch + kPitch * TWO_PI;
+    this._globeFlyStartSpinPitch = this._globePitch;
+    this._globeFlyStartTime = performance.now();
+    this._globeFlying = true;
+  }
+
   // 算出手機版球體上每個節點「這一影格」該畫在哪、多大、標籤要不要顯示。
   // renderVals()（決定樣板初次/常規渲染的內容）跟 paintGlobe()（拖曳/慣性
   // 旋轉時繞過 setState、直接寫 DOM 屬性的高頻更新）共用同一份幾何計算，
   // 避免兩邊算法兜不起來、旋轉到一半又被另一邊的舊數字蓋回去。
   buildGlobeGeometry() {
     const cx = 450, cy = 450;
-    const sphereR = this._GLOBE_SPHERE_RADIUS_VB;
+    // 雙指縮放：_globeZoom 乘進球半徑，等於整顆球（含節點大小、字級、標籤
+    // 偏移）依同一個倍率放大/縮小，維持縮放時的視覺比例一致。
+    const sphereR = this._GLOBE_SPHERE_RADIUS_VB * this._globeZoom;
     const baseFontSize = this._GLOBE_BASE_FONT_SIZE;
     const units = this.computeSphereUnits();
     const nodeRadiusMap = this.computeNodeRadiusMap();
-    const yaw = this._globeYaw, pitch = this._globePitch;
+    const zoom = this._globeZoom;
     const geo = {};
     this.nodeData.forEach(d => {
-      const p = this.rotateProject(units[d.id], yaw, pitch);
+      const p = this.projectUnit(units[d.id]);
       // depthT: 0 = 球體最遠端、1 = 正對螢幕最近端。
       const depthT = (p.z + 1) / 2;
-      const scale = 0.5 + depthT * 0.8;
+      const scale = (0.5 + depthT * 0.8) * zoom;
       const baseR = nodeRadiusMap[d.id] * this.dotScale;
       const r = baseR * scale;
       const screenX = cx + p.x * sphereR;
       const screenY = cy + p.y * sphereR;
       const isRight = p.x >= 0;
       const fontSize = Math.round(baseFontSize * Math.min(1.25, Math.max(0.8, scale)));
-      const labelGap = 12;
+      const labelGap = 12 * zoom;
       const labelPointX = screenX + (isRight ? 1 : -1) * (r + labelGap);
+      const isSpecial = this.specialIds.includes(d.id);
       geo[d.id] = {
         cx: screenX, cy: screenY, r, depthT, scale, isRight,
         fontSize, labelPointX, labelPointY: screenY,
@@ -947,7 +1121,11 @@ class Component extends DCLogic {
         // 全部同時顯示在球面上，前後文字會疊成一團完全看不清楚；只顯示面向
         // 使用者這一側，效果比較接近「轉到面前才看得到標籤」的地球儀讀法。
         labelVisible: depthT > 0.72,
-        hitR: Math.max(20, 30 * scale)
+        hitR: Math.max(20, 30 * scale),
+        // 手機版只有「章/成/法/構」這幾個分類大標節點可以點擊導覽，其餘
+        // 一般節點只負責組成球體視覺，不接受點擊——見 renderVals() 裡
+        // pointerEvents 的說明。
+        clickable: isSpecial
       };
     });
     return geo;
@@ -957,15 +1135,14 @@ class Component extends DCLogic {
   // 越淡，維持「連線構成球體輪廓」的視覺，同時不會讓背面線條搶過正面內容）。
   buildGlobeEdgeGeometry() {
     const cx = 450, cy = 450;
-    const sphereR = this._GLOBE_SPHERE_RADIUS_VB;
+    const sphereR = this._GLOBE_SPHERE_RADIUS_VB * this._globeZoom;
     const units = this.computeSphereUnits();
-    const yaw = this._globeYaw, pitch = this._globePitch;
     return this.edgeData
       .map(([a, b], i) => {
         const ua = units[a], ub = units[b];
         if (!ua || !ub) return null;
-        const pa = this.rotateProject(ua, yaw, pitch);
-        const pb = this.rotateProject(ub, yaw, pitch);
+        const pa = this.projectUnit(ua);
+        const pb = this.projectUnit(ub);
         const avgDepth = (((pa.z + 1) / 2) + ((pb.z + 1) / 2)) / 2;
         return {
           id: 'e' + i, a, b,
@@ -1047,17 +1224,33 @@ class Component extends DCLogic {
     });
   }
 
-  // 常駐的球體動畫迴圈：拖曳中什麼都不做（pointermove 已經直接呼叫過
-  // paintGlobe()），放開後讓拖曳當下的角速度用摩擦力慢慢衰減到 0，同時疊加
-  // 一個很慢的閒置自轉，讓球體感覺「活著」而不是靜止的裝飾圖。桌機（viewportW
-  // >= 768）不執行任何動作，只是每影格檢查一次，成本可以忽略。
+  // 常駐的球體動畫迴圈：飛到北極點的動畫優先（見 startFlyTo()）；沒有在飛、
+  // 也沒在拖曳時，讓拖曳當下的角速度用摩擦力慢慢衰減到 0，同時疊加一個很慢
+  // 的閒置自轉，讓球體感覺「活著」而不是靜止的裝飾圖。桌機（viewportW >=
+  // 768）不執行任何動作，只是每影格檢查一次，成本可以忽略。
   globeTick() {
-    if (this.state.viewportW < 768 && !this._globeDragging) {
-      this._globeVelYaw *= 0.94;
-      if (Math.abs(this._globeVelYaw) < 0.0006) this._globeVelYaw = 0;
-      const idleSpeed = 0.0022;
-      this._globeYaw += this._globeVelYaw + idleSpeed;
-      this.paintGlobe();
+    if (this.state.viewportW < 768) {
+      if (this._globeFlying) {
+        const t = Math.min(1, (performance.now() - this._globeFlyStartTime) / this._globeFlyDuration);
+        // easeInOutCubic：起步/收尾慢，中段快，比等速線性補間更像「飛過去」。
+        const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        this._globeBaseYaw = this._globeFlyStartBaseYaw + (this._globeFlyTargetBaseYaw - this._globeFlyStartBaseYaw) * eased;
+        this._globeBasePitch = this._globeFlyStartBasePitch + (this._globeFlyTargetBasePitch - this._globeFlyStartBasePitch) * eased;
+        this._globePitch = this._globeFlyStartSpinPitch * (1 - eased);
+        if (t >= 1) {
+          this._globeBaseYaw = this._globeFlyTargetBaseYaw;
+          this._globeBasePitch = this._globeFlyTargetBasePitch;
+          this._globePitch = 0;
+          this._globeFlying = false;
+        }
+        this.paintGlobe();
+      } else if (!this._globeDragging) {
+        this._globeVelYaw *= 0.94;
+        if (Math.abs(this._globeVelYaw) < 0.0006) this._globeVelYaw = 0;
+        const idleSpeed = 0.0022;
+        this._globeYaw += this._globeVelYaw + idleSpeed;
+        this.paintGlobe();
+      }
     }
     this._globeRaf = requestAnimationFrame(() => this.globeTick());
   }
@@ -1162,6 +1355,14 @@ class Component extends DCLogic {
           pivotY: g.labelPointY,
           opacity: (dimmed ? 0.3 : 1) * depthOpacity,
           labelDisplay: g.labelVisible ? 'block' : 'none',
+          // 手機版只有章/成/法/構這幾個分類大標節點可以點擊導覽子頁，其餘
+          // 一般（小）節點只負責組成球體視覺——116 個節點擠在一顆小球上，
+          // 大部分小點轉到背面時完全看不到文字，誤觸的機率很高、又點不到
+          // 想要的頁面，乾脆讓它們單純不接受點擊。用 pointer-events:none
+          // 蓋在最外層的 <a> 上，整個子樹（含 <a> 自己）都不會再吃到滑鼠/
+          // 觸控事件。桌機不受影響，全部節點照常可以點擊。
+          pointerEvents: g.clickable ? 'auto' : 'none',
+          cursorStyle: g.clickable ? 'pointer' : 'default',
           onEnter: () => this.setHover(d.id),
           onLeave: () => this.clearHover()
         };
@@ -1279,6 +1480,8 @@ class Component extends DCLogic {
           pivotY: labelPointY,
           opacity: dimmed ? 0.3 : 1,
           labelDisplay: 'block',
+          pointerEvents: 'auto',
+          cursorStyle: 'pointer',
           onEnter: () => this.setHover(d.id),
           onLeave: () => this.clearHover()
         };
@@ -1303,22 +1506,23 @@ class Component extends DCLogic {
       spotlight, hasSpotlight,
       isMobile,
       headerPadding: isMobile ? '16px 16px' : '24px 40px',
-      // 手機版（2026-07-31 起）是可拖曳旋轉的 3D 球體，容器寬度公式因此
-      // 跟桌機版的 2D 圓環是兩回事、不能沿用同一個數字。量測方式也不一樣：
-      // 2D 圓環是靜態的，量一次就夠；3D 球體使用者可以拖到任何角度，同一組
-      // 文字可能這一刻在安全範圍內、轉個角度就跑到螢幕外，所以用 Playwright
-      // 模擬拖曳到大量不同 yaw/pitch 角度（含密集掃描），每個角度都量一次
-      // 目前「正面顯示中」的文字框邊界，取全部角度裡最差的那個。88vw 在預設
-      // 角度看起來沒問題，但轉到某些角度會有節點文字超出螢幕（最多到 9 個）；
-      // 縮到 60vw 之後，密集掃描全部角度都是 0 個超出螢幕，才定案。
-      diagramContainerWidth: isMobile ? 'min(60vw, 56vh)' : 'min(90vw, 86vh)',
+      // 手機版（2026-07-31 起）是可拖曳旋轉、可雙指縮放的 3D 球體。容器本身
+      // 放大到接近整個螢幕寬度（依畫面等比例縮放），比早期單純 2D 縮圖時期
+      // 大很多——之所以敢放這麼大，是因為手機版容器另外加了
+      // `overflow:hidden`（見 globeOverflow），球體/文字就算轉到某個極端角度
+      // 短暫超出容器範圍，也只會被裁掉、不會真的溢出到容器外面的頁面上，
+      // 不需要再像 2D 版那樣為了「絕對不能超出螢幕」把容器縮得很保守。
+      // 桌機/平板的 2D 圓環完全不受影響，維持原本 90vw 公式跟預設的
+      // overflow:visible（本來就需要讓文字延伸到 viewBox 外一點點）。
+      diagramContainerWidth: isMobile ? 'min(92vw, 88vh)' : 'min(90vw, 86vh)',
+      globeOverflow: isMobile ? 'hidden' : 'visible',
       edgeStrokeWidth: isMobile ? 2 : 1,
       // 3D 球體用 paintGlobe() 每影格直接寫 cx/cy/r/opacity 等屬性做旋轉動畫，
       // 如果 CSS transition 還留著，每一次直接寫入都會被拖著跑 0.25s 的緩動，
       // 反而讓拖曳跟手感變得黏滯、有延遲；手機版直接關掉這兩個 transition。
       nodeTransition: isMobile ? 'none' : 'opacity 0.25s ease',
       edgeTransition: isMobile ? 'none' : 'opacity 0.25s ease, stroke 0.3s',
-      // 拖曳球體時不要讓瀏覽器把手勢當成「頁面垂直捲動」搶走。
+      // 拖曳/縮放球體時不要讓瀏覽器把手勢當成「頁面捲動/放大頁面」搶走。
       globeTouchAction: isMobile ? 'none' : 'auto',
       titleBoxX, titleBoxWidth, titleFontSize, subtitleFontSize,
       searchBoxDisplay: isMobile ? 'none' : 'flex',
