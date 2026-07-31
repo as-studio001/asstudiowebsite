@@ -92,9 +92,10 @@
   a:hover { color: inherit; opacity: 0.6; }
   @keyframes flashBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.08; } }
   @keyframes arrowPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+  @keyframes dashFlow { to { stroke-dashoffset: -0.11; } }
 </style>
 </helmet>
-<div style="background:{{ bgColor }}; color:{{ textColor }}; font-family:'Helvetica Neue',Helvetica,Arial,'PingFang TC','Microsoft JhengHei',sans-serif; width:100%; min-height:100vh; transition:background-color 0.3s, color 0.3s;">
+<div style="background:{{ bgColor }}; color:{{ textColor }}; font-family:'Helvetica Neue',Helvetica,Arial,'PingFang TC','Microsoft JhengHei',sans-serif; width:100%; min-height:100vh; display:{{ pageDisplay }}; flex-direction:{{ pageFlexDirection }}; transition:background-color 0.3s, color 0.3s;">
 
   <!-- MOBILE SEARCH BAR（手機搜尋展開時，蓋在頁首上方，同一列換成輸入框 + 關閉鈕） -->
   <sc-if value="{{ showMobileSearchBar }}" hint-placeholder-val="{{ false }}">
@@ -194,9 +195,9 @@
   </header>
 
   <!-- NETWORK DIAGRAM -->
-  <section id="works" style="padding:450px 12px; position:relative; z-index:2;">
-    <div data-globe-surface="1" style="width:{{ diagramContainerWidth }}; max-width:2000px; margin:0 auto; aspect-ratio:1/1; touch-action:{{ globeTouchAction }}; overflow:{{ globeOverflow }};">
-      
+  <section id="works" style="padding:{{ worksPaddingTop }} 12px {{ worksPaddingBottom }}; position:relative; z-index:2; display:{{ worksDisplayMode }}; flex-grow:{{ worksFlexGrow }}; min-height:0;">
+    <div data-globe-surface="1" style="width:100%; height:{{ globeSurfaceHeight }}; display:{{ globeSurfaceDisplay }}; align-items:center; justify-content:center; touch-action:{{ globeTouchAction }}; overflow:{{ globeOverflow }};">
+    <div style="width:{{ diagramContainerWidth }}; max-width:2000px; margin:0 auto; aspect-ratio:1/1; flex-shrink:0;">
     <svg viewBox="0 0 900 900" width="100%" height="100%" style="overflow: visible; fill: #930707">
         <sc-if value="{{ hasSpotlight }}" hint-placeholder-val="{{ false }}">
           <defs>
@@ -232,7 +233,7 @@
             <div style="font-size:{{ subtitleFontSize }}px; letter-spacing:0.06em; color:{{ textColor }}; opacity:0.55; margin-top:10px; white-space:nowrap; transition:color 0.3s;">Architecture + Structure</div>
           </div>
         </foreignObject>
-      </svg></div>
+      </svg></div></div>
   </section>
 
   <!-- FOOTER -->
@@ -832,6 +833,8 @@ class Component extends DCLogic {
     if (this._fadeTimer) clearTimeout(this._fadeTimer);
     if (this._flash) this._flash.remove();
     if (this._tri) this._tri.remove();
+    if (this._pinLineSvg) this._pinLineSvg.remove();
+    if (this._pinLink) this._pinLink.remove();
   }
 
   goToNode(id) {
@@ -844,7 +847,20 @@ class Component extends DCLogic {
     // 手機版 3D 球體：把搜到的節點飛轉到北極點固定住，其餘節點照常繞著這個
     // 軸自轉（見 startFlyTo()/computeSpherePoseFor() 的說明）。桌機是平面
     // 2D 圓環，沒有這個旋轉系統，不受影響。
-    if (this.state.viewportW < 768) this.startFlyTo(id);
+    if (this.state.viewportW < 768) {
+      this.startFlyTo(id);
+      // 手機版地標 icon＋虛線（見 ensureLandmark()）：只在手機版顯示，桌機
+      // 的節點本來就都能直接點，不需要這個額外的導覽入口。
+      const node = this.nodeData.find(d => d.id === id);
+      this.ensureLandmark();
+      if (node && this._pinLink) {
+        this._pinLink.href = node.href;
+        if (this._pinLinkLabel) this._pinLinkLabel.textContent = node.name;
+      }
+      // 重新記錄成長動畫的起始時間，讓虛線每次搜尋定位都重新「長出來」一次，
+      // 就算上一次的虛線還沒完全淡出也一樣重新播放。
+      this._pinGrowStart = performance.now();
+    }
     if (this._raf) cancelAnimationFrame(this._raf);
     this._raf = requestAnimationFrame(() => this.tick());
   }
@@ -884,6 +900,45 @@ class Component extends DCLogic {
     return wrap;
   }
 
+  // 手機版搜尋定位後，標註點正上方的虛線＋地標 icon：讓使用者除了點小小的
+  // 圓點本身，還有一個大很多、明顯是「可以點」的目標可以進入子頁。虛線用
+  // 一個蓋滿整個畫面的 <svg>（跟 flash/triangle 一樣是原生 DOM、不透過樣板，
+  // 理由相同——見上面 field 宣告處的說明）裝一條 <line>，pathLength="1" 讓
+  // stroke-dasharray/dashoffset 可以用 0~1 的比例表示「畫了多少」，不用管
+  // 線實際多長；地標 icon 是一個真正的 <a href>，讓既有的頁面轉場腳本
+  // （document 上監聽 a[href$=".dc.html"] 的那段）可以直接處理點擊導覽，
+  // 不用另外重寫一套轉場邏輯。
+  ensureLandmark() {
+    if (this._pinLineSvg && document.body.contains(this._pinLineSvg)) return;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('style', 'position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; opacity:0; transition:opacity 0.3s ease;');
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('pathLength', '1');
+    // 顏色（黑／金）在 tick() 裡依 isDarkMode 動態設定，這裡先給個預設值。
+    line.setAttribute('stroke', '#000000');
+    line.setAttribute('stroke-width', '3');
+    line.setAttribute('stroke-linecap', 'round');
+    line.setAttribute('stroke-dasharray', '0.06 0.05');
+    line.style.animation = 'dashFlow 0.6s linear infinite';
+    line.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,0.35))';
+    svg.appendChild(line);
+    document.body.appendChild(svg);
+    this._pinLineSvg = svg;
+    this._pinLineEl = line;
+
+    const a = document.createElement('a');
+    a.style.cssText = 'position:fixed; left:50%; top:50%; transform:translate(-50%,-100%); z-index:951; display:flex; opacity:0; pointer-events:none; transition:opacity 0.3s ease; filter:drop-shadow(0 2px 5px rgba(0,0,0,0.4));';
+    // 純線條、不填色的地標 icon（跟頁首搜尋/漢堡選單那些線條 icon 同一種
+    // 風格）——顏色用 currentColor，跟著 tick() 裡設在 <a> 上的 color 走。
+    a.innerHTML = '<svg width="30" height="38" viewBox="0 0 24 32" fill="none" stroke="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20C24 5.4 18.6 0 12 0z" stroke-width="2"></path><circle cx="12" cy="12" r="4.3" stroke-width="2"></circle></svg>';
+    const label = document.createElement('div');
+    label.style.cssText = 'position:absolute; width:1px; height:1px; overflow:hidden; opacity:0;';
+    a.appendChild(label);
+    document.body.appendChild(a);
+    this._pinLink = a;
+    this._pinLinkLabel = label;
+  }
+
   startFlash(id) {
     const f = this._flash;
     const dot = document.querySelector('[data-dot="' + id + '"]');
@@ -907,14 +962,17 @@ class Component extends DCLogic {
 
   dismissFlash() {
     this._dismissing = true;
-    const f = this._flash, t = this._tri;
+    const f = this._flash, t = this._tri, pl = this._pinLineSvg, pin = this._pinLink;
     if (f) f.style.opacity = '0';
     if (t) t.style.opacity = '0';
+    if (pl) pl.style.opacity = '0';
+    if (pin) pin.style.opacity = '0';
     if (this._fadeTimer) clearTimeout(this._fadeTimer);
     this._fadeTimer = setTimeout(() => {
       if (this._raf) cancelAnimationFrame(this._raf);
       this._raf = null;
       if (f) f.style.display = 'none';
+      if (pin) pin.style.display = 'none';
       this.setState({ flashId: null, hoveredId: null });
     }, 480);
   }
@@ -951,6 +1009,45 @@ class Component extends DCLogic {
         if (this._flash) this._flash.style.opacity = inView ? '1' : '0';
         if (this._tri) this._tri.style.opacity = inView ? '0' : '1';
       }
+
+      // 手機版地標 icon＋虛線：只在手機版、標註點在畫面內時顯示，跟著 dot
+      // 的即時螢幕座標更新（globe 每影格都在動，這裡本來就已經是每影格重新
+      // 量測 dot 位置的迴圈，順便一起更新最省事）。桌機沒有這組元素可更新
+      // （ensureLandmark() 只在 goToNode() 手機分支才會呼叫），這幾個 if
+      // 自然是 no-op。
+      if (this._pinLineSvg && this._pinLink) {
+        const showPin = isMobileTick && inView && !this._dismissing;
+        if (showPin) {
+          const dotR = Math.max(dr.width, dr.height) / 2;
+          const lineLen = dotR + 60;
+          // 虛線向上延伸的「長出來」動畫：搜尋定位後 380ms 內從 0 長到全長，
+          // 之後維持全長，靠 CSS 的 dashFlow 關鍵影格做持續流動的虛線效果。
+          const growMs = 380;
+          const g = this._pinGrowStart ? Math.min(1, (performance.now() - this._pinGrowStart) / growMs) : 1;
+          const eased = 1 - Math.pow(1 - g, 3);
+          const startY = cyp - dotR;
+          const endY = startY - lineLen * eased;
+          // 淺色模式黑線、深色模式金線（跟 specialColor 深色模式用的金色是
+          // 同一個色號）——不是黃色亮點那種填色強調，純粹線條，所以每影格
+          // 直接依目前 isDarkMode 設定顏色，深色模式切換當下也會立刻跟著換。
+          const pinColor = this.state.isDarkMode ? '#BDA434' : '#000000';
+          this._pinLineEl.setAttribute('x1', cxp);
+          this._pinLineEl.setAttribute('y1', startY);
+          this._pinLineEl.setAttribute('x2', cxp);
+          this._pinLineEl.setAttribute('y2', endY);
+          this._pinLineEl.setAttribute('stroke', pinColor);
+          this._pinLineSvg.style.opacity = String(eased);
+          this._pinLink.style.left = cxp + 'px';
+          this._pinLink.style.top = endY + 'px';
+          this._pinLink.style.opacity = String(eased);
+          this._pinLink.style.color = pinColor;
+          this._pinLink.style.pointerEvents = eased > 0.6 ? 'auto' : 'none';
+        } else {
+          this._pinLineSvg.style.opacity = '0';
+          this._pinLink.style.opacity = '0';
+          this._pinLink.style.pointerEvents = 'none';
+        }
+      }
     }
     this._raf = requestAnimationFrame(() => this.tick());
   }
@@ -982,23 +1079,49 @@ class Component extends DCLogic {
     return map;
   }
 
-  // 手機版 3D 球體：把 116 個節點平均分布在單位球面上（Fibonacci sphere
-  // 演算法），照 nodeData 的原始順序（跟桌機圓環一樣沿用試算表列順序）決定
-  // 每個節點在球面上的固定位置——旋轉只會轉動這些點的「觀察角度」，點跟點
-  // 之間的相對位置（也就是資料結構本身）不會變。這份配置不依賴旋轉角度，
-  // 算一次記住即可。
+  // 手機版 3D 球體：把 116 個節點分布在單位球面上（Fibonacci sphere 演算法
+  // ——黃金角讓「連續索引」在球面上均勻散開，緯度靠索引線性決定高度，經度靠
+  // 黃金角螺旋決定角度）。旋轉只會轉動這些點的「觀察角度」，點跟點之間的
+  // 相對位置（也就是資料結構本身）不會變。這份配置不依賴旋轉角度，算一次
+  // 記住即可。
+  //
+  // specialIds（章/成/法/構等 11 個分類大標節點）跟其餘 105 個一般節點，
+  // 分成兩組各自獨立跑一次 Fibonacci sphere 公式，不是全部 116 個共用同一
+  // 組連續索引（2026-07-31 修正——使用者回報「大標題」在球面上擠成一團）。
+  //
+  // ⚠️ 一開始的修法是錯的，記錄一下避免以後重踩：曾經試過「全部共用同一組
+  // 116 個索引，但保留 11 個平均間隔（每 116/11≈10.5 個位置一個）的槽位給
+  // specialIds」——緯度（y）確實變均勻了（線性函數，索引平均分佈，y 自然
+  // 平均分佈），但經度（theta = 黃金角 × 索引）完全沒有均勻分佈：黃金角
+  // 「相鄰索引分散」的性質只在**間隔為 1** 的連續索引上成立，間隔約 10.5
+  // 的索引之間，theta 每次只增加「黃金角×10.5 mod 360°」這一個固定的小
+  // 角度（實測約 3.8°），11 個點的 theta 全部擠在 0°~103° 這一小段裡，
+  // 反而比原本更集中在經度方向。用 Playwright 直接讀 `computeSphereUnits()`
+  // 的原始座標驗證過這個問題，不是肉眼猜的。
+  //
+  // 正確做法：specialList、regularList 各自從 i=0 開始，各自代入自己那組
+  // 的 n（11、105）算 Fibonacci sphere——黃金角「連續索引均勻散開全球面」
+  // 的性質對任何 n 都成立，兩組各自單獨看都會均勻覆蓋整個球面（緯度、經度
+  // 都均勻），疊在同一顆球上自然不會擠成一團。desktop 的 2D 圓環排版完全
+  // 不受影響（那邊沒有呼叫這個方法，走的是自己的 arc-walk 邏輯）。
   computeSphereUnits() {
     if (this._sphereUnits) return this._sphereUnits;
-    const list = this.nodeData;
-    const n = list.length;
+    const specialSet = new Set(this.specialIds);
+    const specialList = this.nodeData.filter(d => specialSet.has(d.id));
+    const regularList = this.nodeData.filter(d => !specialSet.has(d.id));
     const units = {};
     const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-    list.forEach((d, i) => {
-      const y = n > 1 ? 1 - (i / (n - 1)) * 2 : 0;
-      const rAtY = Math.sqrt(Math.max(0, 1 - y * y));
-      const theta = goldenAngle * i;
-      units[d.id] = { x: Math.cos(theta) * rAtY, y, z: Math.sin(theta) * rAtY };
-    });
+    const placeGroup = (list) => {
+      const n = list.length;
+      list.forEach((d, i) => {
+        const y = n > 1 ? 1 - (i / (n - 1)) * 2 : 0;
+        const rAtY = Math.sqrt(Math.max(0, 1 - y * y));
+        const theta = goldenAngle * i;
+        units[d.id] = { x: Math.cos(theta) * rAtY, y, z: Math.sin(theta) * rAtY };
+      });
+    };
+    placeGroup(specialList);
+    placeGroup(regularList);
     this._sphereUnits = units;
     return units;
   }
@@ -1361,8 +1484,11 @@ class Component extends DCLogic {
           // 想要的頁面，乾脆讓它們單純不接受點擊。用 pointer-events:none
           // 蓋在最外層的 <a> 上，整個子樹（含 <a> 自己）都不會再吃到滑鼠/
           // 觸控事件。桌機不受影響，全部節點照常可以點擊。
-          pointerEvents: g.clickable ? 'auto' : 'none',
-          cursorStyle: g.clickable ? 'pointer' : 'default',
+          // 例外：目前被搜尋標註（黃色亮點）的節點一律恢復可點擊，就算它
+          // 本來是不可點的小節點——搜尋定位後使用者理應能直接點這個點進
+          // 子頁，不是只能點旁邊冒出來的地標 icon（見 ensureLandmark()）。
+          pointerEvents: (g.clickable || d.id === this.state.flashId) ? 'auto' : 'none',
+          cursorStyle: (g.clickable || d.id === this.state.flashId) ? 'pointer' : 'default',
           onEnter: () => this.setHover(d.id),
           onLeave: () => this.clearHover()
         };
@@ -1506,14 +1632,31 @@ class Component extends DCLogic {
       spotlight, hasSpotlight,
       isMobile,
       headerPadding: isMobile ? '16px 16px' : '24px 40px',
-      // 手機版（2026-07-31 起）是可拖曳旋轉、可雙指縮放的 3D 球體。容器本身
-      // 放大到接近整個螢幕寬度（依畫面等比例縮放），比早期單純 2D 縮圖時期
-      // 大很多——之所以敢放這麼大，是因為手機版容器另外加了
-      // `overflow:hidden`（見 globeOverflow），球體/文字就算轉到某個極端角度
-      // 短暫超出容器範圍，也只會被裁掉、不會真的溢出到容器外面的頁面上，
-      // 不需要再像 2D 版那樣為了「絕對不能超出螢幕」把容器縮得很保守。
-      // 桌機/平板的 2D 圓環完全不受影響，維持原本 90vw 公式跟預設的
-      // overflow:visible（本來就需要讓文字延伸到 viewBox 外一點點）。
+      // 手機版整個頁面（最外層那個 div）改成 flex column，讓 #works 用
+      // flex-grow 吃掉頁首（position:fixed，不佔 flex 空間）跟頁尾之間的
+      // 剩餘高度——2026-07-31 修正，使用者回報「好像有一個框架罩住主視覺」，
+      // 確認是指球體容器（data-globe-surface）本身的裁切邊界，要求上緣貼齊
+      // 頁首下緣、下緣貼齊頁尾上緣。桌機/平板維持原本的 block 版面，不受影響。
+      pageDisplay: isMobile ? 'flex' : 'block',
+      pageFlexDirection: 'column',
+      // #works 的上邊距只需要清開固定定位的頁首——用 Playwright 實測頁首
+      // 實際高度是 96px（`headerPadding` 16px 上下 + 內容最高的深色模式
+      // 切換鈕 44px），第一版抓 80px 短了 16px，球體裁切框上緣會被頁首蓋掉
+      // 一截，改成精確的 96px，貼齊頁首下緣。不再像桌機那樣留 450px 的大量
+      // 留白；下邊距歸零，讓 flex-grow 自己把剩餘空間吃滿到頁尾正上方。
+      worksPaddingTop: isMobile ? '96px' : '450px',
+      worksPaddingBottom: isMobile ? '0px' : '450px',
+      worksDisplayMode: isMobile ? 'flex' : 'block',
+      worksFlexGrow: isMobile ? '1' : '0',
+      // data-globe-surface 現在是「裁切框」本身，手機版撐滿 #works 的全部
+      // 高度（也就是頁首下緣到頁尾上緣這整段），球體視覺（下面新增的內層
+      // `<div>`，寬高仍是原本那組 diagramContainerWidth 算出來的正方形）
+      // 用 flex 置中在這個裁切框正中央——這樣裁切邊界比視覺球體本身大
+      // 很多，旋轉/縮放時的安全邊界更寬，同時裁切框的上下緣精確貼齊頁首/
+      // 頁尾。桌機/平板這個框跟視覺球體是同一塊大小（height:auto、
+      // display:block，讓外層直接收縮包住內層的正方形），跟改動前完全一樣。
+      globeSurfaceHeight: isMobile ? '100%' : 'auto',
+      globeSurfaceDisplay: isMobile ? 'flex' : 'block',
       diagramContainerWidth: isMobile ? 'min(92vw, 88vh)' : 'min(90vw, 86vh)',
       globeOverflow: isMobile ? 'hidden' : 'visible',
       edgeStrokeWidth: isMobile ? 2 : 1,
