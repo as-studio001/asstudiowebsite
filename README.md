@@ -1,7 +1,5 @@
 # **網頁更新操作手冊(使用Claude編寫)**
 ## **1.關於github**  
-帳號:as.studio001@gmail.com  
-密碼:Petermax2026  
 主頁(原型未來)程式碼:index.html  
 ## **2.關於wix**  
 帳號:as.studio001@gmail.com  
