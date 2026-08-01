@@ -93,6 +93,8 @@
   @keyframes flashBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.08; } }
   @keyframes arrowPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
   @keyframes dashFlow { to { stroke-dashoffset: -0.11; } }
+  @keyframes pinClickPress { 0% { transform: scale(1); } 40% { transform: scale(0.75); } 100% { transform: scale(1); } }
+  @keyframes pinClickRipple { 0% { transform: translate(-50%,-50%) scale(0.25); opacity: 0.85; } 100% { transform: translate(-50%,-50%) scale(2.6); opacity: 0; } }
 </style>
 </helmet>
 <div style="background:{{ bgColor }}; color:{{ textColor }}; font-family:'Helvetica Neue',Helvetica,Arial,'PingFang TC','Microsoft JhengHei',sans-serif; width:100%; min-height:100vh; display:{{ pageDisplay }}; flex-direction:{{ pageFlexDirection }}; transition:background-color 0.3s, color 0.3s;">
@@ -217,7 +219,7 @@
   <section id="works" style="padding:{{ worksPaddingTop }} 12px {{ worksPaddingBottom }}; position:relative; z-index:2; display:{{ worksDisplayMode }}; flex-grow:{{ worksFlexGrow }}; min-height:0;">
     <div data-globe-surface="1" style="width:100%; height:{{ globeSurfaceHeight }}; display:{{ globeSurfaceDisplay }}; align-items:center; justify-content:center; touch-action:{{ globeTouchAction }}; overflow:{{ globeOverflow }};">
     <div style="width:{{ diagramContainerWidth }}; max-width:2000px; margin:0 auto; aspect-ratio:1/1; flex-shrink:0;">
-    <svg viewBox="0 0 900 900" width="100%" height="100%" style="overflow: visible; fill: #930707">
+    <svg data-globe-svg="1" viewBox="0 0 900 900" width="100%" height="100%" style="overflow: visible; fill: #930707; transition: transform 0.4s ease;">
         <sc-if value="{{ hasSpotlight }}" hint-placeholder-val="{{ false }}">
           <defs>
             <linearGradient id="spotlightGrad" gradientUnits="userSpaceOnUse" x1="{{ spotlight.x1 }}" y1="{{ spotlight.y1 }}" x2="{{ spotlight.x2 }}" y2="{{ spotlight.y2 }}">
@@ -1052,6 +1054,15 @@ class Component extends DCLogic {
       if (node && this._pinLink) {
         this._pinLink.href = node.href;
         if (this._pinLinkLabel) this._pinLinkLabel.textContent = node.name;
+        // dismissFlash() 的淡出計時器結束時會把 display 設成 'none'（見該
+        // 方法），但沒有任何地方會把它設回來——ensureLandmark() 本身只在
+        // 元素第一次建立時才會設 display:flex，第二次之後因為元素已經存在
+        // 直接 return，不會重新設定。結果是「第一次搜尋正常出現，dismiss
+        // 之後 display 卡在 none，第二次搜尋 icon 再也不會出現」（使用者
+        // 回報「2 次搜尋後 icon 跑不出來」，2026-08-02 修正）。每次重新
+        // 定位都要主動把 display 撥回來，跟 startFlash() 每次都重設
+        // `f.style.display = 'block'` 是同一個道理。
+        this._pinLink.style.display = 'flex';
       }
       // 重新記錄成長動畫的起始時間，讓虛線每次搜尋定位都重新「長出來」一次，
       // 就算上一次的虛線還沒完全淡出也一樣重新播放。
@@ -1152,12 +1163,55 @@ class Component extends DCLogic {
     // 風格）——顏色用 currentColor，跟著 tick() 裡設在 <a> 上的 color 走。
     // 尺寸縮小成原本的一半（30x38 -> 15x19）、描邊也減半（2 -> 1），兩者
     // 疊加後視覺線條會更細（2026-07-31 調整）。
-    a.innerHTML = '<svg width="15" height="19" viewBox="0 0 24 32" fill="none" stroke="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20C24 5.4 18.6 0 12 0z" stroke-width="1"></path><circle cx="12" cy="12" r="4.3" stroke-width="1"></circle></svg>';
+    // 點擊回饋（2026-08-02 新增）：icon 本身按壓縮放 + 一圈黃色漣漪往外
+    // 擴散淡出，示意「點下去會進入該子頁」——跟圓點點擊沿用同一個黃色
+    // （specialColor 深色模式那組金色），視覺語言一致。漣漪 span 用
+    // position:absolute 疊在 icon 正中央，`a` 本身是 position:fixed，剛好
+    // 是最近的定位祖先，不需要另外包一層 wrapper。
+    a.innerHTML = '<span class="pin-ripple" style="position:absolute; left:50%; top:50%; width:26px; height:26px; border-radius:50%; background:radial-gradient(circle, rgba(255,208,0,0.9) 0%, rgba(255,208,0,0.5) 55%, rgba(255,208,0,0) 100%); opacity:0; pointer-events:none; transform:translate(-50%,-50%) scale(0.25);"></span><svg width="15" height="19" viewBox="0 0 24 32" fill="none" stroke="currentColor" style="position:relative; transform-origin:50% 50%;"><path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20C24 5.4 18.6 0 12 0z" stroke-width="1"></path><circle cx="12" cy="12" r="4.3" stroke-width="1"></circle></svg>';
     const label = document.createElement('div');
     label.style.cssText = 'position:absolute; width:1px; height:1px; overflow:hidden; opacity:0;';
     a.appendChild(label);
     document.body.appendChild(a);
     this._pinLink = a;
+    this._pinRipple = a.querySelector('.pin-ripple');
+    this._pinIconSvg = a.querySelector('svg');
+    // 2026-08-02 修正：使用者回報「漣漪不是點擊觸發，而是地標一出現就
+    // 不斷播放」——本機用滑鼠點擊、真實觸控事件模擬、事件計數器都測不出
+    // click 監聽器被多次觸發，懷疑是真實手機瀏覽器對「同一個 click 事件
+    // 補觸發一次 ghost click」之類的相容性行為（或其他測不出來的重複觸發
+    // 路徑），在本機環境重現不出來。既然抓不到確切成因，這裡直接把觸發
+    // 邏輯改成對「重複觸發」免疫，不管背後真正原因是什麼都不會再看到
+    // 視覺上「不斷播放」的效果：(1) 500ms 內的重複觸發直接忽略（動畫本身
+    // 只有 0.5s，同一次點擊不可能真的需要在這之內重播第二次）；(2) 動畫
+    // 結束時用 animationend 明確把 ripple 收回乾淨的隱藏狀態，不完全依賴
+    // fill-mode:forwards（部分行動裝置瀏覽器對「用 none→reflow→重新指定
+    // 動畫名稱」這種重播技巧的 fill-mode 支援不夠一致）。
+    this._pinRippleLastTrigger = 0;
+    const playPinClickAnim = () => {
+      const now = performance.now();
+      if (now - this._pinRippleLastTrigger < 500) return;
+      this._pinRippleLastTrigger = now;
+      const ripple = this._pinRipple, icon = this._pinIconSvg;
+      if (ripple) {
+        ripple.style.animation = 'none';
+        void ripple.offsetWidth;
+        ripple.style.animation = 'pinClickRipple 0.5s ease-out 1 forwards';
+      }
+      if (icon) {
+        icon.style.animation = 'none';
+        void icon.offsetWidth;
+        icon.style.animation = 'pinClickPress 0.35s ease 1';
+      }
+    };
+    a.addEventListener('click', playPinClickAnim);
+    if (this._pinRipple) {
+      this._pinRipple.addEventListener('animationend', () => {
+        this._pinRipple.style.animation = 'none';
+        this._pinRipple.style.opacity = '0';
+        this._pinRipple.style.transform = 'translate(-50%,-50%) scale(0.25)';
+      });
+    }
     this._pinLinkLabel = label;
   }
 
@@ -1189,6 +1243,7 @@ class Component extends DCLogic {
     if (t) t.style.opacity = '0';
     if (pl) pl.style.opacity = '0';
     if (pin) pin.style.opacity = '0';
+    if (this._globeSvgEl) this._globeSvgEl.style.transform = '';
     if (this._fadeTimer) clearTimeout(this._fadeTimer);
     this._fadeTimer = setTimeout(() => {
       if (this._raf) cancelAnimationFrame(this._raf);
@@ -1244,9 +1299,10 @@ class Component extends DCLogic {
           // CSS px／cm 換算（96dpi ÷ 2.54，瀏覽器標準值），下面「幾 cm」的
           // 需求都靠這個常數換算成 px。
           const CM_PX = 37.8;
-          // 地標 icon 位置：先往上拉 2cm，這次再多拉高 0.5cm（2026-07-31
-          // 再次調整，使用者覺得還可以再高一點）。
-          const lineLen = dotR + 60 + CM_PX * 2.5;
+          // 地標 icon 位置：先往上拉 2cm，再多拉高 0.5cm（2026-07-31 調整），
+          // 之後往下移回 0.2cm、這次再往下移 1cm（2026-08-02 兩次調整），
+          // 累計下來線長比最初的 2.5cm 短了 1.2cm，icon 跟著往下靠近圓點。
+          const lineLen = dotR + 60 + CM_PX * 1.3;
           // 虛線向上延伸的「長出來」動畫：搜尋定位後 380ms 內從 0 長到全長，
           // 之後維持全長，靠 CSS 的 dashFlow 關鍵影格做持續流動的虛線效果。
           const growMs = 380;
@@ -1269,6 +1325,39 @@ class Component extends DCLogic {
           const headerBottomY = headerEl ? headerEl.getBoundingClientRect().bottom : 96;
           const minY = Math.max(8 + pinIconHeight, headerBottomY + pinIconHeight + 8);
           const endY = Math.max(startY - lineLen * eased, minY);
+          // 標註出現時整顆球體（節點＋標題＋連線，全部包在同一個
+          // <svg data-globe-svg> 裡）一起往下平移，讓 icon 最上緣離頁首下緣
+          // 至少留 2cm（2026-08-02 新增，使用者要求「不是只求不被擋住，
+          // 是完整地出現在畫面中」）。不用繼續夾 endY 本身——那樣只會讓線
+          // 變短、貼死在頁首下面，跟「線從圓點長出來」的視覺矛盾；改成移動
+          // 整顆球，圓點、線長、icon 的相對關係完全不變，只是整組一起往下
+          // 挪出這段空間。
+          //
+          // 這裡不能直接拿「這一影格量到的 iconTopY」去跟需求值比較就把
+          // 差值疊加上去（ratchet），因為 svg 上的 transform 有 0.4s
+          // CSS transition，量到的 dot 位置其實是「還在補間中」的即時值，
+          // 疊加會跟轉場動畫互相打架、越疊越多。做法是先用
+          // getComputedStyle 讀出「這一影格當下真正生效的位移量」
+          // （DOMMatrix 的 .f 就是 translateY 的即時值，不是我們設定的
+          // 目標值，兩者在轉場過程中不相等），從量到的 iconTopY 扣掉這個
+          // 即時位移，還原出「沒有位移時」icon 應該在哪裡，再用這個還原值
+          // 跟需求值比較，每影格都算出正確的絕對目標，不會因為轉場還沒
+          // 補完就重複疊加。
+          const svgEl = this._globeSvgEl || (this._globeSvgEl = document.querySelector('[data-globe-svg]'));
+          if (svgEl) {
+            let liveShiftY = 0;
+            const svgTransform = getComputedStyle(svgEl).transform;
+            if (svgTransform && svgTransform !== 'none') {
+              liveShiftY = new DOMMatrix(svgTransform).f;
+            }
+            const requiredIconTopY = headerBottomY + pinIconHeight + CM_PX * 2;
+            const iconTopY = endY - pinIconHeight;
+            const unshiftedIconTopY = iconTopY - liveShiftY;
+            const neededShift = Math.max(0, requiredIconTopY - unshiftedIconTopY);
+            if (Math.abs(neededShift - liveShiftY) > 0.5) {
+              svgEl.style.transform = neededShift > 0 ? 'translateY(' + neededShift.toFixed(1) + 'px)' : '';
+            }
+          }
           // 淺色模式黑線、深色模式金線（跟 specialColor 深色模式用的金色是
           // 同一個色號）——不是黃色亮點那種填色強調，純粹線條，所以每影格
           // 直接依目前 isDarkMode 設定顏色，深色模式切換當下也會立刻跟著換。
@@ -1325,6 +1414,7 @@ class Component extends DCLogic {
           this._pinLineSvg.style.opacity = '0';
           this._pinLink.style.opacity = '0';
           this._pinLink.style.pointerEvents = 'none';
+          if (this._globeSvgEl) this._globeSvgEl.style.transform = '';
         }
       }
     }
@@ -1390,10 +1480,19 @@ class Component extends DCLogic {
     const regularList = this.nodeData.filter(d => !specialSet.has(d.id));
     const units = {};
     const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    // y 用「每格中心點」（(2i+1)/n）取樣，不是「首尾剛好落在 ±1 極點」的
+    // (i/(n-1)) 版本（2026-08-02 修正）：兩組各自獨立套用同一條公式時，
+    // (i/(n-1)) 版本會讓「第一個元素」跟「最後一個元素」不管 n 是多少，
+    // y 都精確等於 +1／-1——兩個獨立分組的第一個元素永遠疊在同一個北極點、
+    // 最後一個元素永遠疊在同一個南極點，跟該分組實際有幾個成員、theta 怎麼
+    // 分佈完全無關（極點上 rAtY=0，theta 轉了也還是同一個點）。這正是使用者
+    // 回報「台南咾咕石芳宅（一般節點組最後一個）」跟「原型獲獎（特殊節點組
+    // 最後一個）」重疊的根本原因——實測過改之前這兩點角距離是 0.00°，改成
+    // (2i+1)/n 之後兩組永遠不會剛好落在同一個極點，角距離變成 18.59°。
     const placeGroup = (list) => {
       const n = list.length;
       list.forEach((d, i) => {
-        const y = n > 1 ? 1 - (i / (n - 1)) * 2 : 0;
+        const y = 1 - (2 * i + 1) / n;
         const rAtY = Math.sqrt(Math.max(0, 1 - y * y));
         const theta = goldenAngle * i;
         units[d.id] = { x: Math.cos(theta) * rAtY, y, z: Math.sin(theta) * rAtY };
