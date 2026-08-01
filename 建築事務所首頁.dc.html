@@ -171,6 +171,25 @@
           </svg>
         </button>
       </sc-if>
+      <!-- 手機/電腦版手動切換鈕（2026-08-02 新增）：放在「Contact」（桌機）／
+           搜尋圖示（手機）跟深淺模式切換鈕之間。圖示顯示的是「按下去會切換
+           成的模式」，不是目前所在的模式——目前是桌機版就顯示手機圖示，
+           目前是手機版就顯示電腦圖示。 -->
+      <button onClick="{{ toggleDeviceMode }}" style="background:none; border:none; cursor:pointer; padding:8px; color:{{ textColor }}; display:flex; align-items:center; justify-content:center; width:36px; height:36px;">
+        <sc-if value="{{ !isMobile }}" hint-placeholder-val="{{ true }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="7" y="2" width="10" height="20" rx="2"></rect>
+            <line x1="11" y1="18" x2="13" y2="18"></line>
+          </svg>
+        </sc-if>
+        <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+        </sc-if>
+      </button>
       <button onClick="{{ toggleDarkMode }}" style="background:none; border:1px solid {{ textColor }}; border-radius:4px; padding:8px 12px; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.3s; color:{{ textColor }}; display:flex; align-items:center; justify-content:center; width:44px; height:44px;">
         <sc-if value="{{ isDarkMode }}" hint-placeholder-val="{{ true }}">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -255,12 +274,26 @@
           </sc-for>
         </sc-if>
 
-        <foreignObject x="{{ titleBoxX }}" y="350" width="{{ titleBoxWidth }}" height="200" style="overflow:visible; pointer-events:none;">
-          <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;">
-            <div style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; color:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; white-space:nowrap; transition:color 0.3s;">原型 × 未來</div>
-            <div style="font-size:{{ subtitleFontSize }}px; letter-spacing:0.06em; color:{{ textColor }}; opacity:0.55; margin-top:10px; white-space:nowrap; transition:color 0.3s;">Architecture + Structure</div>
-          </div>
-        </foreignObject>
+        <!-- 桌機版標題：foreignObject + 置中的 div，逐字未變。 -->
+        <sc-if value="{{ !isMobile }}" hint-placeholder-val="{{ true }}">
+          <foreignObject x="{{ titleBoxX }}" y="350" width="{{ titleBoxWidth }}" height="200" style="overflow:visible; pointer-events:none;">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;">
+              <div style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; color:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; white-space:nowrap; transition:color 0.3s;">原型 × 未來</div>
+              <div style="font-size:{{ subtitleFontSize }}px; letter-spacing:0.06em; color:{{ textColor }}; opacity:0.55; margin-top:10px; white-space:nowrap; transition:color 0.3s;">Architecture + Structure</div>
+            </div>
+          </foreignObject>
+        </sc-if>
+
+        <!-- 手機版標題：拆成三個獨立的 SVG <text>，「×」用 text-anchor:middle
+             精確釘在球體投影中心 (cx,cy)（2026-08-02 新增，使用者要求「把X
+             設定為球體的核心」）；「原型」/「未來」分別靠右/靠左對齊在 ×
+             兩側，不依賴兩者剛好等寬這種巧合。字級也再縮小一半。 -->
+        <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+          <text x="450" y="450" text-anchor="middle" dominant-baseline="central" style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; fill:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:fill 0.3s; pointer-events:none;">×</text>
+          <text x="{{ titleLeftX }}" y="450" text-anchor="end" dominant-baseline="central" style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; fill:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:fill 0.3s; pointer-events:none;">原型</text>
+          <text x="{{ titleRightX }}" y="450" text-anchor="start" dominant-baseline="central" style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; fill:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:fill 0.3s; pointer-events:none;">未來</text>
+          <text x="450" y="{{ titleSubtitleY }}" text-anchor="middle" dominant-baseline="central" style="font-size:{{ subtitleFontSize }}px; letter-spacing:0.06em; fill:{{ textColor }}; opacity:0.55; transition:fill 0.3s; pointer-events:none;">Architecture + Structure</text>
+        </sc-if>
 
         <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
           <sc-for list="{{ nodes }}" as="node" hint-placeholder-count="14">
@@ -364,7 +397,38 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { hoveredId: null, isDarkMode: false, showSearchModal: false, searchInput: '', searchResults: [], flashId: null, showMaterialMenu: false, viewportW: (typeof window !== 'undefined' ? window.innerWidth : 1200), showMobileSearch: false, showFooterContact: false };
+  state = { hoveredId: null, isDarkMode: false, showSearchModal: false, searchInput: '', searchResults: [], flashId: null, showMaterialMenu: false, viewportW: (typeof window !== 'undefined' ? window.innerWidth : 1200), showMobileSearch: false, showFooterContact: false, forcedMode: null };
+
+  // 頁首新增的手機/電腦版手動切換鈕（2026-08-02）：`forcedMode` 是 null 時，
+  // 完全比照原本的行為，單純依 viewportW 是否小於 768 判斷；使用者按過
+  // 切換鈕之後變成 'mobile' 或 'desktop'，之後不管視窗多寬都固定用這個
+  // 手動選擇的模式，直到再按一次切換鈕或重新整理頁面（forcedMode 是
+  // instance state，不寫進 localStorage，重新整理會回到依畫面尺寸判斷）。
+  // 這個檔案裡原本散落在好幾個地方（componentDidMount 的事件監聽器、
+  // goToNode()、tick()、globeTick()、paintGlobe()、renderVals()）各自直接
+  // 寫 `this.state.viewportW < 768`／`>= 768` 判斷手機/桌機——新增這個手動
+  // 覆寫功能後，這些地方全部要改成呼叫這個方法，不能只改 renderVals()
+  // 那一處，否則會出現「畫面看起來是手機版，但拖曳/搜尋/自轉等互動邏輯
+  // 還是照桌機規則跑」這種樣板跟邏輯對不上的狀況。
+  _effectiveIsMobile() {
+    if (this.state.forcedMode != null) return this.state.forcedMode === 'mobile';
+    return this.state.viewportW < 768;
+  }
+
+  toggleDeviceMode() {
+    const next = this._effectiveIsMobile() ? 'desktop' : 'mobile';
+    // 手動切換模式會讓 isMobile 的 sc-if 分支整個卸載/重新掛載（手機版的
+    // data-node-back/data-node-front 節點群組、地標相關 DOM 都是全新的
+    // 元素，不是同一批），_globeElCache（見 _ensureGlobeElCache()）快取的
+    // 卻是切換前那批已經被移除的舊元素，且這個快取只會建立一次、之後永遠
+    // 不會自動重建。不清掉的話，paintGlobe() 會繼續埋頭更新那些已經不在
+    // 畫面上的舊元素，畫面上真正顯示的新元素則永遠停在剛掛載那一刻的位置
+    // ——症狀是「切換幾次之後球體卡住不會轉」（2026-08-02 使用者回報並
+    // 修正）。清掉快取讓 _ensureGlobeElCache() 下次呼叫時重新查詢，抓到
+    // 這次掛載的新元素。
+    this._globeElCache = null;
+    this.setState({ forcedMode: next });
+  }
 
   // Node names and hrefs from uploaded spreadsheet (活頁簿1-24674e73.xlsx):
   // Column B provides the node names, Column A provides the target URLs.
@@ -799,7 +863,18 @@ class Component extends DCLogic {
     this._onResize = () => {
       if (this._resizeTimer) clearTimeout(this._resizeTimer);
       this._resizeTimer = setTimeout(() => {
-        this.setState({ viewportW: window.innerWidth });
+        // 視窗寬度跨過 768px 斷點時，isMobile 的 sc-if 分支會整個卸載/
+        // 重新掛載，跟 toggleDeviceMode() 手動切換的效果一樣，_globeElCache
+        // 會指向已經被移除的舊元素（見 toggleDeviceMode() 的說明）——這其實
+        // 是比手動切換鈕更早就存在的既有 bug（單純拖曳桌機瀏覽器視窗跨過
+        // 斷點就會踩到），只是手動切換鈕讓它變得非常容易重現，這次一併修。
+        // 有手動覆寫（forcedMode）時，視窗寬度變化不會影響實際顯示的模式，
+        // 不需要清快取。
+        const wasMobile = this._effectiveIsMobile();
+        const newViewportW = window.innerWidth;
+        const willBeMobile = this.state.forcedMode != null ? this.state.forcedMode === 'mobile' : newViewportW < 768;
+        if (willBeMobile !== wasMobile) this._globeElCache = null;
+        this.setState({ viewportW: newViewportW });
       }, 150);
     };
     window.addEventListener('resize', this._onResize);
@@ -809,7 +884,7 @@ class Component extends DCLogic {
     // 這裡另外補頁面捲動的情況（目前版面理論上不太會真的捲動，但保留這個
     // 監聽器以防萬一，成本很低）。
     this._onWinScroll = () => {
-      if (this.state.viewportW < 768 && this.state.flashId != null) this.dismissFlash();
+      if (this._effectiveIsMobile() && this.state.flashId != null) this.dismissFlash();
     };
     window.addEventListener('scroll', this._onWinScroll, { passive: true });
 
@@ -832,7 +907,7 @@ class Component extends DCLogic {
     // 不會同時觸發旋轉，避免兩種手勢互相干擾、角度跟縮放同時亂跳。
     const surface = document.querySelector('[data-globe-surface]');
     this._onGlobePointerDown = (e) => {
-      if (this.state.viewportW >= 768) return;
+      if (!this._effectiveIsMobile()) return;
       // 手指一碰到球體（不管是要拖曳轉動、雙指縮放，還是點被標註的圓點本身）
       // 就立刻讓標註消失——比等 document 上的 mousedown 更早觸發，感覺才夠
       // 「馬上」（2026-07-31 調整：使用者要求「標註顯示後做任何操作都要立刻
@@ -960,7 +1035,7 @@ class Component extends DCLogic {
     // 讓給地標，兩者不再有機會疊在一起。桌機版的搜尋框不是靠這個 state 控制
     // 顯示/隱藏的（見 renderVals() 的 searchBoxDisplay），這裡收合對桌機沒
     // 有任何影響。
-    const closingMobileSearch = this.state.viewportW < 768 ? { showMobileSearch: false, searchInput: '' } : {};
+    const closingMobileSearch = this._effectiveIsMobile() ? { showMobileSearch: false, searchInput: '' } : {};
     this.setState({ flashId: id, hoveredId: id, searchResults: [], ...closingMobileSearch });
     this.ensureFlash();
     this.ensureTriangle();
@@ -968,7 +1043,7 @@ class Component extends DCLogic {
     // 手機版 3D 球體：把搜到的節點飛轉到北極點固定住，其餘節點照常繞著這個
     // 軸自轉（見 startFlyTo()/computeSpherePoseFor() 的說明）。桌機是平面
     // 2D 圓環，沒有這個旋轉系統，不受影響。
-    if (this.state.viewportW < 768) {
+    if (this._effectiveIsMobile()) {
       this.startFlyTo(id);
       // 手機版地標 icon＋虛線（見 ensureLandmark()）：只在手機版顯示，桌機
       // 的節點本來就都能直接點，不需要這個額外的導覽入口。
@@ -1136,7 +1211,7 @@ class Component extends DCLogic {
       // 「太靠邊」而顯示三角形指示、不顯示黃色亮點。目前手機版容器本來就縮得
       // 比 viewport 小很多（見 renderVals() 的 diagramContainerWidth），所有
       // 116 個節點都落在安全範圍內，但仍保留這個較小邊界作為未來調整的緩衝。
-      const isMobileTick = window.innerWidth < 768;
+      const isMobileTick = this._effectiveIsMobile();
       const vw = window.innerWidth, vh = window.innerHeight, margin = isMobileTick ? 16 : 52;
       const inView = cxp >= margin && cxp <= vw - margin && cyp >= margin && cyp <= vh - margin;
       // Circle rides the dot.
@@ -1529,7 +1604,7 @@ class Component extends DCLogic {
   // 拖曳／慣性旋轉時的高頻畫面更新——刻意不呼叫 setState()，直接改 DOM
   // 屬性，理由跟 tick()/startFlash() 一樣（見上面 field 宣告處的說明）。
   paintGlobe() {
-    if (this.state.viewportW >= 768) return;
+    if (!this._effectiveIsMobile()) return;
     const nodeGeo = this.buildGlobeGeometry();
     const edgeGeo = this.buildGlobeEdgeGeometry();
     const cache = this._ensureGlobeElCache();
@@ -1602,7 +1677,7 @@ class Component extends DCLogic {
   // 的閒置自轉，讓球體感覺「活著」而不是靜止的裝飾圖。桌機（viewportW >=
   // 768）不執行任何動作，只是每影格檢查一次，成本可以忽略。
   globeTick() {
-    if (this.state.viewportW < 768) {
+    if (this._effectiveIsMobile()) {
       if (this._globeFlying) {
         const t = Math.min(1, (performance.now() - this._globeFlyStartTime) / this._globeFlyDuration);
         // easeInOutCubic：起步/收尾慢，中段快，比等速線性補間更像「飛過去」。
@@ -1650,7 +1725,10 @@ class Component extends DCLogic {
     const cx = 450, cy = 450;
     // 手機／平板適配：斷點依實測結果選定——820px 平板寬度下頁首與圓環圖都已經正常，
     // 768px 也是常見 iPad portrait 寬度，所以窄於這個值才視為手機、套用放大過的最小尺寸。
-    const isMobile = this.state.viewportW < 768;
+    // 2026-08-02 新增手動切換鈕之後，這裡改成透過 _effectiveIsMobile()（有
+    // 手動覆寫時優先採用手動選擇，否則才照原本的畫面寬度判斷）決定，不要
+    // 再直接寫 `viewportW < 768`。
+    const isMobile = this._effectiveIsMobile();
     const hoveredId = this.state.hoveredId;
     const isDarkMode = this.state.isDarkMode;
     const bgColor = isDarkMode ? 'oklch(0.15 0 0)' : 'oklch(0.99 0 0)';
@@ -1658,16 +1736,27 @@ class Component extends DCLogic {
     const lineColor = isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)';
     const dotColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
 
-    // Center title ("原型 × 未來" / "Architecture + Structure"). Mobile now
-    // reuses the exact same desktop sizes — the whole ring (dots, labels,
-    // title) is meant to be one uniform proportional shrink of the desktop
-    // layout down to the phone's width, not a redesigned/enlarged mobile
-    // variant. white-space:nowrap on the actual divs is what prevents the
-    // two lines from wrapping/drifting apart in some mobile browsers.
-    const titleFontSize = 62;
-    const subtitleFontSize = 22;
+    // Center title ("原型 × 未來" / "Architecture + Structure"). Desktop
+    // keeps the original sizes/markup (foreignObject + div, text-align
+    // centers the whole string as one block). Mobile (2026-08-02) instead
+    // renders the title as three separate SVG <text> elements — see the
+    // isMobile branch in the template — so the "×" glyph can be pinned
+    // exactly on the sphere's projection center (cx,cy)（使用者要求「把X
+    // 設定為球體的核心」），不是靠「原型」「未來」剛好等寬這種巧合讓 × 看起來
+    // 大概在中間。字級也再縮小一半（使用者要求）。white-space:nowrap on the
+    // desktop divs is what prevents the two lines from wrapping/drifting
+    // apart in some mobile browsers（桌機分支沿用，跟這次調整無關）。
+    const titleFontSize = isMobile ? 31 : 62;
+    const subtitleFontSize = isMobile ? 11 : 22;
     const titleBoxWidth = 420;
     const titleBoxX = cx - titleBoxWidth / 2;
+    // 手機版「× 是球心」排版用的座標：原型／未來分別靠右/靠左對齊、留出
+    // 中間一小段給 ×，×本身用 text-anchor:middle 精確釘在 (cx,cy)。間距跟
+    // 副標題的垂直位移都依目前字級等比例算，字級改變時排版還是合理。
+    const titleCoreGap = titleFontSize * 0.6;
+    const titleLeftX = cx - titleCoreGap;
+    const titleRightX = cx + titleCoreGap;
+    const titleSubtitleY = cy + titleFontSize * 0.9;
 
     // Every node from column B, in spreadsheet row order. Desktop/tablet
     // lays them out on a flat 2D ring around the center ("原型 × 未來");
@@ -1960,6 +2049,7 @@ class Component extends DCLogic {
       // 拖曳/縮放球體時不要讓瀏覽器把手勢當成「頁面捲動/放大頁面」搶走。
       globeTouchAction: isMobile ? 'none' : 'auto',
       titleBoxX, titleBoxWidth, titleFontSize, subtitleFontSize,
+      titleLeftX, titleRightX, titleSubtitleY,
       searchBoxDisplay: isMobile ? 'none' : 'flex',
       navPillGap: isMobile ? '12px' : '32px',
       navPillPadding: isMobile ? '10px 12px' : '16px 24px',
@@ -1968,6 +2058,7 @@ class Component extends DCLogic {
       toggleMobileSearch: () => this.toggleMobileSearch(),
       closeMobileSearch: () => this.closeMobileSearch(),
       toggleDarkMode: () => this.toggleDarkMode(),
+      toggleDeviceMode: () => this.toggleDeviceMode(),
       showMaterialMenu: this.state.showMaterialMenu,
       toggleMaterialMenu: () => this.toggleMaterialMenu(),
       searchResults: this.state.searchResults.map(r => ({ id: r.id, name: r.name, go: () => this.goToNode(r.id) })),
