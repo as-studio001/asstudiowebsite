@@ -124,7 +124,7 @@
   </sc-if>
 
   <!-- HEADER -->
-  <header style="position:fixed; top:0; left:0; right:0; z-index:1000; padding:{{ headerPadding }}; display:flex; justify-content:space-between; align-items:center;">
+  <header style="position:fixed; top:0; left:0; right:0; z-index:1000; padding:{{ headerPadding }}; display:{{ headerDisplay }}; justify-content:space-between; align-items:center;">
     <div style="display:flex; align-items:center; gap:20px;">
       <button data-menu-box="1" onClick="{{ toggleMaterialMenu }}" style="background:none; border:none; cursor:pointer; padding:8px; display:flex; flex-direction:column; gap:5px; justify-content:center; align-items:center; width:36px; height:36px;">
         <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
@@ -172,6 +172,17 @@
             <path d="m21 21-4.35-4.35"></path>
           </svg>
         </button>
+        <!-- 全螢幕播放進入鈕（2026-08-02 新增，手機版限定）：進入後頁首本身
+             會整個隱藏（見 headerDisplay），退出鈕是另一個獨立、固定定位的
+             元素，不在這個 nav pill 裡（見 header 後面那個 sc-if 區塊）。 -->
+        <button onClick="{{ enterMobileFullscreenPlay }}" aria-label="全螢幕播放" style="background:none; border:none; cursor:pointer; padding:8px; color:{{ textColor }}; display:flex; align-items:center; justify-content:center; width:36px; height:36px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
+            <path d="M21 8V5a2 2 0 0 0-2-2h-3"></path>
+            <path d="M3 16v3a2 2 0 0 0 2 2h3"></path>
+            <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
+          </svg>
+        </button>
       </sc-if>
       <!-- 手機/電腦版手動切換鈕（2026-08-02 新增）：放在「Contact」（桌機）／
            搜尋圖示（手機）跟深淺模式切換鈕之間。圖示顯示的是「按下去會切換
@@ -215,9 +226,22 @@
     </div>
   </header>
 
+  <!-- 全螢幕播放退出鈕（2026-08-02 新增）：只在 mobileFullscreenPlay 時出現，
+       淡、細線繪製，跟頁首其他 icon（stroke-width:2、不透明）刻意做出區隔——
+       這是播放期間唯一保留的互動元素，不用太搶眼，使用者知道「一定在螢幕
+       某個角落」即可，Esc 鍵是更順手的退出方式，這顆按鈕只是備援。 -->
+  <sc-if value="{{ mobileFullscreenPlay }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ exitMobileFullscreenPlay }}" aria-label="退出全螢幕播放" style="position:fixed; top:16px; right:16px; z-index:1500; background:none; border:none; cursor:pointer; padding:10px; display:flex; align-items:center; justify-content:center; color:{{ textColor }}; opacity:0.45; transition:opacity 0.2s ease;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </sc-if>
+
   <!-- NETWORK DIAGRAM -->
   <section id="works" style="padding:{{ worksPaddingTop }} 12px {{ worksPaddingBottom }}; position:relative; z-index:2; display:{{ worksDisplayMode }}; flex-grow:{{ worksFlexGrow }}; min-height:0;">
-    <div data-globe-surface="1" style="width:100%; height:{{ globeSurfaceHeight }}; display:{{ globeSurfaceDisplay }}; align-items:center; justify-content:center; touch-action:{{ globeTouchAction }}; overflow:{{ globeOverflow }};">
+    <div data-globe-surface="1" style="width:100%; height:{{ globeSurfaceHeight }}; display:{{ globeSurfaceDisplay }}; align-items:center; justify-content:center; touch-action:{{ globeTouchAction }}; overflow:{{ globeOverflow }}; position:{{ globeSurfacePosition }}; inset:{{ globeSurfaceInset }}; z-index:{{ globeSurfaceZIndex }}; background-color:{{ globeSurfaceBg }};">
     <div style="width:{{ diagramContainerWidth }}; max-width:2000px; margin:0 auto; aspect-ratio:1/1; flex-shrink:0;">
     <svg data-globe-svg="1" viewBox="0 0 900 900" width="100%" height="100%" style="overflow: visible; fill: #930707; transition: transform 0.4s ease;">
         <sc-if value="{{ hasSpotlight }}" hint-placeholder-val="{{ false }}">
@@ -352,7 +376,7 @@
 
   <!-- FOOTER（手機版：全部資訊收進一個 Contact 按鈕，點了才展開，2026-07-31
        新增，減少頁尾佔用的畫面空間）。 -->
-  <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ showMobileFooter }}" hint-placeholder-val="{{ false }}">
     <footer style="background-color:{{ bgColor }}; padding:32px 20px; transition:background-color 0.3s;">
       <button onClick="{{ toggleFooterContact }}" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; border:1px solid {{ footerContactBorderColor }}; border-radius:8px; background:none; cursor:pointer; font-size:15px; font-weight:500; letter-spacing:0.05em; color:{{ textColor }}; transition:all 0.3s;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
@@ -399,7 +423,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { hoveredId: null, isDarkMode: false, showSearchModal: false, searchInput: '', searchResults: [], flashId: null, showMaterialMenu: false, viewportW: (typeof window !== 'undefined' ? window.innerWidth : 1200), showMobileSearch: false, showFooterContact: false, forcedMode: null };
+  state = { hoveredId: null, isDarkMode: false, showSearchModal: false, searchInput: '', searchResults: [], flashId: null, showMaterialMenu: false, viewportW: (typeof window !== 'undefined' ? window.innerWidth : 1200), showMobileSearch: false, showFooterContact: false, forcedMode: null, mobileFullscreenPlay: false };
 
   // 頁首新增的手機/電腦版手動切換鈕（2026-08-02）：`forcedMode` 是 null 時，
   // 完全比照原本的行為，單純依 viewportW 是否小於 768 判斷；使用者按過
@@ -843,6 +867,58 @@ class Component extends DCLogic {
     this.setState(s => ({ showFooterContact: !s.showFooterContact }));
   }
 
+  // 手機版全螢幕播放（2026-08-02 新增）：頁首整個隱藏（只留一個退出鈕）、
+  // 頁尾隱藏、搜尋/漢堡選單/深淺模式/裝置切換全部不可用，球體本身撐滿整個
+  // 螢幕，唯一允許的操作是拖曳旋轉球體（跟縮放——雙指縮放沒有被特別禁掉，
+  // 使用者只提到「跳轉子網頁、搜尋等等」這些會離開/中斷播放的功能，縮放
+  // 屬於單純觀看球體的一部分，跟旋轉是同一類）。進入時主動關閉任何已經
+  // 開著的搜尋列/選單/標註，確保「無法使用任何功能」不會被進入當下還殘留
+  // 開著的面板破例。
+  // 順便觸發瀏覽器原生全螢幕（2026-08-02 新增，使用者要求「點擊全螢幕時
+  // 順便同時觸發 Chrome 的全螢幕檢視功能」）：這是我們自己畫的 CSS 全螢幕
+  // （球體撐滿 viewport）之外，額外再呼叫瀏覽器的 Fullscreen API 把網址列/
+  // 系統導覽列這些瀏覽器本身的介面也收起來。兩者是獨立的兩件事——就算
+  // Fullscreen API 呼叫失敗或整個不支援（例如 iOS Safari 對一般網頁元素
+  // 不支援這組 API，只有 <video> 才有），CSS 那層「假全螢幕」的體驗完全
+  // 不受影響，所以這裡刻意用 feature-detection＋靜默失敗，不讓進入播放
+  // 模式依賴 Fullscreen API 能不能成功。
+  _requestBrowserFullscreen() {
+    const el = document.documentElement;
+    const request = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+    if (!request) return;
+    const result = request.call(el);
+    if (result && typeof result.catch === 'function') result.catch(() => {});
+  }
+
+  _exitBrowserFullscreen() {
+    const isNativeFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    if (!isNativeFullscreen) return;
+    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (!exit) return;
+    const result = exit.call(document);
+    if (result && typeof result.catch === 'function') result.catch(() => {});
+  }
+
+  enterMobileFullscreenPlay() {
+    if (this.state.flashId != null) this.dismissFlash();
+    this.setState({
+      mobileFullscreenPlay: true,
+      showMobileSearch: false,
+      searchInput: '',
+      searchResults: [],
+      showMaterialMenu: false
+    });
+    // 一定要在使用者手勢（按鈕的 click handler）同一個呼叫堆疊裡直接呼叫，
+    // Fullscreen API 規定必須是「使用者手勢觸發」才准許，晚一點（例如包在
+    // setState 的 callback 或 setTimeout 裡）呼叫會被瀏覽器拒絕。
+    this._requestBrowserFullscreen();
+  }
+
+  exitMobileFullscreenPlay() {
+    this.setState({ mobileFullscreenPlay: false });
+    this._exitBrowserFullscreen();
+  }
+
   componentDidMount() {
     this._onDocMouseDown = (e) => {
       const inBox = e.target && e.target.closest && e.target.closest('[data-search-box]');
@@ -889,6 +965,32 @@ class Component extends DCLogic {
       if (this._effectiveIsMobile() && this.state.flashId != null) this.dismissFlash();
     };
     window.addEventListener('scroll', this._onWinScroll, { passive: true });
+
+    // 全螢幕播放：Esc 鍵退出（使用者要求的兩種退出方式之一，另一種是畫面上
+    // 的退出鈕，見樣板）。
+    this._onFullscreenPlayKeydown = (e) => {
+      if (e.key === 'Escape' && this.state.mobileFullscreenPlay) {
+        this.exitMobileFullscreenPlay();
+      }
+    };
+    document.addEventListener('keydown', this._onFullscreenPlayKeydown);
+
+    // 使用者可能不透過我們的退出鈕/Esc 監聽器離開瀏覽器原生全螢幕——例如
+    // Android 手勢／系統返回鍵、瀏覽器自己的全螢幕提示列——這些路徑不會
+    // 呼叫 exitMobileFullscreenPlay()，只會讓瀏覽器觸發 fullscreenchange。
+    // 監聽這個事件、發現已經不在原生全螢幕但 state 還是 true 時同步關掉，
+    // 避免「已經離開全螢幕，但畫面還卡在播放模式（頁首依然隱藏）」的情況。
+    // 這裡直接 setState，不呼叫 exitMobileFullscreenPlay()（那個方法自己會
+    // 再呼叫一次 _exitBrowserFullscreen()，多此一舉——瀏覽器已經是這次
+    // fullscreenchange 的源頭，不需要我們再叫它退出一次）。
+    this._onFullscreenChange = () => {
+      const isNativeFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+      if (!isNativeFullscreen && this.state.mobileFullscreenPlay) {
+        this.setState({ mobileFullscreenPlay: false });
+      }
+    };
+    document.addEventListener('fullscreenchange', this._onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', this._onFullscreenChange);
 
     // 手機版 3D 球體：拖曳旋轉。掛在圓環的容器（data-globe-surface）上，用
     // Pointer Events 統一處理滑鼠／觸控。桌機（viewportW >= 768）完全不接
@@ -1007,6 +1109,11 @@ class Component extends DCLogic {
     if (this._onDocMouseDown) document.removeEventListener('mousedown', this._onDocMouseDown);
     if (this._onResize) window.removeEventListener('resize', this._onResize);
     if (this._onWinScroll) window.removeEventListener('scroll', this._onWinScroll);
+    if (this._onFullscreenPlayKeydown) document.removeEventListener('keydown', this._onFullscreenPlayKeydown);
+    if (this._onFullscreenChange) {
+      document.removeEventListener('fullscreenchange', this._onFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', this._onFullscreenChange);
+    }
     const surface = document.querySelector('[data-globe-surface]');
     if (surface) {
       surface.removeEventListener('pointerdown', this._onGlobePointerDown);
@@ -1828,6 +1935,10 @@ class Component extends DCLogic {
     // 手動覆寫時優先採用手動選擇，否則才照原本的畫面寬度判斷）決定，不要
     // 再直接寫 `viewportW < 768`。
     const isMobile = this._effectiveIsMobile();
+    // 全螢幕播放（2026-08-02 新增）：只在手機版有意義，跟 isMobile 一起看，
+    // 避免「先手動切成桌機版，state 裡卻還留著 mobileFullscreenPlay:true」
+    // 這種邊界情況讓桌機分支也被牽動到。
+    const mobileFullscreenPlay = isMobile && this.state.mobileFullscreenPlay;
     const hoveredId = this.state.hoveredId;
     const isDarkMode = this.state.isDarkMode;
     const bgColor = isDarkMode ? 'oklch(0.15 0 0)' : 'oklch(0.99 0 0)';
@@ -1939,8 +2050,12 @@ class Component extends DCLogic {
           // 例外：目前被搜尋標註（黃色亮點）的節點一律恢復可點擊，就算它
           // 本來是不可點的小節點——搜尋定位後使用者理應能直接點這個點進
           // 子頁，不是只能點旁邊冒出來的地標 icon（見 ensureLandmark()）。
-          pointerEvents: (g.clickable || d.id === this.state.flashId) ? 'auto' : 'none',
-          cursorStyle: (g.clickable || d.id === this.state.flashId) ? 'pointer' : 'default',
+          // 全螢幕播放時（2026-08-02 新增）這條例外也要一起關掉——使用者
+          // 要求全螢幕播放期間「無法使用任何功能（跳轉子網頁、搜尋等等）
+          // 只能轉動球體」，不能因為剛好有節點還留著搜尋標註就開了一個
+          // 可以點出去的後門。
+          pointerEvents: (!mobileFullscreenPlay && (g.clickable || d.id === this.state.flashId)) ? 'auto' : 'none',
+          cursorStyle: (!mobileFullscreenPlay && (g.clickable || d.id === this.state.flashId)) ? 'pointer' : 'default',
           onEnter: () => this.setHover(d.id),
           onLeave: () => this.clearHover()
         };
@@ -2147,6 +2262,27 @@ class Component extends DCLogic {
       edgeTransition: isMobile ? 'none' : 'opacity 0.25s ease, stroke 0.3s',
       // 拖曳/縮放球體時不要讓瀏覽器把手勢當成「頁面捲動/放大頁面」搶走。
       globeTouchAction: isMobile ? 'none' : 'auto',
+      // 全螢幕播放（2026-08-02 新增）：data-globe-surface 從 #works 裡的一個
+      // 裁切框改成直接蓋滿整個 viewport（position:fixed; inset:0）——不用
+      // 額外調整 diagramContainerWidth 的公式，因為它本來就是用 vw/vh 算的，
+      // 容器本身變成全螢幕後，同一條公式自然就會撐出更大的球體，不需要為
+      // 全螢幕另外寫一組數值。z-index 給 500，蓋過 #works（2）但不用蓋過
+      // 頁首（1000）/搜尋列（1001）——頁首整個隱藏了，這兩個在全螢幕播放期間
+      // 根本不會出現，唯一需要蓋過球體的只有下面的退出鈕（1500）。
+      globeSurfacePosition: mobileFullscreenPlay ? 'fixed' : 'static',
+      globeSurfaceInset: mobileFullscreenPlay ? '0' : 'auto',
+      globeSurfaceZIndex: mobileFullscreenPlay ? 500 : 'auto',
+      globeSurfaceBg: mobileFullscreenPlay ? bgColor : 'transparent',
+      mobileFullscreenPlay,
+      // 頁首整個隱藏（不是只隱藏部分按鈕）——搜尋、漢堡選單、深淺模式、
+      // 裝置切換全部在頁首裡，藏起頁首本身最簡單也最保險，不用逐一確認
+      // 每個按鈕都被擋掉。用 display:none（不是 sc-if 卸載），元素還在但
+      // 不吃任何互動、也不佔版面，跟其他既有的 display 切換模式一致。
+      headerDisplay: mobileFullscreenPlay ? 'none' : 'flex',
+      // 手機版頁尾（Contact 按鈕）同理，全螢幕播放時不該還能點開。
+      showMobileFooter: isMobile && !mobileFullscreenPlay,
+      enterMobileFullscreenPlay: () => this.enterMobileFullscreenPlay(),
+      exitMobileFullscreenPlay: () => this.exitMobileFullscreenPlay(),
       titleBoxX, titleBoxWidth, titleFontSize, subtitleFontSize,
       titleLeftX, titleRightX, titleSubtitleY,
       searchBoxDisplay: isMobile ? 'none' : 'flex',
