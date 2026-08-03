@@ -87,11 +87,11 @@
   button.sc-btn.primary:hover { opacity: 0.85; }
   button.sc-btn:disabled,
   button.sc-btn:disabled:hover { opacity: 0.3; cursor: not-allowed; }
-  #btnImportSite, #btnUndo, #btnRedo, #btnResetSpacing, #btnThemeToggle, #btnSyncSite {
+  #btnImportSite, #btnLanguages, #btnUndo, #btnRedo, #btnResetSpacing, #btnThemeToggle, #btnSyncSite {
     padding: 9px 14px; font-size: 15px; line-height: 1;
     display: flex; align-items: center; justify-content: center;
   }
-  #btnImportSite svg, #btnResetSpacing svg, #btnThemeToggle svg, #btnSyncSite svg { width: 15px; height: 15px; display: block; }
+  #btnImportSite svg, #btnLanguages svg, #btnResetSpacing svg, #btnThemeToggle svg, #btnSyncSite svg { width: 15px; height: 15px; display: block; }
   .sc-divider { width: 1px; align-self: stretch; background: var(--border); margin: 0 4px; }
 
   /* Hover animation ported from @animate-ui/icons-send (Framer Motion) to
@@ -255,12 +255,22 @@
     z-index: 997;
   }
   .node-connections.open { width: 260px; border-right-width: 1px; }
-  .edit-panel-head { flex-shrink: 0; padding: 16px 16px 8px; width: 260px; box-sizing: border-box; }
+  .edit-panel-head {
+    flex-shrink: 0; padding: 16px 16px 8px; width: 260px; box-sizing: border-box;
+    display: flex; align-items: center; gap: 8px;
+  }
   .edit-name-input {
-    width: 100%; font-size: 14px; font-weight: 700; padding: 7px 9px;
+    flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 700; padding: 7px 9px;
     border: 1px solid var(--border); border-radius: 5px;
     background: var(--bg); color: var(--text); box-sizing: border-box;
   }
+  .edit-delete-btn {
+    flex-shrink: 0; width: 28px; height: 28px; border: none; background: none;
+    color: var(--text); opacity: 0.45; cursor: pointer; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; border-radius: 4px;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+  }
+  .edit-delete-btn:hover { opacity: 1; background: var(--border); }
   .edit-panel-fields {
     flex-shrink: 0; width: 260px; box-sizing: border-box;
     padding: 0 16px 14px; display: flex; flex-direction: column; gap: 10px;
@@ -426,6 +436,13 @@
         <line x1="12" y1="15" x2="12" y2="3"/>
       </svg>
     </button>
+    <button type="button" class="sc-btn" id="btnLanguages" aria-label="語言管理">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+    </button>
     <div class="sc-divider"></div>
     <button type="button" class="sc-btn" id="btnUndo" aria-label="上一步">↶</button>
     <button type="button" class="sc-btn" id="btnRedo" aria-label="下一步">↷</button>
@@ -457,8 +474,17 @@
       <span>主網頁同步程式碼</span>
       <button type="button" id="btnCloseSyncModal" class="modal-close" aria-label="關閉">✕</button>
     </div>
-    <p class="modal-hint">分別複製以下三段內容，貼到「建築事務所首頁.dc.html」對應陣列的中括號［ ］之間，取代原本裡面的內容（中括號本身不用動，也不用複製）。</p>
+    <p class="modal-hint">分別複製以下四段內容，貼到「建築事務所首頁.dc.html」對應陣列的中括號［ ］之間，取代原本裡面的內容（中括號本身不用動，也不用複製）。</p>
     <div class="sync-sections">
+      <div class="sync-section">
+        <div class="sync-section-head">
+          <span>languages［ ］（多語系，2026-08-03 新增）</span>
+          <button type="button" class="sc-btn primary sync-copy-btn" data-target="syncOutputLanguages" aria-label="複製 languages 內容">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          </button>
+        </div>
+        <textarea id="syncOutputLanguages" class="modal-output modal-output-sm" readonly spellcheck="false"></textarea>
+      </div>
       <div class="sync-section">
         <div class="sync-section-head">
           <span>specialIds［ ］</span>
@@ -511,8 +537,49 @@
         <textarea id="importEdgeDataInput" class="modal-output" spellcheck="false" placeholder="['r2', 'r3'], ..."></textarea>
       </div>
     </div>
+    <div class="sync-sections" style="margin-top:0;">
+      <div class="sync-section">
+        <div class="sync-section-head"><span>languages［ ］（多語系，2026-08-03 新增，選填）</span></div>
+        <textarea id="importLanguagesInput" class="modal-output modal-output-sm" spellcheck="false" placeholder="{ code: 'en', label: 'English' }, ..."></textarea>
+      </div>
+    </div>
     <div class="modal-actions">
       <button type="button" id="btnApplyImport" class="sc-btn primary">套用</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="languageModalOverlay" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>語言管理</span>
+      <button type="button" id="btnCloseLanguageModal" class="modal-close" aria-label="關閉">✕</button>
+    </div>
+    <p class="modal-hint">在這裡新增／刪除主網頁語言切換鈕要出現的語言。新增語言之後，回到左側節點清單逐一點開每個節點，在「翻譯」欄位填入該語言的翻譯文字——沒有填的節點會自動顯示原文（中文），不用每個節點都填滿。編輯完成後一樣要用頁首「同步至主網頁」把結果貼回主網頁。</p>
+    <div class="sync-sections">
+      <div class="sync-section">
+        <div class="sync-section-head"><span>目前的語言</span></div>
+        <div id="languageListItems" style="display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+      <div class="sync-section">
+        <div class="sync-section-head"><span>新增語言</span></div>
+        <div style="display:flex; gap:8px;">
+          <select id="newLangPreset" style="flex:1; font-size:13px; padding:7px 9px; border:1px solid var(--border); border-radius:5px; background:var(--bg); color:var(--text); box-sizing:border-box;">
+            <option value="en">English</option>
+            <option value="zh-Hans">簡體中文</option>
+            <option value="fr">Français</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="es">Español</option>
+            <option value="custom">＋ 自訂語言…</option>
+          </select>
+          <button type="button" id="btnAddLanguage" class="sc-btn primary" style="flex-shrink:0;">新增</button>
+        </div>
+        <div id="customLangFields" hidden style="display:flex; gap:8px; margin-top:8px;">
+          <input type="text" id="newLangCode" placeholder="代碼，例如 de" style="flex:1; font-size:13px; padding:7px 9px; border:1px solid var(--border); border-radius:5px; background:var(--bg); color:var(--text); box-sizing:border-box;">
+          <input type="text" id="newLangLabel" placeholder="顯示名稱，例如 Deutsch" style="flex:2; font-size:13px; padding:7px 9px; border:1px solid var(--border); border-radius:5px; background:var(--bg); color:var(--text); box-sizing:border-box;">
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -543,6 +610,7 @@
 <aside id="nodeConnections" class="node-connections">
   <div class="edit-panel-head">
     <input type="text" id="editName" class="edit-name-input" placeholder="圓點名稱">
+    <button type="button" id="btnDeleteEditingNode" class="edit-delete-btn" aria-label="刪除此節點">🗑</button>
   </div>
   <div class="edit-panel-fields">
     <label class="edit-field">
@@ -581,6 +649,14 @@
     <select id="addConnectionSelect"></select>
   </div>
   <div class="node-connections-items" id="nodeConnectionsItems"></div>
+  <!-- 主視覺多語系（2026-08-03 新增）：每個語言一個翻譯輸入框，語言清單
+       本身在「語言管理」（頁首地球圖示）維護，這裡只填當下這個節點的翻譯
+       文字。留空＝這個節點在這個語言底下自動顯示原文（中文），不用每個
+       節點每種語言都填。還沒有新增任何語言的話，這裡不會顯示任何欄位。 -->
+  <div class="node-connections-subhead">
+    <span>翻譯</span>
+  </div>
+  <div id="translationItems" style="padding:0 16px 14px; display:flex; flex-direction:column; gap:10px; width:260px; box-sizing:border-box;"></div>
 </aside>
 
 <main id="mainContent">
@@ -762,6 +838,13 @@
   ];
 
   const SPECIAL_IDS = new Set(['r1','r28','r59','r100','r2','r11','r22','r23','r101','r109','r115']);
+
+  // 主視覺多語系（2026-08-03 新增）：可切換的語言清單，跟 specialIds／
+  // nodeData／edgeData 一樣用複製貼上手動同步到主網頁（見 buildSyncParts()／
+  // 語言管理彈窗）。每個節點的翻譯文字存在該節點物件自己的 `translations`
+  // 欄位（{ code: '翻譯文字' }），不是另外存在這裡——這裡只放「有哪些語言
+  // 可以選」這件事本身。
+  const LANGUAGES = [];
 
   const CX = 450, CY = 450;
   const NS = 'http://www.w3.org/2000/svg';
@@ -1363,9 +1446,19 @@
 
     const specialIdsInner = rotatedOrder.filter(id => SPECIAL_IDS.has(id)).map(id => `'${id}'`).join(', ');
 
+    // 2026-08-03 修正＋擴充：原本這裡只輸出 id/name/href 三個欄位，會把
+    // 主網頁節點原本可能有的 mobileName（手機版縮寫名稱）整個蓋掉——這是
+    // 比這次新增翻譯功能更早就存在的既有落差，跟 parseImportNodeData() 那
+    // 半的既有 bug 是同一組問題，一起修：有 mobileName 的話比照主網頁的
+    // 欄位順序（id/name/mobileName/href）輸出；有翻譯的話在 href 後面加上
+    // translations（跟主網頁 nodeData 項目的欄位順序一致，方便使用者比對）。
     const nodeDataInner = rotatedOrder.map(id => {
       const d = NODE_DATA.find(x => x.id === id);
-      return `    { id: '${id}', name: ${JSON.stringify(d.name)}, href: ${JSON.stringify(d.href || '')} }`;
+      let extra = '';
+      if (d.mobileName) extra += `, mobileName: ${JSON.stringify(d.mobileName)}`;
+      extra += `, href: ${JSON.stringify(d.href || '')}`;
+      if (d.translations && Object.keys(d.translations).length) extra += `, translations: ${JSON.stringify(d.translations)}`;
+      return `    { id: '${id}', name: ${JSON.stringify(d.name)}${extra} }`;
     }).join(',\n');
 
     const seenPairs = new Set();
@@ -1380,7 +1473,9 @@
     });
     const edgeDataInner = '    ' + pairs.map(([a, b]) => `['${a}', '${b}']`).join(',\n    ');
 
-    return { specialIdsInner, nodeDataInner, edgeDataInner };
+    const languagesInner = LANGUAGES.map(l => `    { code: '${l.code}', label: ${JSON.stringify(l.label)} }`).join(',\n');
+
+    return { specialIdsInner, nodeDataInner, edgeDataInner, languagesInner };
   }
 
   // Sets up the send-icon's flight-trail path to "draw in" on hover: measure
@@ -1398,11 +1493,13 @@
   const syncOutputSpecialEl = document.getElementById('syncOutputSpecial');
   const syncOutputNodeDataEl = document.getElementById('syncOutputNodeData');
   const syncOutputEdgeDataEl = document.getElementById('syncOutputEdgeData');
+  const syncOutputLanguagesEl = document.getElementById('syncOutputLanguages');
   document.getElementById('btnSyncSite').addEventListener('click', () => {
     const parts = buildSyncParts();
     syncOutputSpecialEl.value = parts.specialIdsInner;
     syncOutputNodeDataEl.value = parts.nodeDataInner;
     syncOutputEdgeDataEl.value = parts.edgeDataInner;
+    syncOutputLanguagesEl.value = parts.languagesInner;
     syncModalOverlay.hidden = false;
   });
   document.getElementById('btnCloseSyncModal').addEventListener('click', () => {
@@ -1438,17 +1535,62 @@
     return ids;
   }
 
+  // 2026-08-03 修正＋擴充：原本用單一個嚴格的正規表示式一次比對整個
+  // `{ id: ..., name: ..., href: ... }`，要求欄位「剛好照這個順序、中間
+  // 不能有別的東西」——但主網頁實際上很多節點在 name 跟 href 之間還有
+  // 一個 mobileName 欄位（手機版縮寫名稱），只要有 mobileName 的節點就會
+  // 完全比對不到、整個從匯入結果裡消失（不是欄位漏掉，是整個節點都不見）。
+  // 這是比這次新增翻譯功能更早就存在的既有 bug，因為現在要新增
+  // `translations` 這個「順序不固定、有沒有都可以」的欄位，一起改成先用
+  // 「抓出每一個 { ... } 區塊」＋「區塊裡面各自找 id/name/mobileName/href/
+  // translations」的做法，不管欄位順序、有沒有齊全都不影響比對到其他欄位。
+  // `\{(?:[^{}]|\{[^{}]*\})*\}` 允許剛好一層巢狀大括號，剛好夠比對
+  // `translations: { code: "..." }` 這種內嵌物件。
   function parseImportNodeData(text) {
     const nodes = [];
-    const re = /\{\s*id:\s*'([^']+)'\s*,\s*name:\s*"((?:[^"\\]|\\.)*)"\s*,\s*href:\s*"((?:[^"\\]|\\.)*)"\s*\}/g;
+    const blockRe = /\{(?:[^{}]|\{[^{}]*\})*\}/g;
     let m;
-    while ((m = re.exec(text))) {
-      let name, href;
-      try { name = JSON.parse('"' + m[2] + '"'); } catch (err) { name = m[2]; }
-      try { href = JSON.parse('"' + m[3] + '"'); } catch (err) { href = m[3]; }
-      nodes.push({ id: m[1], name, href });
+    while ((m = blockRe.exec(text))) {
+      const block = m[0];
+      const idMatch = block.match(/id:\s*'([^']+)'/);
+      const nameMatch = block.match(/name:\s*"((?:[^"\\]|\\.)*)"/);
+      if (!idMatch || !nameMatch) continue;
+      const hrefMatch = block.match(/href:\s*"((?:[^"\\]|\\.)*)"/);
+      const mobileNameMatch = block.match(/mobileName:\s*"((?:[^"\\]|\\.)*)"/);
+      const translationsMatch = block.match(/translations:\s*(\{[^{}]*\})/);
+      const unescape = (s) => { try { return JSON.parse('"' + s + '"'); } catch (err) { return s; } };
+      const node = {
+        id: idMatch[1],
+        name: unescape(nameMatch[1]),
+        href: hrefMatch ? unescape(hrefMatch[1]) : ''
+      };
+      if (mobileNameMatch) node.mobileName = unescape(mobileNameMatch[1]);
+      if (translationsMatch) {
+        // buildSyncParts() 輸出的 translations 是 JSON.stringify() 產生的
+        // 標準 JSON（雙引號 key/value），可以直接 JSON.parse()。
+        try { node.translations = JSON.parse(translationsMatch[1]); } catch (err) {}
+      }
+      nodes.push(node);
     }
     return nodes;
+  }
+
+  // languages［ ］同一套「抓區塊再各自找欄位」的做法，格式跟 buildSyncParts()
+  // 輸出的一致：{ code: 'en', label: 'English' }。
+  function parseImportLanguages(text) {
+    const languages = [];
+    const blockRe = /\{[^{}]*\}/g;
+    let m;
+    while ((m = blockRe.exec(text))) {
+      const block = m[0];
+      const codeMatch = block.match(/code:\s*'([^']+)'/);
+      const labelMatch = block.match(/label:\s*"((?:[^"\\]|\\.)*)"/);
+      if (!codeMatch || !labelMatch) continue;
+      let label;
+      try { label = JSON.parse('"' + labelMatch[1] + '"'); } catch (err) { label = labelMatch[1]; }
+      languages.push({ code: codeMatch[1], label });
+    }
+    return languages;
   }
 
   function parseImportEdgeData(text) {
@@ -1520,6 +1662,8 @@
     const snap = {
       nodes: parsedNodes.map(d => ({
         id: d.id, name: d.name, href: d.href,
+        mobileName: d.mobileName,
+        translations: d.translations,
         radius: radius[d.id],
         special: specialSet.has(d.id),
         x: positions[d.id].x, y: positions[d.id].y
@@ -1535,6 +1679,16 @@
     history = [clonePositions(current)];
     historyIndex = 0;
     updateHistoryButtons();
+
+    // languages［ ］是選填欄位（2026-08-03 新增）——沒有貼內容就保留目前
+    // 編輯器裡既有的語言清單，不強制每次匯入都要一起帶語言設定。
+    const languagesText = document.getElementById('importLanguagesInput').value.trim();
+    if (languagesText) {
+      const parsedLanguages = parseImportLanguages(languagesText);
+      LANGUAGES.length = 0;
+      parsedLanguages.forEach(l => LANGUAGES.push(l));
+      renderLanguageList();
+    }
 
     importModalOverlay.hidden = true;
     showToast('已從主網頁內容更新（' + parsedNodes.length + ' 個節點）');
@@ -1552,6 +1706,123 @@
     if (e.target === importModalOverlay) importModalOverlay.hidden = true;
   });
   document.getElementById('btnApplyImport').addEventListener('click', applyImport);
+
+  // 語言管理（2026-08-03 新增）：新增/刪除語言直接是即時的表單操作，不用
+  // 像 nodeData/edgeData 那樣先貼文字再套用——語言清單通常只有幾筆，逐筆
+  // 增刪比整段貼文字方便。languages［ ］那個匯入欄位（見 applyImport()）
+  // 是給「要接續上次已經同步到主網頁的語言清單」這種情境用的，兩條路徑
+  // 互補，不衝突。
+  const languageModalOverlay = document.getElementById('languageModalOverlay');
+  const languageListItemsEl = document.getElementById('languageListItems');
+  const newLangPresetSelect = document.getElementById('newLangPreset');
+  const customLangFieldsEl = document.getElementById('customLangFields');
+  const newLangCodeInput = document.getElementById('newLangCode');
+  const newLangLabelInput = document.getElementById('newLangLabel');
+
+  // 內建語言選單（2026-08-03 新增，取代原本要自己手打代碼/顯示名稱的兩個
+  // 文字框）——常用的六種語言直接選就好，選單最後一項「＋ 自訂語言…」才
+  // 顯示原本那組文字輸入框，給選單裡沒有的語言用。zh-Hans（簡體中文）跟
+  // 主網頁 `<html lang="zh-Hant">`（見「網頁的內容可翻譯」那次調整）刻意
+  // 用同一套「zh-Hant/zh-Hans 書寫系統」代碼命名邏輯，不是隨便選的代碼。
+  const PRESET_LANGUAGES = {
+    en: 'English',
+    'zh-Hans': '簡體中文',
+    fr: 'Français',
+    ja: '日本語',
+    ko: '한국어',
+    es: 'Español'
+  };
+
+  function updateLanguagePresetOptions() {
+    // 已經加過的語言就不要再讓它出現在下拉選單裡（避免選了又被「代碼已
+    // 存在」擋下來，體驗上不如直接不給選）——「＋ 自訂語言…」永遠保留。
+    Array.from(newLangPresetSelect.options).forEach(opt => {
+      if (opt.value === 'custom') return;
+      opt.hidden = LANGUAGES.some(l => l.code === opt.value);
+    });
+    // 如果目前選到的那個 preset 剛好因為已存在被藏起來了，換到第一個還
+    // 沒被加過的選項，選單不要停在一個看不見的值上。
+    if (newLangPresetSelect.selectedOptions[0] && newLangPresetSelect.selectedOptions[0].hidden) {
+      const firstAvailable = Array.from(newLangPresetSelect.options).find(opt => !opt.hidden);
+      if (firstAvailable) newLangPresetSelect.value = firstAvailable.value;
+    }
+    customLangFieldsEl.hidden = newLangPresetSelect.value !== 'custom';
+  }
+
+  newLangPresetSelect.addEventListener('change', () => {
+    customLangFieldsEl.hidden = newLangPresetSelect.value !== 'custom';
+  });
+
+  function renderLanguageList() {
+    languageListItemsEl.innerHTML = '';
+    if (LANGUAGES.length === 0) {
+      const empty = document.createElement('p');
+      empty.style.cssText = 'font-size:13px; opacity:0.6; margin:4px 0;';
+      empty.textContent = '目前還沒有任何語言，主網頁的語言切換鈕只會顯示「中文（原文）」。';
+      languageListItemsEl.appendChild(empty);
+    }
+    LANGUAGES.forEach(l => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border);';
+      const label = document.createElement('span');
+      label.style.cssText = 'flex:1; font-size:13px;';
+      label.textContent = l.label + '（' + l.code + '）';
+      row.appendChild(label);
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'node-connections-remove';
+      removeBtn.textContent = '🗑';
+      removeBtn.setAttribute('aria-label', '刪除語言 ' + l.label);
+      removeBtn.addEventListener('click', () => removeLanguage(l.code));
+      row.appendChild(removeBtn);
+      languageListItemsEl.appendChild(row);
+    });
+    updateLanguagePresetOptions();
+    // 語言清單變了，如果目前正開著某個節點的編輯面板，翻譯欄位要跟著重繪
+    // （新增語言要多一列輸入框、刪除語言要少一列），不用使用者自己關掉
+    // 面板再重開才看得到。
+    if (editingId) renderEditTranslations();
+  }
+
+  function addLanguage() {
+    const preset = newLangPresetSelect.value;
+    let code, label;
+    if (preset === 'custom') {
+      code = newLangCodeInput.value.trim();
+      label = newLangLabelInput.value.trim();
+      if (!code || !label) { showToast('代碼跟顯示名稱都要填'); return; }
+    } else {
+      code = preset;
+      label = PRESET_LANGUAGES[preset];
+    }
+    if (LANGUAGES.some(l => l.code === code)) { showToast('這個語言已經存在了'); return; }
+    LANGUAGES.push({ code, label });
+    newLangCodeInput.value = '';
+    newLangLabelInput.value = '';
+    renderLanguageList();
+  }
+
+  function removeLanguage(code) {
+    const idx = LANGUAGES.findIndex(l => l.code === code);
+    if (idx === -1) return;
+    LANGUAGES.splice(idx, 1);
+    // 清掉每個節點底下這個語言的翻譯文字，避免同步出去的 nodeData 裡留著
+    // 一個語言清單已經沒有的孤兒翻譯（不會壞掉，但很雜亂，不如順手清乾淨）。
+    NODE_DATA.forEach(d => { if (d.translations) delete d.translations[code]; });
+    renderLanguageList();
+  }
+
+  document.getElementById('btnLanguages').addEventListener('click', () => {
+    renderLanguageList();
+    languageModalOverlay.hidden = false;
+  });
+  document.getElementById('btnCloseLanguageModal').addEventListener('click', () => {
+    languageModalOverlay.hidden = true;
+  });
+  languageModalOverlay.addEventListener('click', (e) => {
+    if (e.target === languageModalOverlay) languageModalOverlay.hidden = true;
+  });
+  document.getElementById('btnAddLanguage').addEventListener('click', addLanguage);
 
   const btnUndo = document.getElementById('btnUndo');
   const btnRedo = document.getElementById('btnRedo');
@@ -1749,6 +2020,7 @@
     editColorSelect.value = SPECIAL_IDS.has(id) ? 'special' : 'normal';
     editHrefInput.value = d.href || '';
     renderEditConnections();
+    renderEditTranslations();
 
     nodeConnectionsEl.classList.add('open');
     mainEl.classList.add('connections-open');
@@ -1892,6 +2164,51 @@
     populateAddConnectionSelect();
   }
 
+  // 主視覺多語系（2026-08-03 新增）：每個語言一個文字輸入框，值來自這個
+  // 節點的 `translations[code]`（沒有就是空字串＝顯示原文）。用 input 事件
+  // 即時寫回，不用另外按確認鈕，跟 editName/editHref 那些欄位的即時寫回
+  // 行為一致。清空欄位會把該語言的 key 從 translations 刪掉（不是留一個
+  // 空字串），保持「沒填＝退回原文」這個判斷邏輯在主網頁那邊單純可靠
+  // （`if (lang && d.translations && d.translations[lang])`，空字串一樣會
+  // 判定為 falsy 沒錯，但刪掉 key 讓資料本身更乾淨，同步出去的內容也不會
+  // 拖著一堆空字串）。
+  const translationItemsEl = document.getElementById('translationItems');
+
+  function renderEditTranslations() {
+    const id = editingId;
+    const d = NODE_DATA.find(x => x.id === id);
+    translationItemsEl.innerHTML = '';
+    if (LANGUAGES.length === 0) {
+      const empty = document.createElement('p');
+      empty.style.cssText = 'font-size:12px; opacity:0.6; margin:0;';
+      empty.textContent = '還沒有任何語言，先到頁首的語言管理新增。';
+      translationItemsEl.appendChild(empty);
+      return;
+    }
+    LANGUAGES.forEach(l => {
+      const field = document.createElement('label');
+      field.className = 'edit-field';
+      const span = document.createElement('span');
+      span.textContent = l.label + '（' + l.code + '）';
+      field.appendChild(span);
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = '留空 = 顯示原文「' + d.name + '」';
+      input.value = (d.translations && d.translations[l.code]) || '';
+      input.addEventListener('input', () => {
+        const val = input.value;
+        if (val) {
+          if (!d.translations) d.translations = {};
+          d.translations[l.code] = val;
+        } else if (d.translations) {
+          delete d.translations[l.code];
+        }
+      });
+      field.appendChild(input);
+      translationItemsEl.appendChild(field);
+    });
+  }
+
   function populateAddConnectionSelect() {
     const id = editingId;
     addConnectionSelect.innerHTML = '<option value="">選擇要連線的節點…</option>';
@@ -1986,6 +2303,25 @@
     if (!editingId) return;
     const otherId = addConnectionSelect.value;
     if (otherId) addConnection(editingId, otherId);
+  });
+  // Deleting straight from the edit panel (as opposed to pen mode's own
+  // per-row trash icon) has no dedicated undo trail of its own — pen mode's
+  // deletes are covered by structureHistory, but this panel is only ever
+  // open OUTSIDE structure editing, where the node SET is assumed fixed by
+  // the position-only undo/redo. So this is deliberately immediate and
+  // irreversible, like the name/size/colour/connection edits in this same
+  // panel — confirm() is the only safety net, same reasoning as the
+  // "import from main site" reset.
+  document.getElementById('btnDeleteEditingNode').addEventListener('click', () => {
+    if (!editingId) return;
+    const id = editingId;
+    const name = NODE_DATA.find(x => x.id === id).name;
+    if (!window.confirm('確定要刪除「' + name + '」嗎？此動作無法復原（不在上一步/下一步的復原範圍內）。')) return;
+    if (!deleteNodeImmediate(id)) { showToast('至少要保留一個節點'); return; }
+    history = [clonePositions(current)];
+    historyIndex = 0;
+    updateHistoryButtons();
+    showToast('已刪除「' + name + '」');
   });
 
   const nodeListItemsEl = document.getElementById('nodeListItems');
@@ -2171,6 +2507,12 @@
     return {
       nodes: NODE_DATA.map(d => ({
         id: d.id, name: d.name, href: d.href,
+        // mobileName／translations 原本沒有被存進結構快照，代表「新增/刪除
+        // 節點、或是在 pen mode 拖曳重新排序」之後按 Undo/Redo，會把這兩個
+        // 欄位整批清空——2026-08-03 修正，跟這次加入的翻譯功能是同一個
+        // 資料完整性問題，一起修（見 rebuildFromSnapshot() 對應那半）。
+        mobileName: d.mobileName,
+        translations: d.translations,
         radius: nodeRadius[d.id],
         special: SPECIAL_IDS.has(d.id),
         x: current[d.id].x, y: current[d.id].y
@@ -2196,7 +2538,10 @@
 
   function rebuildFromSnapshot(snap) {
     snap.nodes.forEach(nd => {
-      NODE_DATA.push({ id: nd.id, name: nd.name, href: nd.href });
+      const node = { id: nd.id, name: nd.name, href: nd.href };
+      if (nd.mobileName) node.mobileName = nd.mobileName;
+      if (nd.translations) node.translations = nd.translations;
+      NODE_DATA.push(node);
       nodeRadius[nd.id] = nd.radius;
       scaledRadius[nd.id] = nd.radius * DOT_SCALE;
       if (nd.special) SPECIAL_IDS.add(nd.id);
