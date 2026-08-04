@@ -326,7 +326,7 @@
         <sc-if value="{{ !isMobile }}" hint-placeholder-val="{{ true }}">
           <foreignObject x="{{ titleBoxX }}" y="350" width="{{ titleBoxWidth }}" height="200" style="overflow:visible; pointer-events:none;">
             <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:center;">
-              <div style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; color:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; white-space:nowrap; transition:color 0.3s;">原型 × 未來</div>
+              <div style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; color:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; white-space:nowrap; transition:color 0.3s;">{{ centerTitleCombined }}</div>
               <div style="font-size:{{ subtitleFontSize }}px; letter-spacing:0.06em; color:{{ textColor }}; opacity:0.55; margin-top:10px; white-space:nowrap; transition:color 0.3s;">Architecture + Structure</div>
             </div>
           </foreignObject>
@@ -335,11 +335,43 @@
         <!-- 手機版標題：拆成三個獨立的 SVG <text>，「×」用 text-anchor:middle
              精確釘在球體投影中心 (cx,cy)（2026-08-02 新增，使用者要求「把X
              設定為球體的核心」）；「原型」/「未來」分別靠右/靠左對齊在 ×
-             兩側，不依賴兩者剛好等寬這種巧合。字級也再縮小一半。 -->
+             兩側，不依賴兩者剛好等寬這種巧合。字級也再縮小一半。
+             2026-08-04：曾經一度把整塊（含背光暈）搬到全部節點畫完之後、
+             變成整個 SVG 最上層，想解決標題被節點蓋住看不見的問題，但使用者
+             體驗後回報「看不出來原型未來是在球核，反而會擋住正面移動經過的
+             圓點」——會蓋過正面節點，等於整個推翻第十二次調整「正面節點蓋
+             過標題、標題蓋過背面節點」這個刻意營造「嵌在球心」立體感的設計，
+             改回原本夾在「背面節點層」跟「正面節點層」中間的位置。標題偶爾
+             被正面節點蓋住視為可接受的代價（維持嵌入球心的立體感優先於標題
+             隨時 100% 可讀），下面的背光暈保留，至少把背面連線/節點透出來
+             的雜訊擦乾淨，緩解使用者更早之前回報的「原型未來消失了」問題。 -->
         <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
-          <text x="450" y="450" text-anchor="middle" dominant-baseline="central" style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; fill:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:fill 0.3s; pointer-events:none;">×</text>
-          <text x="{{ titleLeftX }}" y="450" text-anchor="end" dominant-baseline="central" style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; fill:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:fill 0.3s; pointer-events:none;">原型</text>
-          <text x="{{ titleRightX }}" y="450" text-anchor="start" dominant-baseline="central" style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; fill:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:fill 0.3s; pointer-events:none;">未來</text>
+          <!-- 標題背光暈：先用頁面背景色（跟著深色模式變）往外羽化透明的
+               放射狀漸層圓，把標題所在的這一小塊區域「擦」乾淨，文字才不會
+               跟背面那層連線/節點混在一起分不清楚——正面節點還是會照常蓋在
+               光暈跟標題上面，不受影響。 -->
+          <defs>
+            <radialGradient id="titleGlowGrad" gradientUnits="userSpaceOnUse" cx="{{ titleAnchorX }}" cy="450" r="{{ titleGlowRadius }}">
+              <stop offset="0%" stop-color="{{ bgColor }}" stop-opacity="0.95"></stop>
+              <stop offset="55%" stop-color="{{ bgColor }}" stop-opacity="0.85"></stop>
+              <stop offset="100%" stop-color="{{ bgColor }}" stop-opacity="0"></stop>
+            </radialGradient>
+          </defs>
+          <circle cx="{{ titleAnchorX }}" cy="450" r="{{ titleGlowRadius }}" fill="url(#titleGlowGrad)" style="pointer-events:none; transition:fill 0.3s;"></circle>
+          <!-- data-center-title-left/right 的文字內容是用 _syncCenterTitleText()
+               在 componentDidMount()/componentDidUpdate() 裡直接寫 textContent，
+               不是用 {{ }} 內插——DC 模板引擎對「已解析出字串」的 {{ }} 一律會
+               包一層 <span class="sc-interp">（見 support.js walkText()，跟串流
+               載入時顯示 placeholder 有關，沒有可以關掉的選項），SVG <text> 的
+               內容模型不接受這種非 SVG 命名空間的子元素，包了 span 之後這兩個
+               翻譯文字直接整個不會畫出來——這正是使用者回報「手機版中的原型
+               未來消失了」的根本原因之一（× 跟副標題是固定字面文字、沒有走
+               {{ }} 內插，所以沒有這個問題，只有這兩個真的需要換語言的文字
+               才中招）。改成模板裡留空、掛一個穩定的 data-* 選取器，由 JS
+               直接寫 textContent，繞開這個限制。 -->
+          <text x="{{ titleAnchorX }}" y="450" text-anchor="middle" dominant-baseline="central" style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; fill:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:fill 0.3s; pointer-events:none;">×</text>
+          <text data-center-title-left="1" x="{{ titleLeftX }}" y="450" text-anchor="end" dominant-baseline="central" style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; fill:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:fill 0.3s; pointer-events:none;"></text>
+          <text data-center-title-right="1" x="{{ titleRightX }}" y="450" text-anchor="start" dominant-baseline="central" style="font-size:{{ titleFontSize }}px; font-weight:600; letter-spacing:0.02em; fill:{{ textColor }}; font-family:'Noto Serif TC','Source Han Serif TC',serif; transition:fill 0.3s; pointer-events:none;"></text>
           <text x="450" y="{{ titleSubtitleY }}" text-anchor="middle" dominant-baseline="central" style="font-size:{{ subtitleFontSize }}px; letter-spacing:0.06em; fill:{{ textColor }}; opacity:0.55; transition:fill 0.3s; pointer-events:none;">Architecture + Structure</text>
         </sc-if>
 
@@ -500,6 +532,23 @@ class Component extends DCLogic {
     { code: 'ko', label: '한국어' },
     { code: 'es', label: 'Español' }
   ];
+
+  // 球心「原型 × 未來」標題的多語系（2026-08-04 新增，同日一度改回原文、
+  // 隨後使用者要求連同溢出問題一起重做）：跟 nodeData[].translations 不
+  // 一樣，這不是編輯器管理的節點資料，是固定的頁面裝飾文字，所以直接寫死
+  // 在這裡，不走編輯器同步流程。key 要跟上面 languages 的 code 對上；沒有
+  // 對應語言（或原文/中文）一律照舊顯示「原型」／「未來」，見
+  // getCenterTitle()。翻譯後字串長度不一（英文「Prototype × Future」比
+  // 中文「原型 × 未來」寬很多），實際顯示的字級會依長度動態縮小，見
+  // renderVals() 裡 estimateTitleWidth() 那段說明，不是在這裡手動調位置。
+  centerTitleTranslations = {
+    en: { left: 'Prototype', right: 'Future' },
+    'zh-Hans': { left: '原型', right: '未来' },
+    fr: { left: 'Prototype', right: 'Futur' },
+    ja: { left: 'プロトタイプ', right: '未来' },
+    ko: { left: '프로토타입', right: '미래' },
+    es: { left: 'Prototipo', right: 'Futuro' }
+  };
 
   // Shared by both the desktop 2D ring and the mobile 3D globe (renderVals()
   // and buildGlobeGeometry()/paintGlobe() below) so a dot's "visual weight"
@@ -1123,6 +1172,15 @@ class Component extends DCLogic {
       surface.addEventListener('click', this._onGlobeClickCapture, true);
     }
     this._globeRaf = requestAnimationFrame(() => this.globeTick());
+    this._syncCenterTitleText();
+  }
+
+  // 每次 re-render 之後都重新寫一次球心標題文字（切換語言、深色模式、手機/
+  // 桌機模式……任何觸發 re-render 的操作都算），見 _syncCenterTitleText()
+  // 上面的說明——不能只在 componentDidMount() 做一次，語言切換是透過
+  // setState 觸發的正常 re-render，不會重新掛載這兩個 <text>。
+  componentDidUpdate() {
+    this._syncCenterTitleText();
   }
 
   componentWillUnmount() {
@@ -1562,6 +1620,46 @@ class Component extends DCLogic {
     return mobile ? (d.mobileName || d.name) : d.name;
   }
 
+  // 球心「原型 × 未來」標題目前該顯示的文字（見 centerTitleTranslations
+  // 欄位的說明）。回傳 { left, right }，桌機版樣板自己接 ' × ' 組成單一
+  // 字串，手機版樣板本來就是兩個獨立 <text> 元素，直接分開用。
+  getCenterTitle() {
+    const lang = this.state.currentLang;
+    const t = lang && this.centerTitleTranslations[lang];
+    return t || { left: '原型', right: '未來' };
+  }
+
+  // 手機版球心標題「原型」/「未來」文字直接寫 textContent，不透過 {{ }}
+  // 內插（見樣板 data-center-title-left/right 旁邊的說明）。componentDidMount()
+  // 跟 componentDidUpdate() 都會呼叫，涵蓋初次掛載跟之後任何一次 re-render
+  // （切換語言、深色模式、手機/桌機模式……）；桌機模式下這兩個 <text> 不存在
+  // 於 DOM，querySelector 找不到就靜靜跳過，不用另外判斷 isMobile。
+  _syncCenterTitleText() {
+    const t = this.getCenterTitle();
+    const leftEl = document.querySelector('[data-center-title-left]');
+    const rightEl = document.querySelector('[data-center-title-right]');
+    if (leftEl) leftEl.textContent = t.left;
+    if (rightEl) rightEl.textContent = t.right;
+  }
+
+  // 粗略估算一段文字用給定字級畫出來大概多寬（viewBox 單位）：CJK 表意
+  // 文字／假名／諺文／全形符號當作一個全形寬度（1 個字級），其餘（拉丁字母、
+  // 數字、× 符號、空白）平均抓 0.58 個字級寬——不是精確量測（渲染前沒有
+  // DOM 可以量），只用來抓「這個翻譯明顯比中文原文寬很多」這種情況，讓
+  // getScaledCenterTitleFontSize() 有依據可以縮小字級。用 Playwright 對照
+  // 過六種語言 + 原文的實際 getBBox() 寬度，這組係數在所有語言下都留有
+  // 安全邊界（見維護手冊「球心標題多語系加上防溢出」那節）。
+  estimateTitleWidth(text, fontSize) {
+    let w = 0;
+    for (const ch of text) {
+      const cp = ch.codePointAt(0);
+      const isWide = (cp >= 0x2E80 && cp <= 0x9FFF) || (cp >= 0x3040 && cp <= 0x30FF) ||
+        (cp >= 0xAC00 && cp <= 0xD7A3) || (cp >= 0xFF00 && cp <= 0xFFEF);
+      w += (isWide ? 1 : 0.58) * fontSize;
+    }
+    return w;
+  }
+
   // 每個節點的連線數，決定圓點大小（degree 越高，圓點越大）。
   computeDegree() {
     const degree = {};
@@ -1990,17 +2088,55 @@ class Component extends DCLogic {
     // 大概在中間。字級也再縮小一半（使用者要求）。white-space:nowrap on the
     // desktop divs is what prevents the two lines from wrapping/drifting
     // apart in some mobile browsers（桌機分支沿用，跟這次調整無關）。
-    const titleFontSize = isMobile ? 31 : 62;
+    const baseTitleFontSize = isMobile ? 31 : 62;
     const subtitleFontSize = isMobile ? 11 : 22;
     const titleBoxWidth = 420;
     const titleBoxX = cx - titleBoxWidth / 2;
-    // 手機版「× 是球心」排版用的座標：原型／未來分別靠右/靠左對齊、留出
-    // 中間一小段給 ×，×本身用 text-anchor:middle 精確釘在 (cx,cy)。間距跟
-    // 副標題的垂直位移都依目前字級等比例算，字級改變時排版還是合理。
+    // 球心標題目前該顯示的文字（見 getCenterTitle()）跟依長度算出來的字級：
+    // 翻譯後的字串長短差很多（「原型 × 未來」4 個全形字 vs. 「Prototype ×
+    // Future」18 個字母），字級固定不變的話長的翻譯會超出圓環（桌機）或
+    // 球體輪廓（手機）——使用者回報「會因為字串的長度而產生超出圓圈或圓
+    // 球」。做法：用 estimateTitleWidth() 粗估目前這句翻譯用「原本字級」畫
+    // 出來大概多寬，超出安全寬度（桌機是標題框寬度扣邊界、手機是球體半徑
+    // 的一定比例）就整組等比例縮小字級，最小縮到原本的一半（避免超長翻譯
+    // 把字縮到看不清楚）。
+    const centerTitle = this.getCenterTitle();
+    const centerTitleCombinedRaw = centerTitle.left + ' × ' + centerTitle.right;
+    const titleSafeWidth = isMobile ? this._GLOBE_SPHERE_RADIUS_VB * 1.5 : titleBoxWidth - 40;
+    const estimatedTitleWidth = this.estimateTitleWidth(centerTitleCombinedRaw, baseTitleFontSize);
+    const titleScale = Math.max(0.5, Math.min(1, titleSafeWidth / estimatedTitleWidth));
+    const titleFontSize = Math.round(baseTitleFontSize * titleScale);
+    const centerTitleCombined = centerTitleCombinedRaw;
+    // 手機版標題排版：中文原文／簡體中文維持「× 精確釘在球心 (cx,cy)」
+    // （2026-08-02 使用者原始要求，「原型」「未來」都是 2 個字，本來就對稱，
+    // × 釘在正中央＝整段文字的視覺中點也在正中央，兩者本來就是同一件事）。
+    // 其他翻譯語言左右兩個字的長度常常差很多（英文「Prototype」9 個字母 vs.
+    // 「Future」6 個字母），如果還是把 × 死釘在 cx，整段文字的視覺中點會
+    // 跟著偏移（左邊比右邊長一截，肉眼看起來整組字往左偏）——使用者要求
+    // 「整段文字（原型×未來）的翻譯版本的水平方向中點要固定在球的圓心」，
+    // × 本身不再是釘住的對象，改成把整段文字（左字＋間距＋×＋間距＋右字）
+    // 當一個整體置中：用 estimateTitleWidth() 估出左右兩個字目前這個字級
+    // 下的寬度差，整組（×／左字／右字／背光暈）一起往寬度較窄的那一側位移
+    // 差值的一半，讓左右兩側到 cx 的「視覺」距離拉平，× 本身的座標則跟著
+    // 一起被推算出來，不再固定等於 cx。
     const titleCoreGap = titleFontSize * 0.6;
-    const titleLeftX = cx - titleCoreGap;
-    const titleRightX = cx + titleCoreGap;
+    const lang = this.state.currentLang;
+    const centerWholeBlock = !!lang && lang !== 'zh-Hans';
+    let titleShiftX = 0;
+    if (centerWholeBlock) {
+      const leftWidth = this.estimateTitleWidth(centerTitle.left, titleFontSize);
+      const rightWidth = this.estimateTitleWidth(centerTitle.right, titleFontSize);
+      titleShiftX = (leftWidth - rightWidth) / 2;
+    }
+    const titleAnchorX = cx + titleShiftX;
+    const titleLeftX = titleAnchorX - titleCoreGap;
+    const titleRightX = titleAnchorX + titleCoreGap;
     const titleSubtitleY = cy + titleFontSize * 0.9;
+    // 手機版標題背光暈半徑（見樣板裡 titleGlowGrad 的說明）：固定用「安全
+    // 寬度」（未縮放時的最大合理寬度）的一半再加一點 padding，不隨目前這句
+    // 翻譯的實際長度變動——這樣切換語言時光暈大小穩定不跳動，短的翻譯只是
+    // 多留一點餘裕，比每次都重新量剛好合身更不容易在切換瞬間看起來閃一下。
+    const titleGlowRadius = isMobile ? titleSafeWidth / 2 + 45 : 0;
 
     // Every node from column B, in spreadsheet row order. Desktop/tablet
     // lays them out on a flat 2D ring around the center ("原型 × 未來");
@@ -2322,7 +2458,8 @@ class Component extends DCLogic {
       enterMobileFullscreenPlay: () => this.enterMobileFullscreenPlay(),
       exitMobileFullscreenPlay: () => this.exitMobileFullscreenPlay(),
       titleBoxX, titleBoxWidth, titleFontSize, subtitleFontSize,
-      titleLeftX, titleRightX, titleSubtitleY,
+      titleLeftX, titleRightX, titleSubtitleY, titleAnchorX,
+      centerTitleCombined, titleGlowRadius,
       searchBoxDisplay: isMobile ? 'none' : 'flex',
       navPillGap: isMobile ? '12px' : '32px',
       navPillPadding: isMobile ? '10px 12px' : '16px 24px',
