@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<!-- PAGE TRANSITION PRELOADER (arriving from homepage) -->
+<script>
+(function () {
+  var flag;
+  try { flag = sessionStorage.getItem('scTransitionIn'); } catch (err) { flag = null; }
+  if (flag !== '1') return;
+  try { sessionStorage.removeItem('scTransitionIn'); } catch (err) {}
+
+  // 本頁的大標題文字，需與 <h1> 內容一致
+  var ARRIVAL_WORD = '原型方法';
+  var HOLD_AFTER_NAV_MS = 450;
+  var EXIT_SLIDE_MS = 700;
+  var OVERLAY_BG = '#0a0a0a';
+  var TEXT_COLOR = '#ffffff';
+
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:' + OVERLAY_BG + ';display:flex;align-items:center;justify-content:center;opacity:1;transform:translateY(0);';
+  var wordEl = document.createElement('span');
+  wordEl.textContent = ARRIVAL_WORD;
+  wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:30px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
+  overlay.appendChild(wordEl);
+  document.body.appendChild(overlay);
+
+  setTimeout(function () {
+    overlay.style.transition = 'transform ' + EXIT_SLIDE_MS + 'ms cubic-bezier(.76,0,.24,1)';
+    overlay.style.transform = 'translateY(-100%)';
+    setTimeout(function () { overlay.remove(); }, EXIT_SLIDE_MS);
+  }, HOLD_AFTER_NAV_MS);
+})();
+</script>
+<x-dc>
+<helmet>
+<link rel="icon" type="image/png" href="uploads/favicon.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: inherit; opacity: 0.6; }
+</style>
+</helmet>
+<div style="background:{{ bgColor }}; color:{{ textColor }}; font-family:'Helvetica Neue',Helvetica,Arial,'PingFang TC','Microsoft JhengHei',sans-serif; width:100%; min-height:100vh; transition:background-color 0.3s, color 0.3s;">
+
+  <!-- HEADER -->
+  <header style="position:fixed; top:0; left:0; right:0; z-index:1000; padding:24px 40px; display:flex; justify-content:space-between; align-items:center;">
+    <div style="display:flex; align-items:center; gap:20px;">
+      <button data-menu-box="1" onClick="{{ toggleMaterialMenu }}" style="background:none; border:none; cursor:pointer; padding:8px; display:flex; flex-direction:column; gap:5px; justify-content:center; align-items:center; width:36px; height:36px;">
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+      </button>
+      <sc-if value="{{ showMaterialMenu }}" hint-placeholder-val="{{ false }}">
+        <div data-menu-box="1" style="position:absolute; top:100%; left:40px; margin-top:8px; width:160px; background-color:{{ isDarkMode ? 'oklch(0.12 0 0)' : 'oklch(0.98 0 0)' }}; border:1px solid {{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)' }}; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.2); overflow:hidden;">
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=27070" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">木構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25396" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">竹構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25397" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">RC構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25398" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">鋼構造</a>
+        </div>
+      </sc-if>
+      <a href="./index.html" style="display:flex; align-items:center;">
+        <img src="uploads/logo_20210310101340.png" alt="Logo" style="height:40px; filter:{{ isDarkMode ? 'invert(1)' : 'none' }}; transition:filter 0.3s;">
+      </a>
+    </div>
+    <div style="display:flex; gap:32px; align-items:center; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:16px 24px; transition:background-color 0.3s;">
+      <a href="https://www.mashup.com.tw/as%20studio/?page=service" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Team</a>
+      <a href="https://www.mashup.com.tw/as%20studio/?page=movies" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Film</a>
+      <a href="https://www.mashup.com.tw/as%20studio/?page=contact" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Contact</a>
+      <button onClick="{{ toggleDarkMode }}" style="background:none; border:1px solid {{ textColor }}; border-radius:4px; padding:8px 12px; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.3s; color:{{ textColor }}; display:flex; align-items:center; justify-content:center; width:44px; height:44px;">
+        <sc-if value="{{ isDarkMode }}" hint-placeholder-val="{{ true }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </sc-if>
+        <sc-if value="{{ !isDarkMode }}" hint-placeholder-val="{{ true }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </sc-if>
+      </button>
+    </div>
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <section style="padding:220px 40px 160px; max-width:1600px; margin:0 auto;">
+
+    <!-- HOVER-EXPAND GALLERY (skiper35 效果的替代版；此頁不在活頁簿既有候選工作表清單裡，
+         galleryItems 四筆來自維護者直接提供的「構・法・章・成」文案，非 Excel 驅動) -->
+    <style>
+      .sc-gallery { position:relative; display:flex; height:328px; margin-bottom:56px; }
+      /* 游標彗星尾巴：容器包住整個圖片列（contained area），dot 只在滑鼠停留在列內時顯示，
+         每個 dot 用 JS 逐格 lerp 追前一個 dot（第一個追游標），做出拖尾效果；
+         點大小/透明度依序遞減，尺寸/透明度用 JS 建立時算好、位置每幀用 transform 更新 */
+      .sc-cursor-chain {
+        position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:50;
+        opacity:0; transition:opacity 0.25s ease;
+      }
+      .sc-cursor-chain.sc-visible { opacity:1; }
+      .sc-chain-dot {
+        position:absolute; left:0; top:0; border-radius:50%; background:currentColor;
+        pointer-events:none; will-change:transform;
+      }
+      .sc-gallery-panel {
+        position:relative; flex:1; min-width:0; overflow:hidden; cursor:pointer;
+        transition:flex 0.55s cubic-bezier(.16,1,.3,1);
+      }
+      .sc-gallery-panel:hover { flex:4; }
+      /* 有照片的滑塊左右各留 1px 空隙，不讓照片緊貼分隔線：
+         padding 1px + background-clip/origin:content-box，照片只畫在 padding 以內，
+         左右各 1px 露出滑塊底色（等於視覺上裁掉照片左右各 1px） */
+      .sc-gallery-panel[data-photo="true"] {
+        padding:0 1px;
+        background-clip:content-box;
+        background-origin:content-box;
+      }
+      .sc-gallery-icon {
+        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+        width:28px; height:28px; opacity:0.25; transition:opacity 0.4s ease;
+      }
+      .sc-gallery-panel:hover .sc-gallery-icon { opacity:0.4; }
+
+      /* 編號與大標題在收合/展開之間互換角度：
+         收合：編號 0 度（橫式）／大標題 -90 度（直式，貼合窄版面不超出滑塊）
+         展開：編號轉為 -90 度／大標題轉回 0 度（橫式可讀）
+         兩者都用絕對定位固定各自的 left/bottom 基準點旋轉（不透過 flex gap），
+         避免 transform 不影響版位計算導致的重疊或跑位過遠 */
+      .sc-gallery-caption {
+        position:absolute; left:35px; bottom:16px; height:44px; right:16px;
+      }
+      .sc-gallery-num {
+        position:absolute; left:0; bottom:0; transform-origin:left bottom;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:20px; letter-spacing:0.05em;
+        white-space:nowrap; transform:translateY(-280px) rotate(0deg);
+        transition:transform 0.5s cubic-bezier(.65,0,.35,1);
+      }
+      .sc-gallery-panel:hover .sc-gallery-num { transform:translateY(0) rotate(-90deg); }
+
+      .sc-gallery-titles {
+        position:absolute; left:1px; bottom:0;
+        display:flex; flex-direction:column; justify-content:flex-end;
+      }
+      .sc-gallery-sub {
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:17px; line-height:1.3;
+        margin:0; white-space:nowrap; overflow:hidden;
+        max-height:0; transform:scaleY(0); transform-origin:bottom;
+        transition:max-height 0.4s ease, transform 0.4s ease;
+      }
+      .sc-gallery-panel:hover .sc-gallery-sub { max-height:20px; transform:scaleY(1); }
+      .sc-gallery-main {
+        display:inline-block; transform-origin:left bottom;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:21px; line-height:1.2;
+        margin:0; white-space:nowrap;
+        transform:rotate(-90deg);
+        transition:transform 0.5s cubic-bezier(.65,0,.35,1);
+      }
+      .sc-gallery-panel:hover .sc-gallery-main { transform:rotate(0deg); }
+    </style>
+    <div class="sc-gallery" id="sc-gallery">
+      <sc-for list="{{ galleryItems }}" as="item" hint-placeholder-count="4">
+        <div class="sc-gallery-panel" data-photo="{{ item.hasPhoto }}" onClick="{{ item.goTo }}" style="background-color:{{ item.bg }}; border-left:{{ item.borderLeft }}; background-image:{{ item.bgImage }}; background-repeat:no-repeat; background-position:{{ item.bgPosition }}; background-size:{{ item.bgSize }};">
+          <sc-if value="{{ !item.hasPhoto }}" hint-placeholder-val="{{ true }}">
+            <svg class="sc-gallery-icon" viewBox="0 0 24 24" fill="none" stroke="{{ item.text }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <path d="M21 15l-5-5L5 21"></path>
+            </svg>
+          </sc-if>
+          <div class="sc-gallery-caption">
+            <span class="sc-gallery-num" style="color:{{ item.text }};">{{ item.num }}</span>
+            <div class="sc-gallery-titles">
+              <p class="sc-gallery-sub" style="color:{{ item.text }};">{{ item.en }}</p>
+              <p class="sc-gallery-main" style="color:{{ item.text }};">{{ item.zh }}</p>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+      <div class="sc-cursor-chain" id="sc-cursor-chain" style="color:#B4A249;"></div>
+    </div>
+
+    <div style="font-size:28px; letter-spacing:0.1em; opacity:0.5; margin-bottom:16px;">
+      <a href="./index.html">首頁</a> / 原型方法
+    </div>
+    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:30px; font-weight:800; letter-spacing:0.02em; margin:0 0 12px 0;">原型方法</h1>
+    <div style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.5em; opacity:0.6; margin:0 0 40px 0;">構・法・章・成</div>
+
+    <!-- 以下四段是維護者直接提供的手寫文案（非 Excel 驅動），對應畫廊滑塊 01-04。
+         每段結尾的結語 <p>（例如「構，不僅是組合的關係理解而是精準幾何的建構。」）刻意比內文大一號（32px > 內文 26px）、
+         weight:700、opacity:0.5 呈現灰階效果，跟內文做出區隔，是維護者指定的樣式。
+         曾經融合過簡報《10x10》（D:\2026as實習\網頁\構法章成.pptx）摘錄的補充段落，後來維護者要求整段刪除，
+         這頁目前只剩最初的手寫文案，過程見「維護手冊_子網頁資料同步.md」-->
+    <div style="display:flex; flex-direction:column; gap:112px;">
+
+      <div id="sc-section-gou">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">構｜組構・幾何</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">「構」是原型對建築最初的理解，從組構關係與幾何秩序開始，尋找空間、材料與力量之間的基本關係。結構不是附加於建築的技術，而是形成建築的起點。透過幾何學找尋尺度、比例、形體與受力邏輯，建立清晰而具有秩序的空間骨架，使幾何成為可被感知的結構語言。</p>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:32px; font-weight:700; line-height:1.9; opacity:0.5; margin:24px 0 0 0;">構，不僅是組合的關係理解而是精準幾何的建構。</p>
+      </div>
+
+      <div id="sc-section-fa">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">法｜方法・系統</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">「法」是將想法轉化為設計的方法。原型從條件、材料、結構與施工出發，建立可理解、可推演、可重複的設計系統。方法不是限制創意，而是讓創意具備實現的邏輯；透過系統化思考整合不同尺度與專業，使每一個設計決定都有依據，讓建築從概念逐步走向清晰。</p>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:32px; font-weight:700; line-height:1.9; opacity:0.5; margin:24px 0 0 0;">法，是系統化的極致表現。</p>
+      </div>
+
+      <div id="sc-section-zhang">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">章｜原型・構築</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">「章」是原型對自己論述的建立，也是從方法走向構築的過程。萬物皆以原型誕生，並皆從材料、結構、尺度與細部中尋找自身的秩序，形成獨立而可辨識的構築章法。原型的意涵不追求形式的複製，而是從條件中提煉規律，讓每一次設計成為對建築本質的一次重新詮釋。</p>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:32px; font-weight:700; line-height:1.9; opacity:0.5; margin:24px 0 0 0;">章，是用於原型的探索與創造。</p>
+      </div>
+
+      <div id="sc-section-cheng">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">成｜落地・實踐</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">「成」是設計真正完成的時刻，也是原型最重視的實踐。一個經典構造物必然經歷設計思考與時間的驗證，但唯有從圖紙上轉化成真實討論的條件才能成為真實的建築。原型重視從圖面到現場的每一個環節，讓設計經得起製作、建造與使用的考驗，使思想最終落地，讓建築真正成為可以被使用、感受與延續的作品。</p>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:32px; font-weight:700; line-height:1.9; opacity:0.5; margin:24px 0 0 0;">成，是致力於將想法實踐出來。</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="background-color:{{ isDarkMode ? 'oklch(0.12 0 0)' : 'oklch(0.95 0 0)' }}; padding:80px 40px; transition:background-color 0.3s;">
+    <div style="max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:flex-start;">
+      <div style="text-align:left;">
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0 0 8px 0; transition:color 0.3s;">電話：06-2905293</p>
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0 0 8px 0; transition:color 0.3s;">傳真：06-2905493</p>
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0; transition:color 0.3s;">電郵：<a href="mailto:as.studio001@gmail.com" style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; text-decoration:none; transition:opacity 0.3s;" style-hover="opacity:0.7;">as.studio001@gmail.com</a></p>
+      </div>
+      <div style="text-align:center;">
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0; transition:color 0.3s;">台南市東區中華東路三段44巷7號1樓</p>
+      </div>
+      <div style="text-align:right; display:flex; gap:16px; align-items:center;">
+        <a href="https://www.facebook.com/AS.structure" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <path d="M18 2h-3a6 6 0 0 0-6 6v4h-2v4h2v6h4v-6h3l1-4h-4V8a2 2 0 0 1 2-2h1Z"></path>
+          </svg>
+        </a>
+        <a href="https://www.instagram.com/as.futuregroup?igsh=MTRsZXV2dmhnaGdqOQ%3D%3D" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <circle cx="17.5" cy="6.5" r="1.5"></circle>
+          </svg>
+        </a>
+        <a href="https://www.youtube.com/@%E9%99%B3%E5%86%A0%E5%B8%86-z9v" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { isDarkMode: false, showMaterialMenu: false };
+
+  // 資料來源：不是 Excel 驅動——這頁不在活頁簿既有候選工作表清單裡，
+  // 維護者直接在對話裡提供「構・法・章・成」四段文案，zh/en 直接取自文案裡的
+  // 單字＋副標（例如「構｜組構・幾何」），en 欄位放的是中文副標，不是英文翻譯
+  // target：點擊滑塊後捲動至對應段落（id 見下方內文區塊）
+  // photo：維護者指定簡報《10x10》裡的特定頁（第4/6/12/19頁）作為對應滑塊的照片，
+  // Claude 用 PIL 去掉圖片裡的文字、裁切成正方形後存進 uploads/原型方法/，
+  // 檔名直接對應 zh（構.jpg／法.jpg／章.jpg／成.jpg），細節見「維護手冊_子網頁資料同步.md」
+  galleryItems = [
+    { num: '01', zh: '構', en: '組構・幾何', target: 'sc-section-gou', photo: 'uploads/原型方法/構.jpg', textOverride: '#ffffff' },
+    { num: '02', zh: '法', en: '方法・系統', target: 'sc-section-fa', photo: 'uploads/原型方法/法.jpg', textOverride: '#ffffff' },
+    { num: '03', zh: '章', en: '原型・構築', target: 'sc-section-zhang', photo: 'uploads/原型方法/章.jpg', textOverride: '#ffffff' },
+    { num: '04', zh: '成', en: '落地・實踐', target: 'sc-section-cheng', photo: 'uploads/原型方法/成.jpg', textOverride: '#ffffff' }
+  ];
+
+  scrollToSection(id) {
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  toggleDarkMode() {
+    this.setState(s => ({ isDarkMode: !s.isDarkMode }));
+  }
+
+  toggleMaterialMenu() {
+    this.setState(s => ({ showMaterialMenu: !s.showMaterialMenu }));
+  }
+
+  componentDidMount() {
+    this._onDocMouseDown = (e) => {
+      const inMenu = e.target && e.target.closest && e.target.closest('[data-menu-box]');
+      if (!inMenu && this.state.showMaterialMenu) this.setState({ showMaterialMenu: false });
+    };
+    document.addEventListener('mousedown', this._onDocMouseDown);
+
+    // 畫廊滑塊展開後要是正方形：實際可用寬度會隨瀏覽器/預覽視窗大小改變，
+    // 不能寫死固定 px（那樣只在特定視窗寬度下才會剛好是正方形）。
+    // 改成即時量測 .sc-gallery 的實際寬度，換算「展開後應有的寬度」，
+    // 直接設成滑塊高度，並同步更新照片的 background-size 與編號的位移量。
+    this._sizeGallerySquare = () => {
+      const gallery = document.getElementById('sc-gallery');
+      if (!gallery) return;
+      const totalWidth = gallery.clientWidth;
+      if (!totalWidth) return;
+      // 通用公式，不寫死滑塊數量：懸停中的滑塊 flex:HOVER_FLEX，其餘每個都是 flex:1。
+      // HOVER_FLEX 要跟 CSS 的 .sc-gallery-panel:hover { flex:__; } 保持一致（目前是 4）。
+      // 不管這個版面以後套用在哪個子頁面、放幾個滑塊，都會自動算出正確的展開正方形尺寸。
+      const HOVER_FLEX = 4;
+      const panelCount = document.querySelectorAll('.sc-gallery-panel').length;
+      if (!panelCount) return;
+      const totalFlexUnits = HOVER_FLEX + (panelCount - 1);
+      const squareSize = Math.round(totalWidth * HOVER_FLEX / totalFlexUnits);
+      gallery.style.height = squareSize + 'px';
+
+      const numOffset = -(squareSize - 48);
+      let styleEl = document.getElementById('sc-gallery-dynamic-style');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'sc-gallery-dynamic-style';
+        document.body.appendChild(styleEl);
+      }
+      styleEl.textContent =
+        '.sc-gallery-num { transform: translateY(' + numOffset + 'px) rotate(0deg); }' +
+        '.sc-gallery-panel:hover .sc-gallery-num { transform: translateY(0) rotate(-90deg); }';
+
+      document.querySelectorAll('.sc-gallery-panel[data-photo="true"]').forEach((panel) => {
+        panel.style.backgroundSize = squareSize + 'px ' + squareSize + 'px';
+      });
+    };
+    this._sizeGallerySquare();
+    window.addEventListener('resize', this._sizeGallerySquare);
+
+    // 游標彗星尾巴：容器是 #sc-cursor-chain（絕對定位、蓋滿 #sc-gallery、pointer-events:none，
+    // 不擋滑塊的 hover/click）。dot 只建立一次；每幀用 lerp 讓每個 dot 往「前一個 dot」靠近
+    // 35%（第一個 dot 追游標本身），越後面的 dot 越小越淡，形成拖尾。滑鼠離開容器就淡出隱藏。
+    (() => {
+      const container = document.getElementById('sc-cursor-chain');
+      const gallery = document.getElementById('sc-gallery');
+      if (!container || !gallery) return;
+
+      const CHAIN_LENGTH = 7;
+      const LERP = 0.35;
+      const dots = [];
+      for (let i = 0; i < CHAIN_LENGTH; i++) {
+        const size = Math.max(3, 14 - i * 1.6);
+        const opacity = Math.max(0.06, 0.9 - i * 0.13);
+        const dotEl = document.createElement('span');
+        dotEl.className = 'sc-chain-dot';
+        dotEl.style.width = size + 'px';
+        dotEl.style.height = size + 'px';
+        dotEl.style.opacity = String(opacity);
+        container.appendChild(dotEl);
+        dots.push({ el: dotEl, x: 0, y: 0 });
+      }
+
+      let targetX = 0, targetY = 0;
+      let active = false;
+
+      this._onGalleryMouseMove = (e) => {
+        const rect = gallery.getBoundingClientRect();
+        targetX = e.clientX - rect.left;
+        targetY = e.clientY - rect.top;
+        if (!active) {
+          active = true;
+          dots.forEach((d) => { d.x = targetX; d.y = targetY; });
+          container.classList.add('sc-visible');
+        }
+      };
+      this._onGalleryMouseLeave = () => {
+        active = false;
+        container.classList.remove('sc-visible');
+      };
+      gallery.addEventListener('mousemove', this._onGalleryMouseMove);
+      gallery.addEventListener('mouseleave', this._onGalleryMouseLeave);
+
+      const animateChain = () => {
+        if (active) {
+          let prevX = targetX, prevY = targetY;
+          dots.forEach((d) => {
+            d.x += (prevX - d.x) * LERP;
+            d.y += (prevY - d.y) * LERP;
+            d.el.style.transform = 'translate(' + d.x + 'px,' + d.y + 'px) translate(-50%,-50%)';
+            prevX = d.x; prevY = d.y;
+          });
+        }
+        this._chainRAF = requestAnimationFrame(animateChain);
+      };
+      animateChain();
+    })();
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this._onDocMouseDown);
+    window.removeEventListener('resize', this._sizeGallerySquare);
+    if (this._chainRAF) cancelAnimationFrame(this._chainRAF);
+    const gallery = document.getElementById('sc-gallery');
+    if (gallery && this._onGalleryMouseMove) gallery.removeEventListener('mousemove', this._onGalleryMouseMove);
+    if (gallery && this._onGalleryMouseLeave) gallery.removeEventListener('mouseleave', this._onGalleryMouseLeave);
+  }
+
+  renderVals() {
+    const isDarkMode = this.state.isDarkMode;
+    return {
+      isDarkMode,
+      bgColor: isDarkMode ? '#0a0a0a' : '#ffffff',
+      textColor: isDarkMode ? '#ffffff' : '#1a1a1a',
+      showMaterialMenu: this.state.showMaterialMenu,
+      toggleMaterialMenu: () => this.toggleMaterialMenu(),
+      toggleDarkMode: () => this.toggleDarkMode(),
+      galleryItems: this.galleryItems.map((it, idx) => {
+        const lineColor = isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(136,136,136,0.8)';
+        const hasPhoto = !!it.photo;
+        return {
+          ...it,
+          bg: isDarkMode ? '#0a0a0a' : '#ffffff',
+          // 有照片的滑塊用固定文字色（不隨深/淺色模式變動，因為照片本身也不會變）；
+          // 沒照片的維持跟著 isDarkMode 走
+          text: it.textOverride || (isDarkMode ? '#ffffff' : '#1a1a1a'),
+          borderLeft: '0.5px solid ' + lineColor,
+          goTo: () => this.scrollToSection(it.target),
+          hasPhoto,
+          // 展開後面板約 360x340px，圖片固定用這個尺寸鋪滿、靠左定位，
+          // 收合/展開之間圖片本身完全不變，只是面板變寬露出更多，不是切換圖片
+          bgImage: hasPhoto ? "url('" + it.photo + "')" : 'none',
+          bgPosition: hasPhoto ? 'left center' : '0 0',
+          bgSize: hasPhoto ? '328px 328px' : 'auto'
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>
