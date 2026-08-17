@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>前導動畫測試頁</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    background: #ffffff;
+    font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  }
+  #controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    z-index: 100000;
+  }
+  button {
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: 1px solid #1a1a1a;
+    background: #ffffff;
+    cursor: pointer;
+  }
+  button:hover { opacity: 0.7; }
+  #hint {
+    font-size: 13px;
+    opacity: 0.5;
+    max-width: 520px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  code {
+    background: #f2f2f2;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  #simGap {
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #555;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    opacity: 0;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+  <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:20px; font-weight:700; margin:0;">前導動畫測試頁（快速跳字版）</h1>
+  <div id="hint">
+    跑過「活頁簿1」C 欄粗體字清單，快速跳字後穩定停在目的頁的大標題（本例為「原型教學」）。<br>
+    跳頁前後是同一個遮罩，不會在抵達子頁時重新播放整段動畫——換頁那一刻只是遮罩持續存在，最後黑底整個往上滑出畫面結束。<br>
+    調整內容請改本檔案最下方 <code>&lt;script&gt;</code> 裡的 <code>WORD_POOL</code>、<code>DESTINATION_WORD</code> 與時間參數。
+  </div>
+
+  <div id="controls">
+    <button id="btnPlay">▶ 播放完整前導動畫（含模擬換頁）</button>
+  </div>
+
+  <div id="simGap">— 模擬瀏覽器換頁中 —</div>
+
+<script>
+(function () {
+  // ====== 可調整參數 ======
+  // 快速跳字的詞彙池（來自「活頁簿1」C 欄粗體字），不含目的頁標題，避免提早重複
+  var WORD_POOL = [
+    '章architecturedesign', '原型原點', '原型結構', '木構造', '竹構造',
+    'RC構造', '鋼構造', '成construction', '法structuredata', '構technics',
+    '原型建築', '原型獲獎'
+  ];
+  var DESTINATION_WORD = '原型教學';  // 動畫終點文字＝目的子頁的大標題，依實際連結而定
+
+  var FLICKER_MS = 130;           // 詞彙池每個字顯示多久（快速跳動）
+  var LANDING_HOLD_MS = 550;      // 淡入完成、跳頁前，停在目的地文字的時間
+  var SIMULATED_NAV_MS = 150;     // 這裡用來假裝「換頁那一瞬間」，實際串接後這段會被瀏覽器真實換頁時間取代，遮罩不會消失
+  var HOLD_AFTER_NAV_MS = 450;    // 抵達新頁後，淡出前再停留多久
+  var FADE_IN_MS = 250;
+  var EXIT_SLIDE_MS = 700;        // 結束時黑底往上滑出畫面所需時間
+  var OVERLAY_BG = '#0a0a0a';
+  var TEXT_COLOR = '#ffffff';
+  // ========================
+
+  function playFullTransition() {
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:' + OVERLAY_BG + ';display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transform:translateY(0);transition:opacity ' + FADE_IN_MS + 'ms ease;';
+    var wordEl = document.createElement('span');
+    wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:15px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
+    wordEl.textContent = WORD_POOL[0];
+    overlay.appendChild(wordEl);
+    document.body.appendChild(overlay);
+
+    var simGap = document.getElementById('simGap');
+
+    // 1) 遮罩淡入，同時開始快速跳字
+    requestAnimationFrame(function () { overlay.style.opacity = '1'; });
+
+    var sequence = WORD_POOL.concat([DESTINATION_WORD]);
+    var i = 0;
+    function flicker() {
+      wordEl.textContent = sequence[i];
+      i++;
+      if (i < sequence.length) {
+        setTimeout(flicker, FLICKER_MS);
+      } else {
+        // 2) 已停在目的地文字，停留一下準備跳頁
+        setTimeout(function () {
+          // 3) 模擬換頁瞬間（真實情境這裡是瀏覽器真的在載入子頁，遮罩維持 opacity:1 不變）
+          simGap.style.transition = 'opacity 150ms ease';
+          simGap.style.opacity = '1';
+          setTimeout(function () {
+            simGap.style.opacity = '0';
+            // 4) 抵達新頁後停留
+            setTimeout(function () {
+              // 5) 黑底往上滑出畫面（文字跟著遮罩一起移動），動畫結束
+              overlay.style.transition = 'transform ' + EXIT_SLIDE_MS + 'ms cubic-bezier(.76,0,.24,1)';
+              overlay.style.transform = 'translateY(-100%)';
+              setTimeout(function () { overlay.remove(); }, EXIT_SLIDE_MS);
+            }, HOLD_AFTER_NAV_MS);
+          }, SIMULATED_NAV_MS);
+        }, LANDING_HOLD_MS);
+      }
+    }
+    flicker();
+  }
+
+  document.getElementById('btnPlay').addEventListener('click', playFullTransition);
+})();
+</script>
+</body>
+</html>

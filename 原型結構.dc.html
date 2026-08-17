@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<!-- PAGE TRANSITION PRELOADER (arriving from homepage) -->
+<script>
+(function () {
+  var flag;
+  try { flag = sessionStorage.getItem('scTransitionIn'); } catch (err) { flag = null; }
+  if (flag !== '1') return;
+  try { sessionStorage.removeItem('scTransitionIn'); } catch (err) {}
+
+  // 本頁的大標題文字，需與 <h1> 內容一致
+  var ARRIVAL_WORD = '原型結構';
+  var HOLD_AFTER_NAV_MS = 450;
+  var EXIT_SLIDE_MS = 700;
+  var OVERLAY_BG = '#0a0a0a';
+  var TEXT_COLOR = '#ffffff';
+
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:' + OVERLAY_BG + ';display:flex;align-items:center;justify-content:center;opacity:1;transform:translateY(0);';
+  var wordEl = document.createElement('span');
+  wordEl.textContent = ARRIVAL_WORD;
+  wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:30px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
+  overlay.appendChild(wordEl);
+  document.body.appendChild(overlay);
+
+  setTimeout(function () {
+    overlay.style.transition = 'transform ' + EXIT_SLIDE_MS + 'ms cubic-bezier(.76,0,.24,1)';
+    overlay.style.transform = 'translateY(-100%)';
+    setTimeout(function () { overlay.remove(); }, EXIT_SLIDE_MS);
+  }, HOLD_AFTER_NAV_MS);
+})();
+</script>
+<x-dc>
+<helmet>
+<link rel="icon" type="image/png" href="uploads/favicon.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: inherit; opacity: 0.6; }
+</style>
+</helmet>
+<div style="background:{{ bgColor }}; color:{{ textColor }}; font-family:'Helvetica Neue',Helvetica,Arial,'PingFang TC','Microsoft JhengHei',sans-serif; width:100%; min-height:100vh; transition:background-color 0.3s, color 0.3s;">
+
+  <!-- HEADER -->
+  <header style="position:fixed; top:0; left:0; right:0; z-index:1000; padding:24px 40px; display:flex; justify-content:space-between; align-items:center;">
+    <div style="display:flex; align-items:center; gap:20px;">
+      <button data-menu-box="1" onClick="{{ toggleMaterialMenu }}" style="background:none; border:none; cursor:pointer; padding:8px; display:flex; flex-direction:column; gap:5px; justify-content:center; align-items:center; width:36px; height:36px;">
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+        <span style="display:block; width:22px; height:2px; background-color:{{ textColor }}; transition:background-color 0.3s;"></span>
+      </button>
+      <sc-if value="{{ showMaterialMenu }}" hint-placeholder-val="{{ false }}">
+        <div data-menu-box="1" style="position:absolute; top:100%; left:40px; margin-top:8px; width:160px; background-color:{{ isDarkMode ? 'oklch(0.12 0 0)' : 'oklch(0.98 0 0)' }}; border:1px solid {{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)' }}; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,0.2); overflow:hidden;">
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=27070" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">木構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25396" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">竹構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25397" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; border-bottom:1px solid {{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">RC構造</a>
+          <a href="https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25398" style="display:block; padding:12px 16px; font-size:14px; color:{{ textColor }}; transition:background-color 0.3s;" style-hover="background-color:{{ isDarkMode ? 'oklch(0.2 0 0)' : 'oklch(0.92 0 0)' }};">鋼構造</a>
+        </div>
+      </sc-if>
+      <a href="./index.html" style="display:flex; align-items:center;">
+        <img src="uploads/logo_20210310101340.png" alt="Logo" style="height:40px; filter:{{ isDarkMode ? 'invert(1)' : 'none' }}; transition:filter 0.3s;">
+      </a>
+    </div>
+    <div style="display:flex; gap:32px; align-items:center; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:16px 24px; transition:background-color 0.3s;">
+      <a href="https://www.mashup.com.tw/as%20studio/?page=service" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Team</a>
+      <a href="https://www.mashup.com.tw/as%20studio/?page=movies" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Film</a>
+      <a href="https://www.mashup.com.tw/as%20studio/?page=contact" style="font-size:16px; font-weight:500; letter-spacing:0.05em; transition:opacity 0.3s;">Contact</a>
+      <button onClick="{{ toggleDarkMode }}" style="background:none; border:1px solid {{ textColor }}; border-radius:4px; padding:8px 12px; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.3s; color:{{ textColor }}; display:flex; align-items:center; justify-content:center; width:44px; height:44px;">
+        <sc-if value="{{ isDarkMode }}" hint-placeholder-val="{{ true }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </sc-if>
+        <sc-if value="{{ !isDarkMode }}" hint-placeholder-val="{{ true }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </sc-if>
+      </button>
+    </div>
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <section style="padding:220px 40px 160px; max-width:1600px; margin:0 auto;">
+
+    <!-- HOVER-EXPAND GALLERY (skiper35 效果的替代版，來自「活頁簿1／原型結構」工作表，4 欄，
+         目前工作表只有編號／大標，小標欄是空的；4 個滑塊已依大標名稱對應 media/原型結構/ 資料夾
+         的照片，複製進 uploads/原型結構/，檔名維持原始，白字 textOverride ) -->
+    <style>
+      .sc-gallery { position:relative; display:flex; height:328px; margin-bottom:56px; }
+      /* 游標彗星尾巴：容器包住整個圖片列（contained area），dot 只在滑鼠停留在列內時顯示，
+         每個 dot 用 JS 逐格 lerp 追前一個 dot（第一個追游標），做出拖尾效果；
+         點大小/透明度依序遞減，尺寸/透明度用 JS 建立時算好、位置每幀用 transform 更新 */
+      .sc-cursor-chain {
+        position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:50;
+        opacity:0; transition:opacity 0.25s ease;
+      }
+      .sc-cursor-chain.sc-visible { opacity:1; }
+      .sc-chain-dot {
+        position:absolute; left:0; top:0; border-radius:50%; background:currentColor;
+        pointer-events:none; will-change:transform;
+      }
+      .sc-gallery-panel {
+        position:relative; flex:1; min-width:0; overflow:hidden; cursor:pointer;
+        transition:flex 0.55s cubic-bezier(.16,1,.3,1);
+      }
+      .sc-gallery-panel:hover { flex:4; }
+      /* 有照片的滑塊左右各留 1px 空隙，不讓照片緊貼分隔線：
+         padding 1px + background-clip/origin:content-box，照片只畫在 padding 以內，
+         左右各 1px 露出滑塊底色（等於視覺上裁掉照片左右各 1px） */
+      .sc-gallery-panel[data-photo="true"] {
+        padding:0 1px;
+        background-clip:content-box;
+        background-origin:content-box;
+      }
+      .sc-gallery-icon {
+        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+        width:28px; height:28px; opacity:0.25; transition:opacity 0.4s ease;
+      }
+      .sc-gallery-panel:hover .sc-gallery-icon { opacity:0.4; }
+
+      /* 編號與大標題在收合/展開之間互換角度：
+         收合：編號 0 度（橫式）／大標題 -90 度（直式，貼合窄版面不超出滑塊）
+         展開：編號轉為 -90 度／大標題轉回 0 度（橫式可讀）
+         兩者都用絕對定位固定各自的 left/bottom 基準點旋轉（不透過 flex gap），
+         避免 transform 不影響版位計算導致的重疊或跑位過遠 */
+      .sc-gallery-caption {
+        position:absolute; left:35px; bottom:16px; height:44px; right:16px;
+      }
+      .sc-gallery-num {
+        position:absolute; left:0; bottom:0; transform-origin:left bottom;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:15px; letter-spacing:0.05em;
+        white-space:nowrap; transform:translateY(-280px) rotate(0deg);
+        transition:transform 0.5s cubic-bezier(.65,0,.35,1);
+      }
+      .sc-gallery-panel:hover .sc-gallery-num { transform:translateY(0) rotate(-90deg); }
+
+      .sc-gallery-titles {
+        position:absolute; left:1px; bottom:0;
+        display:flex; flex-direction:column; justify-content:flex-end;
+      }
+      .sc-gallery-sub {
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:13px; line-height:1.3;
+        margin:0; white-space:nowrap; overflow:hidden;
+        max-height:0; transform:scaleY(0); transform-origin:bottom;
+        transition:max-height 0.4s ease, transform 0.4s ease;
+      }
+      .sc-gallery-panel:hover .sc-gallery-sub { max-height:20px; transform:scaleY(1); }
+      .sc-gallery-main {
+        display:inline-block; transform-origin:left bottom;
+        font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:16px; line-height:1.2;
+        margin:0; white-space:nowrap;
+        transform:rotate(-90deg);
+        transition:transform 0.5s cubic-bezier(.65,0,.35,1);
+      }
+      .sc-gallery-panel:hover .sc-gallery-main { transform:rotate(0deg); }
+    </style>
+    <div class="sc-gallery" id="sc-gallery">
+      <sc-for list="{{ galleryItems }}" as="item" hint-placeholder-count="4">
+        <div class="sc-gallery-panel" data-photo="{{ item.hasPhoto }}" onClick="{{ item.goTo }}" style="background-color:{{ item.bg }}; border-left:{{ item.borderLeft }}; background-image:{{ item.bgImage }}; background-repeat:no-repeat; background-position:{{ item.bgPosition }}; background-size:{{ item.bgSize }};">
+          <sc-if value="{{ !item.hasPhoto }}" hint-placeholder-val="{{ true }}">
+            <svg class="sc-gallery-icon" viewBox="0 0 24 24" fill="none" stroke="{{ item.text }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <path d="M21 15l-5-5L5 21"></path>
+            </svg>
+          </sc-if>
+          <div class="sc-gallery-caption">
+            <span class="sc-gallery-num" style="color:{{ item.text }};">{{ item.num }}</span>
+            <div class="sc-gallery-titles">
+              <p class="sc-gallery-sub" style="color:{{ item.text }};">{{ item.en }}</p>
+              <p class="sc-gallery-main" style="color:{{ item.text }};">{{ item.zh }}</p>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+      <div class="sc-cursor-chain" id="sc-cursor-chain" style="color:#B4A249;"></div>
+    </div>
+
+    <div style="font-size:28px; letter-spacing:0.1em; opacity:0.5; margin-bottom:16px;">
+      <a href="./index.html">首頁</a> / 原型結構
+    </div>
+    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:30px; font-weight:800; letter-spacing:0.02em; margin:0 0 40px 0;">原型結構</h1>
+    <div style="display:flex; flex-direction:column; gap:72px;">
+
+      <!-- 四種構造系統資訊卡（手風琴元件，做法見「維護手冊_案例資訊卡元件.md」）：
+           木構造／竹構造／RC構造／鋼構造，對應上方畫廊滑塊的四個項目，移到標題與內文段落之間。
+           內容尚未提供（維護者稍後補上傳），先用【...】佔位，格式沿用案例資訊卡的規格清單
+           （建築類型/項目狀態/構造系統/基地位置/攝影/合作團隊），欄位標籤之後如果不適用
+           材料類介紹（而非單一案例），可再跟維護者確認要不要調整標籤文字，目前先原樣沿用範本。
+           這是本頁第一張卡，CSS 只需要在這裡帶一次；同一頁之後如果要再加卡，只需複製 HTML
+           區塊，不用重貼這段 <style>。
+           左右邊框刻意拿掉，只留上/下框線當作卡片之間的分隔線（跟 margin-top 的間距合起來看，
+           收合狀態時視覺上像一份左右貼齊內文的清單，不是獨立浮起的卡片；展開時的「拿起感」
+           光暈／輕微放大效果不受影響，因為那是靠 box-shadow／transform，不依賴邊框本身）。 -->
+      <div>
+        <style>
+          .sc-accordion {
+            border-width:1px 0; border-style:solid; border-radius:0;
+            padding:4px 1cm; margin:0;
+            box-shadow:0 0 0 0 rgba(180,162,73,0);
+            transition:box-shadow 0.6s cubic-bezier(.16,1,.3,1), transform 0.55s cubic-bezier(.34,1.56,.64,1), border-color 0.4s ease;
+          }
+          .sc-accordion.open {
+            transform:scale(1.008);
+            box-shadow:0 12px 32px -12px rgba(180,162,73,0.4);
+          }
+          .sc-accordion + .sc-accordion { margin-top:16px; }
+          .sc-accordion-header {
+            display:flex; align-items:center; justify-content:space-between; gap:16px;
+            width:100%; background:none; border:none; cursor:pointer; padding:20px 0;
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:30px; font-weight:800; letter-spacing:0.02em;
+            text-align:left;
+          }
+          .sc-accordion-chevron {
+            flex-shrink:0; transition:transform 0.5s cubic-bezier(.34,1.56,.64,1);
+          }
+          .sc-accordion.open .sc-accordion-chevron { transform:rotate(180deg); }
+          .sc-accordion-title { display:inline-block; }
+          .sc-accordion-panel {
+            max-height:0; overflow:hidden;
+            transition:max-height 0.6s cubic-bezier(.16,1,.3,1);
+          }
+          .sc-accordion-panel-inner {
+            padding:16px 0 44px 0;
+            opacity:0; transform:translateY(-8px);
+            transition:opacity 0.5s ease 0.18s, transform 0.5s cubic-bezier(.16,1,.3,1) 0.18s;
+          }
+          .sc-accordion.open .sc-accordion-panel-inner { opacity:1; transform:translateY(0); }
+
+          /* 案例輪播（資訊卡裡放很多案子時的替代呈現，取代單一固定規格清單）：
+             視覺與互動參考 skiper-ui.com/v1/skiper51「Creative Carousel 002」，該元件原始設定是
+             焦點卡置中最大最亮、上一張退到正後方景深變暗（不平移，只縮小＋變暗）、下一張從右側
+             整張卡寬的位置滑入，用 Swiper.js 的 creative 特效模組 + 手勢拖曳實作；這裡改用原生
+             Pointer Events 手刻拖曳（做法見下方 JS 的 _initProjectCarousel），滑鼠拖曳／觸控滑動／
+             觸控筆都走同一套事件，拖曳中直接跟隨游標（不套 transition），放開才補間到最終位置。
+             置中的縮圖＝目前焦點案例，下方規格清單（中英文兩段）會自動換成該案例的資料。
+             三張卡（焦點／上一張／下一張）都用同一個定位錨點（left:50%+負 margin 置中容器），
+             實際位置差異全部透過 JS 直接寫 transform:translateX()+scale() 表現，其餘案子隱藏。 */
+          /* 縮圖尺寸不寫死：寬度要盡量貼近資訊卡寬度、只在左右保留箭頭原本佔用的位置/寬度，
+             這個寬度會隨資訊卡實際可用寬度變動，所以改成 JS 在 componentDidMount 用
+             _sizeProjectCarousel 即時量測 viewport 寬度換算（見下方 JS），寫進每張縮圖的
+             width/height/margin（負 margin 用來維持 left:50%/top:50% 的置中錨點），
+             resize 時也會重新量測；這裡的 <style> 只留跟尺寸無關的外觀屬性。 */
+          .sc-project-carousel { position:relative; margin-top:8px; }
+          /* overflow:hidden（不是 visible）：「下一張」的靜止位置在畫面外（見 JS 的
+             REST.next.x），要靠這裡裁掉才會在沒有拖曳時完全看不到，拖曳／放開切換到下一張時
+             才會從右側裁切邊界慢慢滑進來，做出「案例 2 從右方滑入」的效果；如果改回 visible，
+             縮圖現在放大到接近資訊卡寬度，off-screen 的下一張會整張飄在頁面留白處，不會被藏起來。 */
+          .sc-project-carousel-viewport {
+            position:relative; overflow:hidden;
+            cursor:grab; touch-action:pan-y; user-select:none;
+          }
+          .sc-project-carousel-viewport.sc-dragging { cursor:grabbing; }
+          .sc-project-carousel-slide {
+            position:absolute; top:50%; left:50%;
+            border-radius:8px; overflow:hidden; cursor:pointer;
+            background-color:rgba(128,128,128,0.15); background-repeat:no-repeat;
+            background-position:center; background-size:cover;
+            transition:transform 0.45s cubic-bezier(.22,1,.36,1), filter 0.3s ease, opacity 0.3s ease;
+            will-change:transform, filter, opacity;
+          }
+          .sc-project-carousel-slide-icon {
+            position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+            width:36px; height:36px; opacity:0.3;
+          }
+          /* 案名文字色不套漸層底色塊，改成依照片色調決定黑/白字（JS 在圖片載入後用 canvas
+             取樣平均亮度，寫進 slide 的 --sc-slide-text CSS 變數，見下方 JS 的
+             _applyProjectSlidePhotoContrast），跟網頁本身的深/淺色模式（isDarkMode）無關——
+             即使切換 Dark/Light 模式，這裡的文字顏色只看照片本身亮不亮，不會跟著變。
+             沒有照片的佔位縮圖沒有影像可取樣，維持下面的預設值（深色文字）。 */
+          .sc-project-carousel-slide-label {
+            position:absolute; left:0; right:0; bottom:0; padding:10px 12px;
+          }
+          .sc-project-carousel-slide-name {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:700; font-size:12px;
+            color:var(--sc-slide-text, #1a1a1a); margin:0 0 2px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+          }
+          .sc-project-carousel-slide-year {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:10px;
+            color:var(--sc-slide-text, #1a1a1a); opacity:0.7; margin:0;
+          }
+          .sc-project-carousel-arrow {
+            position:absolute; top:50%; transform:translateY(-50%); z-index:50;
+            width:32px; height:32px; border-radius:50%; border-width:1px; border-style:solid;
+            display:flex; align-items:center; justify-content:center; cursor:pointer;
+            transition:opacity 0.3s ease;
+          }
+          .sc-project-carousel-arrow:hover { opacity:0.6; }
+          .sc-project-carousel-arrow-prev { left:0; }
+          .sc-project-carousel-arrow-next { right:0; }
+          .sc-project-carousel-dots { display:flex; justify-content:center; gap:8px; margin-top:8px; }
+          .sc-project-carousel-dot {
+            width:6px; height:6px; border-radius:50%; background-color:currentColor;
+            opacity:0.3; cursor:pointer; transition:opacity 0.3s ease, transform 0.3s ease;
+          }
+          .sc-project-carousel-dot.active { opacity:1; transform:scale(1.5); }
+          /* 案子文字資訊要跟照片左側齊平：照片置中在 viewport 裡，左邊界會落在
+             ARROW_RESERVE（JS 裡的常數，目前 40px）的位置，不是貼齊 viewport 本身的 0，
+             這裡的 padding-left 要跟 ARROW_RESERVE 保持一致，兩邊如果要調整箭頭保留區寬度，
+             要一起改，不然文字會跟照片邊界對不齊。 */
+          .sc-project-detail { padding-left:40px; }
+          .sc-location-link {
+            color:inherit; text-decoration:underline; text-underline-offset:2px;
+            display:inline-flex; align-items:center; gap:2px;
+          }
+          .sc-location-pin { width:11px; height:11px; flex-shrink:0; }
+          .sc-location-link:hover .sc-location-pin { animation:sc-pin-bounce 0.6s ease; }
+          @keyframes sc-pin-bounce {
+            0%, 100% { transform:translateY(0); }
+            30% { transform:translateY(-3px); }
+            50% { transform:translateY(0); }
+            70% { transform:translateY(-1.5px); }
+          }
+        </style>
+
+        <div id="sc-section-wood-card">
+          <div class="sc-accordion" style="border-color:{{ isDarkMode ? 'oklch(0.3 0 0)' : 'oklch(0.85 0 0)' }};">
+            <button type="button" class="sc-accordion-header" style="color:{{ textColor }};">
+              <span class="sc-accordion-title">木構造</span>
+              <svg class="sc-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="sc-accordion-panel">
+              <div class="sc-accordion-panel-inner">
+                <!-- 木構造放很多案子的資料，改用案例輪播瀏覽（做法見上方 <style> 前的註解，
+                     視覺參考 skiper-ui.com/v1/skiper51）。woodProjects 目前是佔位內容，
+                     之後有案子要收錄，直接在 Component 的 woodProjects 陣列裡 push 新物件，
+                     不用改這裡的 HTML／CSS／JS；photo 留空時縮圖先用佔位圖示，補照片路徑後
+                     自動換成真實照片，做法跟上方畫廊滑塊／其他資訊卡的 photo 欄位一致。 -->
+                <div class="sc-project-carousel" id="sc-project-carousel-wood">
+                  <button type="button" class="sc-project-carousel-arrow sc-project-carousel-arrow-prev" style="color:{{ textColor }}; border-color:{{ isDarkMode ? '#ffffff' : 'oklch(0.85 0 0)' }}; background-color:transparent;" aria-label="上一個案例">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <div class="sc-project-carousel-viewport">
+                    <sc-for list="{{ woodProjects }}" as="proj" hint-placeholder-count="10">
+                      <div class="sc-project-carousel-slide" style="background-image:{{ proj.bgImage }};">
+                        <sc-if value="{{ !proj.hasPhoto }}" hint-placeholder-val="{{ true }}">
+                          <svg class="sc-project-carousel-slide-icon" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <path d="M21 15l-5-5L5 21"></path>
+                          </svg>
+                        </sc-if>
+                        <div class="sc-project-carousel-slide-label">
+                          <p class="sc-project-carousel-slide-name">{{ proj.name }}</p>
+                          <p class="sc-project-carousel-slide-year">{{ proj.year }}</p>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <button type="button" class="sc-project-carousel-arrow sc-project-carousel-arrow-next" style="color:{{ textColor }}; border-color:{{ isDarkMode ? '#ffffff' : 'oklch(0.85 0 0)' }}; background-color:transparent;" aria-label="下一個案例">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </button>
+                  <div class="sc-project-carousel-dots">
+                    <sc-for list="{{ woodProjects }}" as="proj" hint-placeholder-count="10">
+                      <span class="sc-project-carousel-dot" style="color:{{ textColor }};"></span>
+                    </sc-for>
+                  </div>
+                </div>
+                <div class="sc-project-detail">
+                  <p class="sc-project-detail-zh" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};"></p>
+                  <p class="sc-project-detail-en" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="sc-section-bamboo-card">
+          <div class="sc-accordion" style="border-color:{{ isDarkMode ? 'oklch(0.3 0 0)' : 'oklch(0.85 0 0)' }};">
+            <button type="button" class="sc-accordion-header" style="color:{{ textColor }};">
+              <span class="sc-accordion-title">竹構造</span>
+              <svg class="sc-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="sc-accordion-panel">
+              <div class="sc-accordion-panel-inner">
+                <!-- 竹構造放很多案子的資料，改用案例輪播瀏覽（做法跟木構造卡完全一樣，見上方
+                     <style> 前的註解，視覺參考 skiper-ui.com/v1/skiper51）。bambooProjects
+                     目前是佔位內容，之後有案子要收錄，直接在 Component 的 bambooProjects 陣列裡
+                     push 新物件，不用改這裡的 HTML／CSS／JS；photo 留空時縮圖先用佔位圖示，
+                     補照片路徑後自動換成真實照片。 -->
+                <div class="sc-project-carousel" id="sc-project-carousel-bamboo">
+                  <button type="button" class="sc-project-carousel-arrow sc-project-carousel-arrow-prev" style="color:{{ textColor }}; border-color:{{ isDarkMode ? '#ffffff' : 'oklch(0.85 0 0)' }}; background-color:transparent;" aria-label="上一個案例">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <div class="sc-project-carousel-viewport">
+                    <sc-for list="{{ bambooProjects }}" as="proj" hint-placeholder-count="4">
+                      <div class="sc-project-carousel-slide" style="background-image:{{ proj.bgImage }};">
+                        <sc-if value="{{ !proj.hasPhoto }}" hint-placeholder-val="{{ true }}">
+                          <svg class="sc-project-carousel-slide-icon" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <path d="M21 15l-5-5L5 21"></path>
+                          </svg>
+                        </sc-if>
+                        <div class="sc-project-carousel-slide-label">
+                          <p class="sc-project-carousel-slide-name">{{ proj.name }}</p>
+                          <p class="sc-project-carousel-slide-year">{{ proj.year }}</p>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <button type="button" class="sc-project-carousel-arrow sc-project-carousel-arrow-next" style="color:{{ textColor }}; border-color:{{ isDarkMode ? '#ffffff' : 'oklch(0.85 0 0)' }}; background-color:transparent;" aria-label="下一個案例">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </button>
+                  <div class="sc-project-carousel-dots">
+                    <sc-for list="{{ bambooProjects }}" as="proj" hint-placeholder-count="4">
+                      <span class="sc-project-carousel-dot" style="color:{{ textColor }};"></span>
+                    </sc-for>
+                  </div>
+                </div>
+                <div class="sc-project-detail">
+                  <p class="sc-project-detail-zh" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};"></p>
+                  <p class="sc-project-detail-en" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="sc-section-rc-card">
+          <div class="sc-accordion" style="border-color:{{ isDarkMode ? 'oklch(0.3 0 0)' : 'oklch(0.85 0 0)' }};">
+            <button type="button" class="sc-accordion-header" style="color:{{ textColor }};">
+              <span class="sc-accordion-title">RC構造</span>
+              <svg class="sc-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="sc-accordion-panel">
+              <div class="sc-accordion-panel-inner">
+                <!-- RC構造放很多案子的資料，改用案例輪播瀏覽（做法跟木構造卡完全一樣）。
+                     rcProjects 目前是佔位內容，之後有案子要收錄，直接在 Component 的
+                     rcProjects 陣列裡 push 新物件，不用改這裡的 HTML／CSS／JS。 -->
+                <div class="sc-project-carousel" id="sc-project-carousel-rc">
+                  <button type="button" class="sc-project-carousel-arrow sc-project-carousel-arrow-prev" style="color:{{ textColor }}; border-color:{{ isDarkMode ? '#ffffff' : 'oklch(0.85 0 0)' }}; background-color:transparent;" aria-label="上一個案例">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <div class="sc-project-carousel-viewport">
+                    <sc-for list="{{ rcProjects }}" as="proj" hint-placeholder-count="6">
+                      <div class="sc-project-carousel-slide" style="background-image:{{ proj.bgImage }};">
+                        <sc-if value="{{ !proj.hasPhoto }}" hint-placeholder-val="{{ true }}">
+                          <svg class="sc-project-carousel-slide-icon" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <path d="M21 15l-5-5L5 21"></path>
+                          </svg>
+                        </sc-if>
+                        <div class="sc-project-carousel-slide-label">
+                          <p class="sc-project-carousel-slide-name">{{ proj.name }}</p>
+                          <p class="sc-project-carousel-slide-year">{{ proj.year }}</p>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <button type="button" class="sc-project-carousel-arrow sc-project-carousel-arrow-next" style="color:{{ textColor }}; border-color:{{ isDarkMode ? '#ffffff' : 'oklch(0.85 0 0)' }}; background-color:transparent;" aria-label="下一個案例">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </button>
+                  <div class="sc-project-carousel-dots">
+                    <sc-for list="{{ rcProjects }}" as="proj" hint-placeholder-count="6">
+                      <span class="sc-project-carousel-dot" style="color:{{ textColor }};"></span>
+                    </sc-for>
+                  </div>
+                </div>
+                <div class="sc-project-detail">
+                  <p class="sc-project-detail-zh" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};"></p>
+                  <p class="sc-project-detail-en" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="sc-section-steel-card">
+          <div class="sc-accordion" style="border-color:{{ isDarkMode ? 'oklch(0.3 0 0)' : 'oklch(0.85 0 0)' }};">
+            <button type="button" class="sc-accordion-header" style="color:{{ textColor }};">
+              <span class="sc-accordion-title">鋼構造</span>
+              <svg class="sc-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+            <div class="sc-accordion-panel">
+              <div class="sc-accordion-panel-inner">
+                <!-- 鋼構造放很多案子的資料，改用案例輪播瀏覽（做法跟木構造卡完全一樣）。
+                     steelProjects 目前是佔位內容，之後有案子要收錄，直接在 Component 的
+                     steelProjects 陣列裡 push 新物件，不用改這裡的 HTML／CSS／JS。 -->
+                <div class="sc-project-carousel" id="sc-project-carousel-steel">
+                  <button type="button" class="sc-project-carousel-arrow sc-project-carousel-arrow-prev" style="color:{{ textColor }}; border-color:{{ isDarkMode ? '#ffffff' : 'oklch(0.85 0 0)' }}; background-color:transparent;" aria-label="上一個案例">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <div class="sc-project-carousel-viewport">
+                    <sc-for list="{{ steelProjects }}" as="proj" hint-placeholder-count="6">
+                      <div class="sc-project-carousel-slide" style="background-image:{{ proj.bgImage }};">
+                        <sc-if value="{{ !proj.hasPhoto }}" hint-placeholder-val="{{ true }}">
+                          <svg class="sc-project-carousel-slide-icon" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <path d="M21 15l-5-5L5 21"></path>
+                          </svg>
+                        </sc-if>
+                        <div class="sc-project-carousel-slide-label">
+                          <p class="sc-project-carousel-slide-name">{{ proj.name }}</p>
+                          <p class="sc-project-carousel-slide-year">{{ proj.year }}</p>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <button type="button" class="sc-project-carousel-arrow sc-project-carousel-arrow-next" style="color:{{ textColor }}; border-color:{{ isDarkMode ? '#ffffff' : 'oklch(0.85 0 0)' }}; background-color:transparent;" aria-label="下一個案例">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </button>
+                  <div class="sc-project-carousel-dots">
+                    <sc-for list="{{ steelProjects }}" as="proj" hint-placeholder-count="6">
+                      <span class="sc-project-carousel-dot" style="color:{{ textColor }};"></span>
+                    </sc-for>
+                  </div>
+                </div>
+                <div class="sc-project-detail">
+                  <p class="sc-project-detail-zh" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0; color:{{ textColor }};"></p>
+                  <p class="sc-project-detail-en" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="sc-section-material-origin">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">材料的起點</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">在每一個結構的誕生之前，材料即已存在於自然之中。它們不是被動的元素，而是潛藏著形態與力學的語言。AS Studio 認為，材料的選擇並非單純的建築手段，而是重新理解自然邏輯的過程。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">The Origin of Materials</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Before any structure is conceived, materials already dwell in nature. They are not passive elements but carriers of form and force. For AS Studio, the choice of material is not merely a technical decision—it is a process of rediscovering the logic of nature.</p>
+      </div>
+
+      <div id="sc-section-prototype-manifestation">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">原型的展現</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">每一種材料皆蘊含一種「原型」：木的延展、石的重量、鋼的張力、竹的韌性。這些特質構成了建築的語法，也啟發了新的結構思維。原型不是形式的模仿，而是從材料中被感知出的法則，透過實驗與建構，轉化為可被居住的秩序。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">The Manifestation of Prototypes</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Each material embodies a "prototype": the elasticity of wood, the gravity of stone, the tension of steel, the resilience of bamboo. These qualities form the syntax of architecture and inspire new structural thinking. A prototype is not an imitation of form, but a sensed law within material—transformed through experiment and construction into a habitable order.</p>
+      </div>
+
+      <div id="sc-section-construction-resonance">
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">構築的共鳴</h2>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 20px 0;">當材料被組構為結構，它不再只是物質的集合，而是時間、力量與工藝的交織。AS Studio 在設計中追求的不僅是穩定性與美感，更是材料之間的共鳴——一種讓空間得以「呼吸」的結構節奏，讓建築回應土地與環境的聲音。</p>
+        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; opacity:0.5; margin:0 0 12px 0;">Resonance in Construction</h3>
+        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">When materials are composed into structure, they cease to be a mere aggregation of matter—they become an intersection of time, force, and craft. In its designs, AS Studio pursues not only stability and beauty but resonance among materials: a structural rhythm that allows space to breathe and architecture to echo the voice of the land.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="background-color:{{ isDarkMode ? 'oklch(0.12 0 0)' : 'oklch(0.95 0 0)' }}; padding:80px 40px; transition:background-color 0.3s;">
+    <div style="max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:flex-start;">
+      <div style="text-align:left;">
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0 0 8px 0; transition:color 0.3s;">電話：06-2905293</p>
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0 0 8px 0; transition:color 0.3s;">傳真：06-2905493</p>
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0; transition:color 0.3s;">電郵：<a href="mailto:as.studio001@gmail.com" style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; text-decoration:none; transition:opacity 0.3s;" style-hover="opacity:0.7;">as.studio001@gmail.com</a></p>
+      </div>
+      <div style="text-align:center;">
+        <p style="color:{{ isDarkMode ? 'oklch(0.7 0 0)' : 'oklch(0.4 0 0)' }}; font-size:14px; margin:0; transition:color 0.3s;">台南市東區中華東路三段44巷7號1樓</p>
+      </div>
+      <div style="text-align:right; display:flex; gap:16px; align-items:center;">
+        <a href="https://www.facebook.com/AS.structure" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <path d="M18 2h-3a6 6 0 0 0-6 6v4h-2v4h2v6h4v-6h3l1-4h-4V8a2 2 0 0 1 2-2h1Z"></path>
+          </svg>
+        </a>
+        <a href="https://www.instagram.com/as.futuregroup?igsh=MTRsZXV2dmhnaGdqOQ%3D%3D" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <circle cx="17.5" cy="6.5" r="1.5"></circle>
+          </svg>
+        </a>
+        <a href="https://www.youtube.com/@%E9%99%B3%E5%86%A0%E5%B8%86-z9v" target="_blank" rel="noopener" style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:50%; background-color:{{ isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)' }}; transition:all 0.3s;" style-hover="opacity:0.7;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:{{ isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)' }}; transition:color 0.3s;">
+            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { isDarkMode: false, showMaterialMenu: false };
+
+  // 資料來源：活頁簿1.xlsx「原型結構」工作表（編號／大標／小標，共 4 筆，小標欄目前是空的）。
+  // 4 個滑塊已依大標名稱對應 media/原型結構/ 資料夾的照片，複製進 uploads/原型結構/、檔名維持原始
+  // （該資料夾裡還有一張「螢幕擷取畫面 2025-08-04 144233.png」跟四個大標名稱對不上，不是照片素材，
+  // 沒有複製過來），白字 textOverride（跟原型獲獎／原型原點同一套，照片本身較深，白字對比較清楚）；
+  // target 未指定（不確定要捲到哪個 section，先留空，點擊無動作，之後再補）
+  galleryItems = [
+    { num: '01', zh: '木構造', en: '', photo: 'uploads/原型結構/木構造.png', textOverride: '#ffffff', target: 'sc-section-wood-card' },
+    { num: '02', zh: '竹構造', en: '', photo: 'uploads/原型結構/竹構造.jpg', textOverride: '#ffffff', target: 'sc-section-bamboo-card' },
+    { num: '03', zh: 'RC構造', en: '', photo: 'uploads/原型結構/RC構造.jpg', textOverride: '#ffffff', target: 'sc-section-rc-card' },
+    { num: '04', zh: '鋼構造', en: '', photo: 'uploads/原型結構/鋼構造.jpeg', textOverride: '#ffffff', target: 'sc-section-steel-card' }
+  ];
+
+  // 木構造資訊卡的案例輪播資料（做法見「案例輪播」CSS 註解，視覺參考 skiper-ui.com/v1/skiper51）。
+  // 每個案子一筆，目前全部是佔位內容，之後有案子要收錄就直接在這個陣列 push 新物件，
+  // 不用改 HTML／CSS／JS；photo 留空時輪播縮圖先用佔位圖示，補照片路徑後自動換成真實照片，
+  // 做法跟上面 galleryItems 的 photo 欄位一致。zh/en 兩組欄位對應案例資訊卡的規格清單格式
+  // （建築類型/項目狀態/構造系統/基地位置/攝影/合作團隊），順序要中英文一致。
+  woodProjects = [
+    { name: '嘉義美術館', year: 'Chiayi', photo: 'uploads/原型結構/木構造/嘉美館.jpg',
+      zh: { type: '美術館', status: '2020完工', system: '木構', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%98%89%E7%BE%A9%E5%B8%82%E8%A5%BF%E5%8D%80%E5%BB%A3%E5%AF%A7%E8%A1%97101%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">嘉義<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '原間攝影工作室', team: '黃明威建築師事務所' },
+      en: { type: 'Art Museum', status: 'Completed 2020', system: 'Timber structure', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%98%89%E7%BE%A9%E5%B8%82%E8%A5%BF%E5%8D%80%E5%BB%A3%E5%AF%A7%E8%A1%97101%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">Chiayi<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: 'Yuanjian Photography Studio', team: '黃明威建築師事務所' } },
+    { name: '德光教會', year: 'Tainan', photo: 'uploads/原型結構/木構造/德光教會.jpg',
+      zh: { type: '宗教', status: '施工中', system: '木構', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%8F%B0%E5%8D%97%E5%B8%82%E6%9D%B1%E5%8D%80%E5%BE%B7%E5%85%89%E8%A1%9763%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">台南<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', team: '立聯合建築師事務所' },
+      en: { type: 'Religious', status: 'Under construction', system: 'Timber structure', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%8F%B0%E5%8D%97%E5%B8%82%E6%9D%B1%E5%8D%80%E5%BE%B7%E5%85%89%E8%A1%9763%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">Tainan<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', team: '立聯合建築師事務所' } },
+    { name: '左鎮菜寮化石館', year: 'Tainan', photo: 'uploads/原型結構/木構造/化石館.jpg',
+      zh: { type: '文化園區', status: '2019完工', system: 'RC+木構', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E8%87%BA%E5%8D%97%E5%B8%82%E5%B7%A6%E9%8E%AE%E5%8D%80%E6%A6%AE%E5%92%8C%E9%87%8C61-23%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">台南<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '原型結構', team: '立聯合建築師事務所' },
+      en: { type: 'Cultural park', status: 'Completed 2019', system: 'RC + timber structure', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E8%87%BA%E5%8D%97%E5%B8%82%E5%B7%A6%E9%8E%AE%E5%8D%80%E6%A6%AE%E5%92%8C%E9%87%8C61-23%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">Tainan<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: 'AS Studio', team: '立聯合建築師事務所' } },
+    { name: '嘉義實驗木場', year: 'Chiayi', photo: 'uploads/原型結構/木構造/實驗木場.jpg',
+      zh: { type: '修復再利用.工廠', status: '2021完工', system: 'RC+木構', location: '<a href="https://maps.app.goo.gl/F7mEU8u6ZF2RVzvH7" target="_blank" rel="noopener" class="sc-location-link">嘉義<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '原間工作室', team: '實式木造' },
+      en: { type: 'Adaptive reuse / Factory', status: 'Completed 2021', system: 'RC + timber structure', location: '<a href="https://maps.app.goo.gl/F7mEU8u6ZF2RVzvH7" target="_blank" rel="noopener" class="sc-location-link">Chiayi<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: 'Yuanjian Studio', team: '實式木造' } },
+    { name: '城鎮之心_潭心鐵馬空橋', year: 'Taichung', photo: 'uploads/原型結構/木構造/潭心鐵馬橋.jpg',
+      zh: { type: '人行陸橋', status: '2021完工', system: '鋼木及鋼筋混凝土結構', location: '<a href="https://maps.app.goo.gl/eBXKC2cA6YdZumKj7" target="_blank" rel="noopener" class="sc-location-link">台中<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '原間攝影工作室', team: '黃明威建築師事務所' },
+      en: { type: 'Pedestrian / bicycle overpass', status: 'Completed 2021', system: 'Steel-timber and reinforced concrete structure', location: '<a href="https://maps.app.goo.gl/eBXKC2cA6YdZumKj7" target="_blank" rel="noopener" class="sc-location-link">Taichung<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: 'Yuanjian Photography Studio', team: '黃明威建築師事務所' } },
+    { name: '信義街', year: 'Tainan', photo: 'uploads/原型結構/木構造/信義街.jpg',
+      zh: { type: '老屋改造', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%8F%B0%E5%8D%97%E5%B8%82%E4%B8%AD%E8%A5%BF%E5%8D%80%E4%BF%A1%E7%BE%A9%E8%A1%9746%E5%B7%B715%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">台南<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', team: '原型結構+德豐木業股份有限公司' },
+      en: { type: 'Historic house renovation', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%8F%B0%E5%8D%97%E5%B8%82%E4%B8%AD%E8%A5%BF%E5%8D%80%E4%BF%A1%E7%BE%A9%E8%A1%9746%E5%B7%B715%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">Tainan<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', team: '原型結構+德豐木業股份有限公司' } },
+    { name: '太平國小校舍空間活化', year: 'Keelung', photo: 'uploads/原型結構/木構造/太平國小.jpg',
+      zh: { type: '商業空間', status: '2021完工', system: 'GLT柱樑系統+LVL柱牆', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%9F%BA%E9%9A%86%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E4%B8%AD%E5%B1%B1%E4%B8%80%E8%B7%AF189%E5%B7%B7135%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">基隆<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '原間影像工作室', team: 'EHS大尺建築+郭旭原聯合建築事務所' },
+      en: { type: 'Commercial space', status: 'Completed 2021', system: 'GLT post-and-beam system + LVL wall system', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%9F%BA%E9%9A%86%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E4%B8%AD%E5%B1%B1%E4%B8%80%E8%B7%AF189%E5%B7%B7135%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">Keelung<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: 'Yuanjian Image Studio', team: 'EHS大尺建築+郭旭原聯合建築事務所' } },
+    { name: '萬大電廠辦公大樓新建工程', year: 'Nantou', photo: 'uploads/原型結構/木構造/萬大電廠.jpg',
+      zh: { type: '辦公室', designTime: '2021.10-2023.01', constructionTime: '2022.03-2023.11', system: '鋼筋混凝土基礎+GLT樑柱+CLT屋面', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%8D%97%E6%8A%95%E7%B8%A3%E4%BB%81%E6%84%9B%E9%84%89%E5%A4%A7%E5%AE%89%E8%B7%AF1%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">南投<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '原間影像工作室', team: '黃明威建築師事務所/擊壤設計+竟展營造有限公司 實式木造有限公司' },
+      en: { type: 'Office', designTime: 'Oct 2021 - Jan 2023', constructionTime: 'Mar 2022 - Nov 2023', system: 'RC foundation + GLT beams/columns + CLT roof', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%8D%97%E6%8A%95%E7%B8%A3%E4%BB%81%E6%84%9B%E9%84%89%E5%A4%A7%E5%AE%89%E8%B7%AF1%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">Nantou<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: 'Yuanjian Image Studio', team: '黃明威建築師事務所/擊壤設計+竟展營造有限公司 實式木造有限公司' } },
+    { name: '億載金城入口意象景觀改造工程', year: 'Tainan', photo: 'uploads/原型結構/木構造/億載金城.jpg',
+      zh: { type: '商業空間', designTime: '2022.11-2024.01', constructionTime: '2024.01-2024.11', system: '棚架:鋼構框架+GLT集成材板 單元量體:木構框組壁', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%8F%B0%E5%8D%97%E5%B8%82%E5%AE%89%E5%B9%B3%E5%8D%80%E5%85%89%E5%B7%9E%E8%B7%AF3%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">台南<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '原型結構 黃敬棠 攝', team: '翁廷楷建築師事務所+劉國滄顧問+原型結構+正臺壹工程股份有限公司+德豐木業股份有限公司' },
+      en: { type: 'Commercial space', designTime: 'Nov 2022 - Jan 2024', constructionTime: 'Jan 2024 - Nov 2024', system: 'Canopy: steel frame + GLT panels; Unit volumes: timber-frame wall construction', location: '<a href="https://www.google.com/maps/search/?api=1&query=%E5%8F%B0%E5%8D%97%E5%B8%82%E5%AE%89%E5%B9%B3%E5%8D%80%E5%85%89%E5%B7%9E%E8%B7%AF3%E8%99%9F" target="_blank" rel="noopener" class="sc-location-link">Tainan<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: 'Photographed by Huang Jing-tang, AS Studio', team: '翁廷楷建築師事務所+劉國滄顧問+原型結構+正臺壹工程股份有限公司+德豐木業股份有限公司' } },
+    { name: '華德福實驗分校第二期校舍', year: 'Taichung', photo: 'uploads/原型結構/木構造/華德福實驗分校.jpg',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '<a href="https://maps.app.goo.gl/MwRwsztmymWC23LE7" target="_blank" rel="noopener" class="sc-location-link">台中<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '<a href="https://maps.app.goo.gl/MwRwsztmymWC23LE7" target="_blank" rel="noopener" class="sc-location-link">Taichung<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '【...】', team: '【...】' } }
+  ];
+
+  // 竹構造／RC構造／鋼構造資訊卡的案例輪播資料，欄位格式跟 woodProjects 完全一樣（做法見
+  // woodProjects 上方的註解），一樣先用 6 筆佔位內容，之後收錄案子直接在對應陣列 push 新物件。
+  bambooProjects = [
+    { name: '構竹林鐵', year: '', photo: 'uploads/原型結構/竹構造/構竹林鐵.png',
+      zh: { type: '展覽', status: '原型結構協辦', system: '竹構', team: '台灣竹會' },
+      en: { type: 'Exhibition', status: 'Co-organized by AS Studio', system: 'Bamboo structure', team: '台灣竹會' } },
+    { name: '繁花之頂', year: 'Changhua', photo: 'uploads/原型結構/竹構造/繁花之頂.jpg',
+      zh: { type: '公共藝術', status: '2024完工', system: '鋼筋混凝土基礎+竹構', location: '<a href="https://maps.app.goo.gl/jnJXSvkhMYyETEWp9" target="_blank" rel="noopener" class="sc-location-link">彰化<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '定影影像', team: '亼光工作室 李柏均+悅山工坊、伸茂園藝、花莊有限公司+台產照明' },
+      en: { type: 'Public art', status: 'Completed 2024', system: 'RC foundation + bamboo structure', location: '<a href="https://maps.app.goo.gl/jnJXSvkhMYyETEWp9" target="_blank" rel="noopener" class="sc-location-link">Changhua<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '定影影像', team: '亼光工作室 李柏均+悅山工坊、伸茂園藝、花莊有限公司+台產照明' } },
+    { name: '長榮堂_長榮大學竹構集會堂', year: 'Tainan', photo: 'uploads/原型結構/竹構造/長榮大學.jpg',
+      zh: { type: '集會堂', status: '2020完工', system: '鋼筋混凝土基礎+竹構', location: '<a href="https://maps.app.goo.gl/dZUxYSv2RwYsSc7S6" target="_blank" rel="noopener" class="sc-location-link">臺南<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '原間工作室', team: '大藏聯合建築師事務所' },
+      en: { type: 'Assembly hall', status: 'Completed 2020', system: 'RC foundation + bamboo structure', location: '<a href="https://maps.app.goo.gl/dZUxYSv2RwYsSc7S6" target="_blank" rel="noopener" class="sc-location-link">Tainan<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', photography: '原間工作室', team: '大藏聯合建築師事務所' } },
+    { name: '雲林農博生態園區餐廳', year: 'Yunlin', photo: 'uploads/原型結構/竹構造/雲林農博.JPG',
+      zh: { type: '餐廳', status: '2013完工', system: '竹構', location: '<a href="https://maps.app.goo.gl/U4oYjwEwHJ5xZj9fA" target="_blank" rel="noopener" class="sc-location-link">雲林<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', team: '大藏聯合建築師事務所' },
+      en: { type: 'Restaurant', status: 'Completed 2013', system: 'Bamboo structure', location: '<a href="https://maps.app.goo.gl/U4oYjwEwHJ5xZj9fA" target="_blank" rel="noopener" class="sc-location-link">Yunlin<svg class="sc-location-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></a>', team: '大藏聯合建築師事務所' } }
+  ];
+
+  rcProjects = [
+    { name: '【案名 01】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } },
+    { name: '【案名 02】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } },
+    { name: '【案名 03】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } },
+    { name: '【案名 04】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } },
+    { name: '【案名 05】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } },
+    { name: '【案名 06】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } }
+  ];
+
+  steelProjects = [
+    { name: '【案名 01】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } },
+    { name: '【案名 02】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } },
+    { name: '【案名 03】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } },
+    { name: '【案名 04】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } },
+    { name: '【案名 05】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } },
+    { name: '【案名 06】', year: '【...】', photo: '',
+      zh: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' },
+      en: { type: '【...】', status: '【...】', system: '【...】', location: '【...】', photography: '【...】', team: '【...】' } }
+  ];
+
+  scrollToSection(id) {
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const openAccordion = () => {
+      const accordion = el.classList.contains('sc-accordion') ? el : el.querySelector('.sc-accordion');
+      const panel = accordion ? accordion.querySelector('.sc-accordion-panel') : null;
+      const inner = accordion ? accordion.querySelector('.sc-accordion-panel-inner') : null;
+      if (accordion && panel && inner && !accordion.classList.contains('open')) {
+        accordion.classList.add('open');
+        panel.style.maxHeight = inner.scrollHeight + 'px';
+      }
+    };
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // 先捲動、捲動停下來再展開，避免展開動畫把卡片撐高導致還在捲動中的畫面跳動。
+    // scrollend 量不到捲動距離對應的時間就用固定延遲頂替（沒有 scrollend 支援的瀏覽器）。
+    if ('onscrollend' in window) {
+      window.addEventListener('scrollend', openAccordion, { once: true });
+    } else {
+      window.setTimeout(openAccordion, 600);
+    }
+  }
+
+  toggleDarkMode() {
+    this.setState(s => ({ isDarkMode: !s.isDarkMode }));
+  }
+
+  toggleMaterialMenu() {
+    this.setState(s => ({ showMaterialMenu: !s.showMaterialMenu }));
+  }
+
+  componentDidMount() {
+    this._onDocMouseDown = (e) => {
+      const inMenu = e.target && e.target.closest && e.target.closest('[data-menu-box]');
+      if (!inMenu && this.state.showMaterialMenu) this.setState({ showMaterialMenu: false });
+    };
+    document.addEventListener('mousedown', this._onDocMouseDown);
+
+    // 畫廊滑塊展開後要是正方形：實際可用寬度會隨瀏覽器/預覽視窗大小改變，
+    // 不能寫死固定 px（那樣只在特定視窗寬度下才會剛好是正方形）。
+    // 改成即時量測 .sc-gallery 的實際寬度，換算「展開後應有的寬度」，
+    // 直接設成滑塊高度，並同步更新照片的 background-size 與編號的位移量。
+    this._sizeGallerySquare = () => {
+      const gallery = document.getElementById('sc-gallery');
+      if (!gallery) return;
+      const totalWidth = gallery.clientWidth;
+      if (!totalWidth) return;
+      // 通用公式，不寫死滑塊數量：懸停中的滑塊 flex:HOVER_FLEX，其餘每個都是 flex:1。
+      // HOVER_FLEX 要跟 CSS 的 .sc-gallery-panel:hover { flex:__; } 保持一致（目前是 4）。
+      // 不管這個版面以後套用在哪個子頁面、放幾個滑塊，都會自動算出正確的展開正方形尺寸。
+      const HOVER_FLEX = 4;
+      const panelCount = document.querySelectorAll('.sc-gallery-panel').length;
+      if (!panelCount) return;
+      const totalFlexUnits = HOVER_FLEX + (panelCount - 1);
+      const squareSize = Math.round(totalWidth * HOVER_FLEX / totalFlexUnits);
+      gallery.style.height = squareSize + 'px';
+
+      const numOffset = -(squareSize - 48);
+      let styleEl = document.getElementById('sc-gallery-dynamic-style');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'sc-gallery-dynamic-style';
+        document.body.appendChild(styleEl);
+      }
+      styleEl.textContent =
+        '.sc-gallery-num { transform: translateY(' + numOffset + 'px) rotate(0deg); }' +
+        '.sc-gallery-panel:hover .sc-gallery-num { transform: translateY(0) rotate(-90deg); }';
+
+      document.querySelectorAll('.sc-gallery-panel[data-photo="true"]').forEach((panel) => {
+        panel.style.backgroundSize = squareSize + 'px ' + squareSize + 'px';
+      });
+    };
+    this._sizeGallerySquare();
+    window.addEventListener('resize', this._sizeGallerySquare);
+
+    // 游標彗星尾巴：容器是 #sc-cursor-chain（絕對定位、蓋滿 #sc-gallery、pointer-events:none，
+    // 不擋滑塊的 hover/click）。dot 只建立一次；每幀用 lerp 讓每個 dot 往「前一個 dot」靠近
+    // 35%（第一個 dot 追游標本身），越後面的 dot 越小越淡，形成拖尾。滑鼠離開容器就淡出隱藏。
+    (() => {
+      const container = document.getElementById('sc-cursor-chain');
+      const gallery = document.getElementById('sc-gallery');
+      if (!container || !gallery) return;
+
+      const CHAIN_LENGTH = 7;
+      const LERP = 0.35;
+      const dots = [];
+      for (let i = 0; i < CHAIN_LENGTH; i++) {
+        const size = Math.max(3, 14 - i * 1.6);
+        const opacity = Math.max(0.06, 0.9 - i * 0.13);
+        const dotEl = document.createElement('span');
+        dotEl.className = 'sc-chain-dot';
+        dotEl.style.width = size + 'px';
+        dotEl.style.height = size + 'px';
+        dotEl.style.opacity = String(opacity);
+        container.appendChild(dotEl);
+        dots.push({ el: dotEl, x: 0, y: 0 });
+      }
+
+      let targetX = 0, targetY = 0;
+      let active = false;
+
+      this._onGalleryMouseMove = (e) => {
+        const rect = gallery.getBoundingClientRect();
+        targetX = e.clientX - rect.left;
+        targetY = e.clientY - rect.top;
+        if (!active) {
+          active = true;
+          dots.forEach((d) => { d.x = targetX; d.y = targetY; });
+          container.classList.add('sc-visible');
+        }
+      };
+      this._onGalleryMouseLeave = () => {
+        active = false;
+        container.classList.remove('sc-visible');
+      };
+      gallery.addEventListener('mousemove', this._onGalleryMouseMove);
+      gallery.addEventListener('mouseleave', this._onGalleryMouseLeave);
+
+      const animateChain = () => {
+        if (active) {
+          let prevX = targetX, prevY = targetY;
+          dots.forEach((d) => {
+            d.x += (prevX - d.x) * LERP;
+            d.y += (prevY - d.y) * LERP;
+            d.el.style.transform = 'translate(' + d.x + 'px,' + d.y + 'px) translate(-50%,-50%)';
+            prevX = d.x; prevY = d.y;
+          });
+        }
+        this._chainRAF = requestAnimationFrame(animateChain);
+      };
+      animateChain();
+    })();
+
+    // 四種構造系統資訊卡手風琴（做法見「維護手冊_案例資訊卡元件.md」）：class 一律用 JS
+    // 直接對真實 DOM 節點加/減，不透過樣板綁定。展開高度即時量測 scrollHeight，不寫死 px。
+    this._onAccordionHeaderClick = (e) => {
+      const header = e.currentTarget;
+      const accordion = header.closest('.sc-accordion');
+      if (!accordion) return;
+      const panel = accordion.querySelector('.sc-accordion-panel');
+      const inner = accordion.querySelector('.sc-accordion-panel-inner');
+      if (!panel || !inner) return;
+      const isOpen = accordion.classList.toggle('open');
+      panel.style.maxHeight = isOpen ? inner.scrollHeight + 'px' : '0px';
+    };
+    this._accordionHeaders = Array.from(document.querySelectorAll('.sc-accordion-header'));
+    this._accordionHeaders.forEach((header) => header.addEventListener('click', this._onAccordionHeaderClick));
+
+    // 資訊卡標題「游標光源陰影」：把游標當成唯一光源，即時算出陰影方向/長度，
+    // 用 rAF 逐幀 lerp 平滑，跟游標拖尾同一手法。
+    this._lightMouseX = -9999;
+    this._lightMouseY = -9999;
+    this._onDocMouseMoveLight = (e) => {
+      this._lightMouseX = e.clientX;
+      this._lightMouseY = e.clientY;
+    };
+    document.addEventListener('mousemove', this._onDocMouseMoveLight);
+
+    this._lightShadowState = new Map();
+    const LIGHT_MAX_DIST = 480;
+    const LIGHT_MAX_LEN = 16;
+    const LIGHT_MIN_LEN = 2;
+    const LIGHT_LERP = 0.18;
+
+    const animateTitleLightShadow = () => {
+      document.querySelectorAll('.sc-accordion-title').forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = cx - this._lightMouseX;
+        const dy = cy - this._lightMouseY;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const clamped = Math.min(dist, LIGHT_MAX_DIST);
+        const strength = 1 - clamped / LIGHT_MAX_DIST;
+        const len = LIGHT_MIN_LEN + strength * (LIGHT_MAX_LEN - LIGHT_MIN_LEN);
+        const targetX = (dx / dist) * len;
+        const targetY = (dy / dist) * len;
+        const targetOpacity = 0.12 + strength * 0.45;
+        const targetBlur = 3 + strength * 5;
+
+        let state = this._lightShadowState.get(el);
+        if (!state) {
+          state = { x: 0, y: 0, opacity: 0.12, blur: 3 };
+          this._lightShadowState.set(el, state);
+        }
+        state.x += (targetX - state.x) * LIGHT_LERP;
+        state.y += (targetY - state.y) * LIGHT_LERP;
+        state.opacity += (targetOpacity - state.opacity) * LIGHT_LERP;
+        state.blur += (targetBlur - state.blur) * LIGHT_LERP;
+
+        const shadowRGB = this.state.isDarkMode ? '255,255,255' : '0,0,0';
+        el.style.textShadow = state.x.toFixed(2) + 'px ' + state.y.toFixed(2) + 'px ' + state.blur.toFixed(1) + 'px rgba(' + shadowRGB + ',' + state.opacity.toFixed(2) + ')';
+      });
+      this._lightShadowRAF = requestAnimationFrame(animateTitleLightShadow);
+    };
+    animateTitleLightShadow();
+
+    // 案例輪播縮圖的案名文字色：依照片本身的亮暗決定黑字／白字，不套漸層底色塊，
+    // 也不跟著網頁的 isDarkMode 走（純粹讀照片本身，深色模式切換不影響這裡）。
+    // 做法：圖片載入後畫到一個縮小的隱藏 canvas 取樣，算平均亮度（ITU-R BT.601 加權公式，
+    // 常見的感知亮度近似值），亮度夠高（背景偏淺）用黑字，偏暗用白字，寫進該 slide 的
+    // --sc-slide-text CSS 變數，讓 .sc-project-carousel-slide-name／-year 讀取。
+    // uploads/ 底下的照片跟頁面同源，不會有 canvas tainted 的跨域限制；
+    // 如果讀取失敗（例如未來改成外部圖床），就靜默維持 CSS 預設的黑字，不中斷其他功能。
+    this._applyProjectSlidePhotoContrast = (slide, photoUrl) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const sampleSize = 24;
+          const canvas = document.createElement('canvas');
+          canvas.width = sampleSize;
+          canvas.height = sampleSize;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+          ctx.drawImage(img, 0, 0, sampleSize, sampleSize);
+          const { data } = ctx.getImageData(0, 0, sampleSize, sampleSize);
+          let total = 0;
+          let count = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            total += (data[i] * 299 + data[i + 1] * 587 + data[i + 2] * 114) / 1000;
+            count++;
+          }
+          const avgLuma = count ? total / count : 128;
+          slide.style.setProperty('--sc-slide-text', avgLuma > 140 ? '#000000' : '#ffffff');
+        } catch (err) {
+          // canvas 取樣失敗（例如圖片被標記為 tainted），維持 CSS 預設值即可，不拋出中斷流程
+        }
+      };
+      img.src = photoUrl;
+    };
+
+    // 案例輪播的拖曳滑動效果（做法見「案例輪播」CSS 註解，視覺參考 skiper-ui.com/v1/skiper51
+    // 「Creative Carousel 002」，該元件原始設定：焦點卡置中、上一張往景深退後變暗
+    // （translate:[0,0,-400] + 陰影）、下一張從右側整張寬度的位置滑入（translate:['100%',0,0]），
+    // 這裡改用原生 Pointer Events 手刻拖曳（滑鼠／觸控／觸控筆統一處理），取代原元件的
+    // Swiper.js；拖曳中即時跟隨手指/游標（不套 CSS transition，每個 pointermove 直接寫 style，
+    // 才會 1:1 貼著拖曳位置走），放開時依拖曳進度決定要「補完」到下一張／回到原位／退回上一張，
+    // 這時才重新啟用 transition 做補間動畫。只算「焦點卡」「上一張」「下一張」三張的位置，
+    // 其餘全部隱藏（跟原元件只定義 prev/next 兩種狀態一致），索引用取模，捲到底會自動循環。
+    this._initProjectCarousel = (rootId, projects) => {
+      const root = document.getElementById(rootId);
+      if (!root) return null;
+      const viewport = root.querySelector('.sc-project-carousel-viewport');
+      const slides = Array.from(root.querySelectorAll('.sc-project-carousel-slide'));
+      const dots = Array.from(root.querySelectorAll('.sc-project-carousel-dot'));
+      const prevBtn = root.querySelector('.sc-project-carousel-arrow-prev');
+      const nextBtn = root.querySelector('.sc-project-carousel-arrow-next');
+      const detailZh = root.parentElement ? root.parentElement.querySelector('.sc-project-detail-zh') : null;
+      const detailEn = root.parentElement ? root.parentElement.querySelector('.sc-project-detail-en') : null;
+      if (!viewport || !slides.length) return null;
+
+      const count = slides.length;
+      slides.forEach((slide, i) => {
+        slide.dataset.index = String(i);
+        const proj = projects[i];
+        if (proj && proj.photo) this._applyProjectSlidePhotoContrast(slide, proj.photo);
+      });
+
+      // 三種靜止狀態（對應原元件的 active/prev/next 設定）：active 置中最大最亮；prev 停在
+      // 同一個 X＝0，藏在 active 正後方，靠縮小＋變暗製造退到下層的景深感（原元件的
+      // translate:[0,0,-400]，不平移）；next 停在 active 右側 STEP_PX 的位置（對應原元件的
+      // translate:['100%',0,0]，但因為縮圖現在幾乎跟 viewport 一樣寬，位移量不能只用「一張卡寬」
+      // ——STEP_PX 改成用 viewport 本身的寬度換算，確保這個位移量一定夠讓整張卡片超出
+      // viewport 右邊界，見下方 sizeSlides() 裡的說明），配合 viewport 的 overflow:hidden，
+      // 靜止時完全裁在畫面外看不到，只有在切換到下一張的過程中才會從右側裁切邊界滑進來——
+      // 維護者指定：
+      // 案例一過渡到案例二時，案例一要向後方（下層）退出（縮小＋變暗，原地不平移，跟 prev 同一
+      // 套視覺）、案例二要從右方滑入（沿用 next 的水平位移）。縮圖尺寸盡量貼近資訊卡寬度，
+      // 只留箭頭原本的位置/寬度，實際寬高由 sizeSlides() 即時量測寫入；STEP_PX（拖曳滿一輪
+      // 的位移基準，同時也是 next 的靜止 X 位移量）跟著這個量測結果同步更新，見 sizeSlides()。
+      let STEP_PX = 256; // 初始值，sizeSlides() 會在 mount 時立刻重新量測覆蓋
+      const REST = {
+        active: { x: 0, scale: 1.05, bright: 1, z: 30 },
+        next: { x: STEP_PX, scale: 0.95, bright: 1, z: 20 },
+        prev: { x: 0, scale: 0.85, bright: 0.55, z: 10 }
+      };
+      const COMMIT_THRESHOLD = 0.35; // 拖過 STEP_PX 的 35% 就算放手後要換下一/上一張
+      const CLICK_THRESHOLD_PX = 6; // 移動距離小於這個值，放開時當成點擊而非拖曳
+      const ARROW_RESERVE = 40; // 左右各保留的空間，對應箭頭現有的位置/寬度（32px 箭頭 + 8px 間距）
+
+      // 縮圖寬度＝視窗可用寬度扣掉左右箭頭保留區，再除以 active 的放大倍率，
+      // 確保 active 卡片放大到 REST.active.scale 倍之後，邊緣依然落在箭頭保留區以內、
+      // 不會蓋到箭頭。高度固定用 16:9 換算，viewport 高度＝縮圖高度（含放大倍率）+ 留白緩衝。
+      //
+      // STEP_PX（同時也是 REST.next.x）不能只等於卡片寬度：縮圖現在幾乎跟 viewport 一樣寬，
+      // 中心點位移一個「卡寬」不足以讓整張卡片的左邊界超出 viewport 的右邊界，
+      // overflow:hidden 裁不乾淨、靜止時右側會露出一小截「下一張」的邊緣（維護者回報的問題）。
+      // 改成用 viewport 本身的寬度（totalWidth）當位移量：中心點位移 1.5 倍 viewport 寬度後，
+      // 卡片左邊界必定超出 viewport 右邊界（因為卡片本身寬度一定小於 viewport 寬度），
+      // 這樣才能確保靜止時完全裁在畫面外，拖曳中才會看到它從右側慢慢滑進來。
+      const sizeSlides = () => {
+        const totalWidth = viewport.clientWidth;
+        if (!totalWidth) return;
+        const boxWidth = Math.max((totalWidth - ARROW_RESERVE * 2) / REST.active.scale, 60);
+        const boxHeight = boxWidth * 9 / 16;
+        slides.forEach((slide) => {
+          slide.style.width = boxWidth + 'px';
+          slide.style.height = boxHeight + 'px';
+          slide.style.marginLeft = (-boxWidth / 2) + 'px';
+          slide.style.marginTop = (-boxHeight / 2) + 'px';
+        });
+        viewport.style.height = (boxHeight * REST.active.scale + 24) + 'px';
+        STEP_PX = totalWidth;
+        REST.next.x = STEP_PX;
+      };
+
+      let activeIndex = 0;
+
+      const buildDetailLines = (d, labels) => {
+        const pairs = [
+          [labels.type, d.type],
+          [labels.status, d.status],
+          [labels.designTime, d.designTime],
+          [labels.constructionTime, d.constructionTime],
+          [labels.system, d.system],
+          [labels.location, d.location],
+          [labels.photography, d.photography],
+          [labels.team, d.team]
+        ];
+        return pairs.filter((pair) => pair[1]).map((pair) => pair[0] + ' / ' + pair[1]).join('<br>');
+      };
+      const renderDetail = (proj) => {
+        if (!proj || !detailZh || !detailEn) return;
+        detailZh.innerHTML = buildDetailLines(proj.zh, {
+          type: '建築類型', status: '項目狀態', designTime: '設計時間', constructionTime: '施工時間',
+          system: '構造系統', location: '基地位置', photography: '攝影', team: '合作團隊'
+        });
+        detailEn.innerHTML = buildDetailLines(proj.en, {
+          type: 'Building Type', status: 'Project Status', designTime: 'Design Period', constructionTime: 'Construction Period',
+          system: 'Structural System', location: 'Location', photography: 'Photography', team: 'Collaborating Team'
+        });
+      };
+
+      const nextOf = (i) => (i + 1) % count;
+      const prevOf = (i) => (i - 1 + count) % count;
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const lerpState = (a, b, t) => ({
+        x: lerp(a.x, b.x, t), scale: lerp(a.scale, b.scale, t),
+        bright: lerp(a.bright, b.bright, t), z: lerp(a.z, b.z, t)
+      });
+
+      const applyState = (slide, state) => {
+        slide.style.transform = 'translateX(' + state.x.toFixed(2) + 'px) scale(' + state.scale.toFixed(3) + ')';
+        slide.style.filter = 'brightness(' + state.bright.toFixed(2) + ')';
+        slide.style.zIndex = String(Math.round(state.z));
+        slide.style.opacity = '1';
+        slide.style.pointerEvents = state === REST.prev ? 'none' : 'auto';
+      };
+      const applyHidden = (slide) => {
+        slide.style.opacity = '0';
+        slide.style.pointerEvents = 'none';
+        slide.style.zIndex = '0';
+      };
+
+      // 拖曳中每一幀呼叫：不管往哪個方向拖，active 都是往 prev 的樣子退（縮小＋變暗、
+      // 原地不平移）——因為 next 現在也停在同一個 X，不再有「整張滑出去」的位移，
+      // 純粹靠縮放/亮度表現前後層次，前後兩個方向的視覺邏輯因此是對稱的。
+      // 拖曳中每一幀呼叫：p>0（往下一張拖）時 active 退成 prev 的樣子（原地縮小＋變暗，
+      // 對應「案例一向後方/下層退出」），next 從 STEP_PX 滑回 0（對應「案例二從右方滑入」）；
+      // p<0（往上一張拖）時 active 退到 next 的靜止位置（往右滑出），prev 從原地長大成 active。
+      const styleForActiveRole = (p) => {
+        if (p >= 0) return lerpState(REST.active, REST.prev, p);
+        return lerpState(REST.active, { x: STEP_PX, scale: REST.next.scale, bright: 1, z: REST.next.z }, -p);
+      };
+      const styleForNextRole = (p) => (p >= 0 ? lerpState(REST.next, REST.active, p) : REST.next);
+      const styleForPrevRole = (p) => (p <= 0 ? lerpState(REST.prev, REST.active, -p) : REST.prev);
+
+      const fullRender = () => {
+        slides.forEach((slide, i) => {
+          if (i === activeIndex) applyState(slide, REST.active);
+          else if (i === nextOf(activeIndex)) applyState(slide, REST.next);
+          else if (i === prevOf(activeIndex)) applyState(slide, REST.prev);
+          else applyHidden(slide);
+        });
+        dots.forEach((d, i) => d.classList.toggle('active', i === activeIndex));
+        renderDetail(projects[activeIndex]);
+      };
+
+      const goTo = (newIndex) => {
+        activeIndex = ((newIndex % count) + count) % count;
+        fullRender();
+      };
+
+      // 拖曳狀態：只在按下當下鎖定 active/prev/next 是「哪三個索引」，拖曳過程中這三個索引
+      // 不會變（只有放開手那一刻才可能真的換頁），避免拖到一半索引錯位。
+      let dragging = false;
+      let dragRoles = null;
+      let startX = 0;
+      let lastDeltaX = 0;
+
+      const onPointerMove = (e) => {
+        if (!dragging || !dragRoles) return;
+        lastDeltaX = e.clientX - startX;
+        const p = clamp(-lastDeltaX / STEP_PX, -1, 1);
+        applyState(slides[dragRoles.active], styleForActiveRole(p));
+        applyState(slides[dragRoles.next], styleForNextRole(p));
+        applyState(slides[dragRoles.prev], styleForPrevRole(p));
+      };
+
+      const onPointerUp = (e) => {
+        if (!dragging || !dragRoles) return;
+        dragging = false;
+        viewport.classList.remove('sc-dragging');
+        [dragRoles.prev, dragRoles.active, dragRoles.next].forEach((idx) => {
+          if (slides[idx]) slides[idx].style.transition = '';
+        });
+
+        if (Math.abs(lastDeltaX) < CLICK_THRESHOLD_PX) {
+          // 移動距離很小，當成點擊：點到「下一張」那張卡（唯一露出一角、可點的卡）就前進一張，
+          // 其餘情況（點到焦點卡本身或空白處）視同沒有拖曳，維持原狀。
+          const tappedEl = e.target && e.target.closest ? e.target.closest('.sc-project-carousel-slide') : null;
+          const tappedIndex = tappedEl ? Number(tappedEl.dataset.index) : -1;
+          if (tappedIndex === dragRoles.next) { goTo(dragRoles.next); return; }
+          fullRender();
+          return;
+        }
+
+        const p = clamp(-lastDeltaX / STEP_PX, -1, 1);
+        if (p >= COMMIT_THRESHOLD) activeIndex = dragRoles.next;
+        else if (p <= -COMMIT_THRESHOLD) activeIndex = dragRoles.prev;
+        fullRender();
+      };
+
+      const onPointerDown = (e) => {
+        if (count < 2) return;
+        dragging = true;
+        dragRoles = { active: activeIndex, prev: prevOf(activeIndex), next: nextOf(activeIndex) };
+        startX = e.clientX;
+        lastDeltaX = 0;
+        viewport.classList.add('sc-dragging');
+        [dragRoles.prev, dragRoles.active, dragRoles.next].forEach((idx) => {
+          if (slides[idx]) slides[idx].style.transition = 'none';
+        });
+        try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
+      };
+
+      const onPrev = () => goTo(activeIndex - 1);
+      const onNext = () => goTo(activeIndex + 1);
+      const onResize = () => sizeSlides();
+      const dotHandlers = dots.map((dot, i) => {
+        const handler = () => goTo(i);
+        dot.addEventListener('click', handler);
+        return handler;
+      });
+
+      viewport.addEventListener('pointerdown', onPointerDown);
+      viewport.addEventListener('pointermove', onPointerMove);
+      viewport.addEventListener('pointerup', onPointerUp);
+      viewport.addEventListener('pointercancel', onPointerUp);
+      if (prevBtn) prevBtn.addEventListener('click', onPrev);
+      if (nextBtn) nextBtn.addEventListener('click', onNext);
+      window.addEventListener('resize', onResize);
+
+      sizeSlides();
+      fullRender();
+
+      return () => {
+        viewport.removeEventListener('pointerdown', onPointerDown);
+        viewport.removeEventListener('pointermove', onPointerMove);
+        viewport.removeEventListener('pointerup', onPointerUp);
+        viewport.removeEventListener('pointercancel', onPointerUp);
+        if (prevBtn) prevBtn.removeEventListener('click', onPrev);
+        if (nextBtn) nextBtn.removeEventListener('click', onNext);
+        window.removeEventListener('resize', onResize);
+        dots.forEach((dot, i) => dot.removeEventListener('click', dotHandlers[i]));
+      };
+    };
+
+    this._projectCarouselCleanups = [];
+    const woodCarouselCleanup = this._initProjectCarousel('sc-project-carousel-wood', this.woodProjects);
+    if (woodCarouselCleanup) this._projectCarouselCleanups.push(woodCarouselCleanup);
+    const bambooCarouselCleanup = this._initProjectCarousel('sc-project-carousel-bamboo', this.bambooProjects);
+    if (bambooCarouselCleanup) this._projectCarouselCleanups.push(bambooCarouselCleanup);
+    const rcCarouselCleanup = this._initProjectCarousel('sc-project-carousel-rc', this.rcProjects);
+    if (rcCarouselCleanup) this._projectCarouselCleanups.push(rcCarouselCleanup);
+    const steelCarouselCleanup = this._initProjectCarousel('sc-project-carousel-steel', this.steelProjects);
+    if (steelCarouselCleanup) this._projectCarouselCleanups.push(steelCarouselCleanup);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this._onDocMouseDown);
+    window.removeEventListener('resize', this._sizeGallerySquare);
+    if (this._chainRAF) cancelAnimationFrame(this._chainRAF);
+    const gallery = document.getElementById('sc-gallery');
+    if (gallery && this._onGalleryMouseMove) gallery.removeEventListener('mousemove', this._onGalleryMouseMove);
+    if (gallery && this._onGalleryMouseLeave) gallery.removeEventListener('mouseleave', this._onGalleryMouseLeave);
+    if (this._accordionHeaders) {
+      this._accordionHeaders.forEach((header) => header.removeEventListener('click', this._onAccordionHeaderClick));
+    }
+    document.removeEventListener('mousemove', this._onDocMouseMoveLight);
+    if (this._lightShadowRAF) cancelAnimationFrame(this._lightShadowRAF);
+    if (this._projectCarouselCleanups) this._projectCarouselCleanups.forEach((fn) => fn());
+  }
+
+  renderVals() {
+    const isDarkMode = this.state.isDarkMode;
+    return {
+      isDarkMode,
+      bgColor: isDarkMode ? '#0a0a0a' : '#ffffff',
+      textColor: isDarkMode ? '#ffffff' : '#1a1a1a',
+      showMaterialMenu: this.state.showMaterialMenu,
+      toggleMaterialMenu: () => this.toggleMaterialMenu(),
+      toggleDarkMode: () => this.toggleDarkMode(),
+      galleryItems: this.galleryItems.map((it, idx) => {
+        const lineColor = isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(136,136,136,0.8)';
+        const hasPhoto = !!it.photo;
+        return {
+          ...it,
+          bg: isDarkMode ? '#0a0a0a' : '#ffffff',
+          text: it.textOverride || (isDarkMode ? '#ffffff' : '#1a1a1a'),
+          borderLeft: '0.5px solid ' + lineColor,
+          goTo: () => this.scrollToSection(it.target),
+          hasPhoto,
+          // 展開後面板約 360x340px，圖片固定用這個尺寸鋪滿、靠左定位，
+          // 收合/展開之間圖片本身完全不變，只是面板變寬露出更多，不是切換圖片
+          bgImage: hasPhoto ? "url('" + it.photo + "')" : 'none',
+          bgPosition: hasPhoto ? 'left center' : '0 0',
+          bgSize: hasPhoto ? '328px 328px' : 'auto'
+        };
+      }),
+      woodProjects: this.woodProjects.map((p) => {
+        const hasPhoto = !!p.photo;
+        return { ...p, hasPhoto, bgImage: hasPhoto ? "url('" + p.photo + "')" : 'none' };
+      }),
+      bambooProjects: this.bambooProjects.map((p) => {
+        const hasPhoto = !!p.photo;
+        return { ...p, hasPhoto, bgImage: hasPhoto ? "url('" + p.photo + "')" : 'none' };
+      }),
+      rcProjects: this.rcProjects.map((p) => {
+        const hasPhoto = !!p.photo;
+        return { ...p, hasPhoto, bgImage: hasPhoto ? "url('" + p.photo + "')" : 'none' };
+      }),
+      steelProjects: this.steelProjects.map((p) => {
+        const hasPhoto = !!p.photo;
+        return { ...p, hasPhoto, bgImage: hasPhoto ? "url('" + p.photo + "')" : 'none' };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>
