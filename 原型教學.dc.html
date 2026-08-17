@@ -68,7 +68,7 @@
         </div>
       </sc-if>
       <a href="./index.html" style="display:flex; align-items:center;">
-        <img src="uploads/logo_20210310101340.png" alt="Logo" style="height:40px; filter:{{ isDarkMode ? 'invert(1)' : 'none' }}; transition:filter 0.3s;">
+        <img src="uploads/favicon.png" alt="Logo" style="height:40px; filter:{{ logoFilter }}; transition:filter 0.3s;">
       </a>
     </div>
     <div style="display:flex; gap:32px; align-items:center; background-color:{{ isDarkMode ? 'oklch(0.15 0 0 / 0.15)' : 'oklch(0.99 0 0 / 0.15)' }}; backdrop-filter:blur(10px); border-radius:8px; padding:16px 24px; transition:background-color 0.3s;">
@@ -413,6 +413,15 @@ class Component extends DCLogic {
       isDarkMode,
       bgColor: isDarkMode ? '#0a0a0a' : '#ffffff',
       textColor: isDarkMode ? '#ffffff' : '#1a1a1a',
+      // 頁首 logo（2026-08-17 改成跟主網頁一樣的 uploads/favicon.png，白色線稿）：
+      // 濾鏡邏輯要跟主網頁的 logoFilter 一致（深色模式不轉、淺色模式反轉成黑），
+      // 不能直接沿用原本 logo_20210310101340.png（深色線稿）的反向濾鏡公式。
+      // 另外原本樣板裡是直接寫 `{{ isDarkMode ? 'invert(1)' : 'none' }}` 這種
+      // 三元運算，DC 樣板引擎的 {{ }} 不支援三元/邏輯運算子，會靜默失效（見
+      // 維護手冊「已知的資料相依細節」），實測這裡的 filter 屬性確實整個消失、
+      // 深淺模式切換都沒有真的套用濾鏡——改成跟主網頁一樣，在這裡算成一個
+      // 單純命名變數再回傳，樣板只寫 `{{ logoFilter }}`，才會真的生效。
+      logoFilter: isDarkMode ? 'none' : 'invert(1)',
       showMaterialMenu: this.state.showMaterialMenu,
       toggleMaterialMenu: () => this.toggleMaterialMenu(),
       toggleDarkMode: () => this.toggleDarkMode(),
