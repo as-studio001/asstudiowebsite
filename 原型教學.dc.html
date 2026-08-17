@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -220,50 +220,6 @@
         <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.85; opacity:0.65; margin:0;">Digital tools function as engines of thought within our process. ArchiCAD integrates information and construction, Midjourney explores conceptual possibilities through generative imagery, and Midas conducts structural simulations and mechanical analysis. Together, they shape a new design ecology in which architecture finds balance among data, perception, and structure—revealing a contemporary language where technology and poetics coexist.</p>
       </div>
 
-      <!-- VERTICAL TIMELINE：軸線靠左，滾動到才顯示，顯示後捲回上面也不會消失（佔位文字） -->
-      <div id="sc-section-timeline">
-        <style>
-          .sc-timeline { position:relative; padding-left:28px; margin-left:76px; }
-          .sc-timeline-line {
-            position:absolute; left:3px; top:6px; width:1px; height:0;
-            transition:height 0.6s ease;
-          }
-          .sc-timeline-item { position:relative; }
-          .sc-timeline-item-inner {
-            overflow:hidden;
-            max-height:0; opacity:0; padding-bottom:0;
-            transition:max-height 0.6s ease, opacity 0.5s ease 0.1s, padding-bottom 0.6s ease;
-          }
-          .sc-timeline-item.sc-visible .sc-timeline-item-inner { max-height:140px; opacity:1; padding-bottom:44px; }
-          .sc-timeline-item.sc-visible:last-child .sc-timeline-item-inner { padding-bottom:0; }
-          .sc-timeline-dot {
-            position:absolute; left:-28px; top:4px; width:7px; height:7px; border-radius:50%;
-            opacity:0; transition:opacity 0.4s ease 0.15s;
-          }
-          .sc-timeline-item.sc-visible .sc-timeline-dot { opacity:1; }
-          .sc-timeline-year {
-            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:30px; margin:0 0 6px 0;
-          }
-          .sc-timeline-event {
-            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:26px; line-height:1.8; opacity:0.85; margin:0;
-          }
-          .sc-timeline-fade-hint { height:60px; margin-top:-12px; }
-        </style>
-        <div class="sc-timeline">
-          <div class="sc-timeline-line" style="background:{{ textColor }};"></div>
-          <sc-for list="{{ timelineItems }}" as="tItem" hint-placeholder-count="10">
-            <div class="sc-timeline-item">
-              <span class="sc-timeline-dot" style="background:{{ textColor }};"></span>
-              <div class="sc-timeline-item-inner">
-                <p class="sc-timeline-year" style="color:{{ textColor }};">{{ tItem.year }}</p>
-                <p class="sc-timeline-event" style="color:{{ textColor }};">{{ tItem.event }}</p>
-              </div>
-            </div>
-          </sc-for>
-          <div class="sc-timeline-fade-hint" style="background:linear-gradient(to bottom, transparent, {{ bgColor }});"></div>
-        </div>
-      </div>
-
     </div>
   </section>
 
@@ -315,8 +271,7 @@ class Component extends DCLogic {
     { num: '03', zh: '原型數位', en: 'AS Technology', target: 'sc-section-digital', photo: 'uploads/原型數位.png', textOverride: '#1a1a1a' },
     { num: '04', zh: '文化', en: 'Culture', target: 'sc-section-culture', photo: 'uploads/文化.jpg', textOverride: '#ffffff' },
     { num: '05', zh: '設計方法', en: 'Design Methodology', target: 'sc-section-culture', photo: 'uploads/設計方法.png', textOverride: '#ffffff' },
-    { num: '06', zh: '工作文化', en: 'Work Culture', target: 'sc-section-culture', photo: 'uploads/工作文化.jpg', textOverride: '#ffffff' },
-    { num: '07', zh: '大事記', en: 'Chronology', target: 'sc-section-timeline' }
+    { num: '06', zh: '工作文化', en: 'Work Culture', target: 'sc-section-culture', photo: 'uploads/工作文化.jpg', textOverride: '#ffffff' }
   ];
 
   scrollToSection(id) {
@@ -324,20 +279,6 @@ class Component extends DCLogic {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-
-  // 時間軸資料（佔位文字，之後換成實際年份／事件）
-  timelineItems = [
-    { year: '2011', event: '事件描述（佔位文字）' },
-    { year: '2013', event: '事件描述（佔位文字）' },
-    { year: '2015', event: '事件描述（佔位文字）' },
-    { year: '2016', event: '事件描述（佔位文字）' },
-    { year: '2018', event: '事件描述（佔位文字）' },
-    { year: '2019', event: '事件描述（佔位文字）' },
-    { year: '2021', event: '事件描述（佔位文字）' },
-    { year: '2022', event: '事件描述（佔位文字）' },
-    { year: '2023', event: '事件描述（佔位文字）' },
-    { year: '2025', event: '事件描述（佔位文字）' }
-  ];
 
   toggleDarkMode() {
     this.setState(s => ({ isDarkMode: !s.isDarkMode }));
@@ -448,59 +389,10 @@ class Component extends DCLogic {
       };
       animateChain();
     })();
-
-    // 時間軸：class 一律用 JS 直接對真實 DOM 節點加，不透過樣板綁定 class（未經驗證的寫法）。
-    // 其餘每筆預設 max-height:0（不佔版面、頁尾緊接在後）。捲到接近目前內容底部時，
-    // 才一筆一筆展開，把頁尾往下推；只加 class 不移除，捲回上面已展開的不會收合。
-    // 左側線條的長度用 JS 直接控制，跟著每次展開同步變長，而不是整條固定滿版。
-    // 線段長度改成即時量測最後一個已展開項目的圓點實際位置，不再用固定的每筆估計高度
-    // ——固定估計值只要字級/內容長度一變就會跟真實高度對不上，導致線段長度跟展開內容脫節
-    // （跟畫廊正方形量測、手風琴展開高度同一原則：量測，不要寫死）。
-    // 項目展開動畫（max-height transition）需要 0.6s 才會跑到最終高度，所以量測前先等它跑完，
-    // 否則量到的是還沒展開完成的中間位置，線段會停在錯的地方。
-    const TIMELINE_EXPAND_MS = 600;
-    const TIMELINE_EXTRA_TAIL_PX = 151; // 4cm，讓線段在最後一個已展開節點下方繼續延伸
-    this._timelineRevealIndex = 3;
-    this._timelineRevealing = false;
-
-    const growLine = (count) => {
-      const line = document.querySelector('.sc-timeline-line');
-      const items = document.querySelectorAll('.sc-timeline-item');
-      if (!line || !items.length || count <= 0) return;
-      setTimeout(() => {
-        const idx = Math.min(count, items.length) - 1;
-        const dot = items[idx].querySelector('.sc-timeline-dot');
-        if (!dot) return;
-        const lineRect = line.getBoundingClientRect();
-        const dotRect = dot.getBoundingClientRect();
-        const distance = (dotRect.top + dotRect.height / 2) - lineRect.top;
-        line.style.height = Math.max(0, distance + TIMELINE_EXTRA_TAIL_PX) + 'px';
-      }, TIMELINE_EXPAND_MS + 20);
-    };
-    const timelineItemEls = document.querySelectorAll('.sc-timeline-item');
-    for (let i = 0; i < 3 && i < timelineItemEls.length; i++) {
-      timelineItemEls[i].classList.add('sc-visible');
-    }
-    growLine(this._timelineRevealIndex); // 初始 3 筆已顯示，線條先長到對應長度
-
-    this._onScroll = () => {
-      if (this._timelineRevealing) return;
-      const items = document.querySelectorAll('.sc-timeline-item');
-      if (this._timelineRevealIndex >= items.length) return;
-      const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 200;
-      if (!nearBottom) return;
-      this._timelineRevealing = true;
-      items[this._timelineRevealIndex].classList.add('sc-visible');
-      this._timelineRevealIndex++;
-      growLine(this._timelineRevealIndex);
-      setTimeout(() => { this._timelineRevealing = false; }, 150);
-    };
-    window.addEventListener('scroll', this._onScroll, { passive: true });
   }
 
   componentWillUnmount() {
     document.removeEventListener('mousedown', this._onDocMouseDown);
-    window.removeEventListener('scroll', this._onScroll);
     window.removeEventListener('resize', this._sizeGallerySquare);
     if (this._chainRAF) cancelAnimationFrame(this._chainRAF);
     const gallery = document.getElementById('sc-gallery');
@@ -535,8 +427,7 @@ class Component extends DCLogic {
           bgPosition: hasPhoto ? 'left center' : '0 0',
           bgSize: hasPhoto ? '328px 328px' : 'auto'
         };
-      }),
-      timelineItems: this.timelineItems
+      })
     };
   }
 }
