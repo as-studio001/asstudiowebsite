@@ -140,7 +140,7 @@
         </div>
       </sc-if>
       <a href="https://www.mashup.com.tw/as%20studio/" style="display:flex; align-items:center;">
-        <img src="uploads/logo_20210310101340.png" alt="Logo" style="height:40px; filter:{{ isDarkMode ? 'invert(1)' : 'none' }}; transition:filter 0.3s;">
+        <img src="uploads/favicon.png" alt="Logo" style="height:40px; filter:{{ logoFilter }}; transition:filter 0.3s;">
       </a>
     </div>
     <div data-search-box="1" style="position:absolute; left:50%; transform:translateX(-50%); display:{{ searchBoxDisplay }}; flex-direction:column; align-items:center;">
@@ -639,7 +639,7 @@ class Component extends DCLogic {
     { id: 'r20', name: "原型三時期", href: "./原型原點.dc.html", translations: {"en":"Three Periods of Prototype","zh-Hans":"原型三时期","fr":"Trois Périodes du Prototype","ja":"プロトタイプの三時期","ko":"프로토타입의 세 시기","es":"Tres Períodos del Prototipo"} },
     { id: 'r21', name: "一人", href: "./原型原點.dc.html", translations: {"en":"One Person","zh-Hans":"一人","fr":"Une Personne","ja":"一人","ko":"한 사람","es":"Una Persona"} },
     { id: 'r22', name: "原型建築+原型結構", href: "./原型原點.dc.html", translations: {"en":"Prototype Architecture + Prototype Structure","zh-Hans":"原型建筑+原型结构","fr":"Prototype Architecture + Prototype Structure","ja":"プロトタイプ建築＋プロトタイプ構造","ko":"프로토타입 건축+프로토타입 구조","es":"Prototipo Arquitectura + Prototipo Estructura"} },
-    { id: 'r23', name: "原型結構", href: "./原型結構.dc.html", translations: {"en":"Prototype Structure","zh-Hans":"原型结构","fr":"Prototype Structure","ja":"プロトタイプ構造","ko":"프로토타입 구조","es":"Prototipo Estructura"} },
+    { id: 'r23', name: "原型結構", href: "https://www.mashup.com.tw/as%20studio/?page=product", translations: {"en":"Prototype Structure","zh-Hans":"原型结构","fr":"Prototype Structure","ja":"プロトタイプ構造","ko":"프로토타입 구조","es":"Prototipo Estructura"} },
     { id: 'r24', name: "木構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=27070", translations: {"en":"Wood Structure","zh-Hans":"木结构","fr":"Structure en Bois","ja":"木構造","ko":"목구조","es":"Estructura de Madera"} },
     { id: 'r25', name: "竹構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25396", translations: {"en":"Bamboo Structure","zh-Hans":"竹结构","fr":"Structure en Bambou","ja":"竹構造","ko":"대나무 구조","es":"Estructura de Bambú"} },
     { id: 'r26', name: "RC構造", href: "https://www.mashup.com.tw/as%20studio/?page=product_list&group_id=25397", translations: {"en":"RC Structure","zh-Hans":"RC结构","fr":"Structure en Béton Armé","ja":"RC構造","ko":"RC 구조","es":"Estructura de Hormigón Armado"} },
@@ -2077,6 +2077,12 @@ class Component extends DCLogic {
     const textColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
     const lineColor = isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)';
     const dotColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
+    // Header logo (favicon.png, white line art by default): `{{ }}` doesn't
+    // support ternaries (see the footer-contact note further down), so this
+    // has to be a plain pre-computed variable rather than
+    // `filter:{{ isDarkMode ? ... : ... }}` written directly in the markup
+    // — that silently no-ops and leaves the logo white in both modes.
+    const logoFilter = isDarkMode ? 'none' : 'invert(1)';
 
     // Center title ("原型 × 未來" / "Architecture + Structure"). Desktop
     // keeps the original sizes/markup (foreignObject + div, text-align
@@ -2378,7 +2384,7 @@ class Component extends DCLogic {
     const footerSocialBg = isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.9 0 0)';
 
     return {
-      nodes, edges, bgColor, textColor, lineColor, dotColor, isDarkMode,
+      nodes, edges, bgColor, textColor, lineColor, dotColor, isDarkMode, logoFilter,
       spotlight, hasSpotlight,
       isMobile,
       footerContactChevronDeg, footerContactBorderColor, footerMutedColor, footerSocialBg,
