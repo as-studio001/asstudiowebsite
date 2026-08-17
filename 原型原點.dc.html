@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -395,17 +395,26 @@
       </div>
 
       <!-- 橫向時間軸：資料來源活頁簿1.xlsx「原型三時期」工作表（時期／事件／說明，目前是佔位文字）。
-           這個區塊在頁面最底部，不能用「進入視野」判斷（一進頁面底部整排就已經在視野內了）。
-           預設只顯示第一個時間點（一人），使用者要先把頁面捲到底，之後「繼續」往下滾滑鼠滾輪——這時
-           頁面已經無法再捲動、不會再有新的 scroll 事件，所以監聽 wheel 事件本身偵測「已到底部仍持續
-           往下滾」。每個 wheel 事件的 deltaY 直接、連續地累加成一個 0～2（三個點兩段距離）的進度值，
-           點的透明度／位移、連接線的長度都即時對應這個進度值即時設定 inline style（不用 CSS transition
-           或分階段跳一段的 class 切換），滾多少、顯示多少，才會是真的漸進，不是滾一下就整個跳出來。
+           效果：捲到這個區塊時先把它帶到畫面正中間、固定住（position:sticky），畫面固定不動的
+           這段期間，使用者繼續往下捲，捲動的距離拿來當作「揭露進度」，而不是真的移動頁面——
+           這是靠一個很高的「捲動空間」容器（.sc-three-periods-spacer，高度＝steps 數量算出來的
+           vh）包住固定內容（.sc-three-periods-sticky，position:sticky; top:0; height:100vh）做到的：
+           使用者捲過 spacer 的過程，sticky 內容視覺上就是「釘住不動」，JS 監聽標準 scroll 事件，
+           量測目前捲動位置相對 spacer 頂端的距離，換算成 0～steps 的進度值（每個 step 需要捲動
+           THREE_PERIOD_VH_PER_STEP 這麼多 vh），這個進度值再驅動點的透明度／位移、連接線長度
+           （用 inline style 即時設定，不用 CSS transition／分階段 class，滾多少顯示多少，是真的
+           漸進）。等進度到滿（spacer 捲完），sticky 自然釋放、正常頁面內容才會接著往上捲出，銜接
+           到下方的「大事記」——不需要另外判斷「是否捲到底」，銜接是 CSS 版面本身自然產生的結果。
            連接線只有一個 DOM 元素，不是每個點各自一段：兩個端點（第一點中心／最後一點中心）跟中間點
            中心都用 JS 在 mount 當下＋resize 時即時量測（.sc-h-timeline-dot 實際位置，不寫死 px），
            確保線永遠精準碰到第一個點，並隨進度值一路延伸到第二、第三個點。 -->
       <div id="sc-section-three-periods">
         <style>
+          .sc-three-periods-spacer { position:relative; }
+          .sc-three-periods-sticky {
+            position:sticky; top:0; height:100vh;
+            display:flex; flex-direction:column; justify-content:center;
+          }
           .sc-h-timeline-scroll { overflow-x:auto; overflow-y:hidden; padding-bottom:4px; }
           .sc-h-timeline { position:relative; min-width:600px; }
           .sc-h-timeline-track { position:relative; display:flex; justify-content:space-between; gap:32px; }
@@ -435,22 +444,81 @@
             line-height:1.8; opacity:0.85; margin:0; max-width:220px;
           }
         </style>
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 24px 0;">原型三時期</h2>
-        <div class="sc-h-timeline-scroll">
-          <div class="sc-h-timeline">
-            <div class="sc-h-timeline-track">
-              <div class="sc-h-timeline-line"></div>
-              <div class="sc-h-timeline-line-dash"></div>
-              <sc-for list="{{ threePeriodItems }}" as="item" hint-placeholder-count="3">
-                <div class="sc-h-timeline-step">
-                  <span class="sc-h-timeline-dot" style="background:#B4A249;"></span>
-                  <p class="sc-h-timeline-period" style="color:{{ textColor }};">{{ item.period }}</p>
-                  <p class="sc-h-timeline-event" style="color:{{ textColor }};">{{ item.event }}</p>
-                  <p class="sc-h-timeline-desc" style="color:{{ textColor }};">{{ item.desc }}</p>
+        <div class="sc-three-periods-spacer" id="sc-three-periods-spacer">
+          <div class="sc-three-periods-sticky">
+            <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 24px 0;">原型三時期</h2>
+            <div class="sc-h-timeline-scroll">
+              <div class="sc-h-timeline">
+                <div class="sc-h-timeline-track">
+                  <div class="sc-h-timeline-line"></div>
+                  <div class="sc-h-timeline-line-dash"></div>
+                  <sc-for list="{{ threePeriodItems }}" as="item" hint-placeholder-count="3">
+                    <div class="sc-h-timeline-step">
+                      <span class="sc-h-timeline-dot" style="background:#B4A249;"></span>
+                      <p class="sc-h-timeline-period" style="color:{{ textColor }};">{{ item.period }}</p>
+                      <p class="sc-h-timeline-event" style="color:{{ textColor }};">{{ item.event }}</p>
+                      <p class="sc-h-timeline-desc" style="color:{{ textColor }};">{{ item.desc }}</p>
+                    </div>
+                  </sc-for>
                 </div>
-              </sc-for>
+              </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- VERTICAL TIMELINE：大事記，從「原型教學.dc.html」搬移過來，放在「原型三時期」下方。
+           軸線靠左，捲到才顯示，顯示後捲回上面也不會消失（佔位文字）。
+           顯示時機刻意接在「原型三時期」之後：三時期全部展開完畢之前，這裡完全不會開始顯示
+           （見 componentDidMount 裡 _onChronologyScroll 開頭的 _threePeriodTargetProgress 判斷）。
+           三時期用 sticky 固定＋捲動空間驅動進度（見上方三時期區塊註解），使用者捲完 spacer 的
+           那一刻，正常頁面內容自然接續往上捲出，這裡才會第一次進入「接近底部」的範圍，交給
+           下面標準的 scroll + 到底判斷逐筆接續顯示，不需要另外用程式碼手動觸發第一筆。 -->
+      <div id="sc-section-timeline">
+        <style>
+          .sc-timeline { position:relative; padding-left:28px; margin-left:76px; }
+          .sc-timeline-line {
+            position:absolute; left:3px; top:6px; width:1px; height:0;
+            transition:height 0.6s ease;
+          }
+          .sc-timeline-item { position:relative; }
+          .sc-timeline-item-inner {
+            overflow:hidden;
+            max-height:0; opacity:0; padding-bottom:0;
+            transition:max-height 0.6s ease, opacity 0.5s ease 0.1s, padding-bottom 0.6s ease;
+          }
+          .sc-timeline-item.sc-visible .sc-timeline-item-inner { max-height:220px; opacity:1; padding-bottom:44px; }
+          .sc-timeline-item.sc-visible:last-child .sc-timeline-item-inner { padding-bottom:0; }
+          .sc-timeline-dot {
+            position:absolute; left:-28px; top:4px; width:7px; height:7px; border-radius:50%;
+            opacity:0; transition:opacity 0.4s ease 0.15s;
+          }
+          .sc-timeline-item.sc-visible .sc-timeline-dot { opacity:1; }
+          .sc-timeline-year {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:30px; margin:0 0 6px 0;
+          }
+          .sc-timeline-title {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:700; font-size:26px; letter-spacing:0.02em; opacity:0.85; margin:0 0 6px 0;
+          }
+          .sc-timeline-desc {
+            font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:26px; line-height:1.8; opacity:0.65; margin:0;
+          }
+          .sc-timeline-fade-hint { height:60px; margin-top:-12px; }
+        </style>
+        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 24px 0; color:{{ textColor }};">大事記</h2>
+        <div class="sc-timeline">
+          <div class="sc-timeline-line" style="background:{{ textColor }};"></div>
+          <sc-for list="{{ timelineItems }}" as="tItem" hint-placeholder-count="22">
+            <div class="sc-timeline-item">
+              <span class="sc-timeline-dot" style="background:{{ textColor }};"></span>
+              <div class="sc-timeline-item-inner">
+                <p class="sc-timeline-year" style="color:{{ textColor }};">{{ tItem.year }}</p>
+                <p class="sc-timeline-title" style="color:{{ textColor }};">{{ tItem.title }}</p>
+                <p class="sc-timeline-desc" style="color:{{ textColor }};">{{ tItem.desc }}</p>
+              </div>
+            </div>
+          </sc-for>
+          <div class="sc-timeline-fade-hint" style="background:linear-gradient(to bottom, transparent, {{ bgColor }});"></div>
         </div>
       </div>
 
@@ -509,11 +577,37 @@ class Component extends DCLogic {
     { num: '07', zh: '原型建築+原型結構', en: '' }
   ];
 
-  // 資料來源：活頁簿1.xlsx「原型三時期」工作表（時期／事件／說明，第一列標題，目前是佔位文字）
+  // 資料來源：活頁簿1.xlsx「原型三時期」工作表（時期／事件／說明，第一列標題），維護者提供的真實內容
   threePeriodItems = [
-    { period: '一人', event: '佔位文字', desc: '很多佔位文字' },
-    { period: '原型結構', event: '佔位文字', desc: '很多佔位文字' },
-    { period: '原型結構+原型建築', event: '佔位文字', desc: '很多佔位文字' }
+    { period: '一人', event: '我', desc: 'SDG 學成歸國' },
+    { period: '原型結構', event: '我們', desc: '成立以設計為導向的設計公司' },
+    { period: '原型結構+原型建築', event: '不同的我們', desc: '實現建築+結構為一體的理念' }
+  ];
+
+  // 大事記資料（從「原型教學.dc.html」搬移過來，維護者提供的真實年表內容，2005-2026）
+  timelineItems = [
+    { year: '2005', title: '建築的起點', desc: '成大建築研究所結構組畢' },
+    { year: '2006', title: '進入日本結構設計', desc: 'SDG 構造設計集團（2006~2011）' },
+    { year: '2007', title: '學習日本建築結構思維', desc: '學習根本且深度的結構設計脈絡' },
+    { year: '2008', title: '結構開始介入建築創作', desc: '韓國國際競圖' },
+    { year: '2009', title: '大型公共建築實踐', desc: '日月潭向山遊客中心' },
+    { year: '2010', title: '國際工程實戰', desc: '上海世博中國船舶館' },
+    { year: '2011', title: '返台，開始自己的路', desc: '返台成立個人工作體系（原型結構雛形）' },
+    { year: '2012', title: '結構成為建築設計的一部分', desc: '新營服務區公廁' },
+    { year: '2013', title: '原型結構誕生', desc: '原型結構工程顧問有限公司' },
+    { year: '2014', title: '結構走進公共藝術', desc: 'X-SITE《邊緣地景》' },
+    { year: '2015', title: '木構回應城市文化', desc: '嘉義美術館' },
+    { year: '2016', title: '輕盈的結構成為可能', desc: 'X-SITE《浮光之間》' },
+    { year: '2017', title: '從結構與教育並進', desc: '華德福實驗分校' },
+    { year: '2018', title: '結構獲得建築界認可', desc: 'ENISHI 緣民宿' },
+    { year: '2019', title: '大跨度橋梁的整合實踐', desc: '故宮南院景觀橋' },
+    { year: '2020', title: '木構成為原型核心', desc: '左鎮化石館、德光教會' },
+    { year: '2021', title: '從作品走向研究與策展', desc: '構竹林鐵策展規劃' },
+    { year: '2022', title: '從結構走向建築', desc: '原型建築有限公司成立' },
+    { year: '2023', title: '從結構開啟的建築設計', desc: '嘉義實驗木場' },
+    { year: '2024', title: '材料研究走向實體實驗', desc: '竹結構系列' },
+    { year: '2025', title: '開始打造自己的建築', desc: '原型1號宅' },
+    { year: '2026', title: '從公司走向原型系統', desc: '留白計畫' }
   ];
 
   scrollToSection(id) {
@@ -703,24 +797,33 @@ class Component extends DCLogic {
     };
     animateTitleLightShadow();
 
-    // 橫向時間軸：這個區塊在頁面最底部，不能用「進入視野」判斷（一到頁面底部整排早就在視野內了）。
-    // 預設只顯示第一個時間點；使用者要先把頁面捲到底，之後「繼續」往下滾滑鼠滾輪才逐漸顯示下一個——
-    // 頁面到底之後已經無法再捲動、不會再有新的 scroll 事件，所以改監聽 wheel 事件本身（deltaY>0 代表
-    // 還在往下滾），而不是監聽 scroll。實際顯示的進度分成「目標值」跟「顯示值」兩層：wheel 事件只更新
-    // 目標值（滾一整格滑鼠可能一次跳一大段 deltaY，物理滑鼠尤其明顯，不像觸控板會連續送很多小事件），
-    // 顯示值則透過 rAF 每一幀對目標值做 lerp 平滑追近（跟游標拖尾、標題光源陰影同一手法），這樣不管單一
-    // wheel 事件跳多大，畫面上都會是連續的緩動，不會「一格就整塊跳出來」的生硬感。
+    // 橫向時間軸：先固定畫面中間（sticky）、再靠捲動距離驅動揭露進度（詳見上方 HTML 註解），
+    // 不再用「偵測是否已捲到頁面底部」的 wheel 手法。實際顯示的進度分成「目標值」跟「顯示值」
+    // 兩層：scroll 事件即時算出目標值（依目前捲動位置相對 spacer 頂端的距離換算），顯示值則透過
+    // rAF 每一幀對目標值做 lerp 平滑追近（跟游標拖尾、標題光源陰影同一手法），這樣即使捲動裝置
+    // 一次跳動很大一段距離，畫面上都會是連續的緩動，不會「一格就整塊跳出來」的生硬感。
     this._threePeriodStepEls = Array.from(document.querySelectorAll('.sc-h-timeline-step'));
     this._threePeriodLineEl = document.querySelector('.sc-h-timeline-line');
     this._threePeriodLineDashEl = document.querySelector('.sc-h-timeline-line-dash');
     this._threePeriodStepsToReveal = Math.max(this._threePeriodStepEls.length - 1, 0);
     this._threePeriodTargetProgress = 0;
     this._threePeriodDisplayProgress = 0;
-    const THREE_PERIOD_REVEAL_DISTANCE = 220; // 每一段需要累積多少 wheel deltaY 才會完全顯示下一個點
-    const THREE_PERIOD_LERP = 0.05; // 顯示值追近目標值的平滑係數，越小越滑順但反應越慢
+    const THREE_PERIOD_VH_PER_STEP = 70; // 每揭露一個時期，需要捲動多少 vh 距離
+    const THREE_PERIOD_LERP = 0.12; // 顯示值追近目標值的平滑係數，越小越滑順但反應越慢
     const CM_TO_PX = 96 / 2.54; // CSS 規格 1in=96px=2.54cm，固定換算，不受螢幕實際 DPI 影響
     const THREE_PERIOD_DASH_PX = 1 * CM_TO_PX; // 超出第三個點的部分，最後 1 公分（約 37.8px）改虛線
     const THREE_PERIOD_SOLID_OVERSHOOT_PX = 1 * CM_TO_PX; // 超出第三個點的部分，前面 1 公分維持實線，實線+虛線共 2 公分
+
+    // 捲動空間的高度＝100vh（讓 sticky 內容第一次固定住剛好佔滿一個畫面）＋每個 step 需要的
+    // 捲動距離，不寫死成「3 個時期」，用 threePeriodItems 實際筆數算出來的 steps 動態決定，
+    // 之後這個工作表增減筆數，捲動距離會自動跟著變，不用改程式碼
+    this._sizeThreePeriodSpacer = () => {
+      const spacer = document.getElementById('sc-three-periods-spacer');
+      if (!spacer) return;
+      spacer.style.height = (100 + this._threePeriodStepsToReveal * THREE_PERIOD_VH_PER_STEP) + 'vh';
+    };
+    this._sizeThreePeriodSpacer();
+    window.addEventListener('resize', this._sizeThreePeriodSpacer);
 
     // 量測每個點的實際水平中心（相對於 .sc-h-timeline-track），不寫死 px，跟畫廊正方形量測同一原則；
     // mount 當下量一次，視窗改變寬度時（響應式）重新量一次
@@ -779,14 +882,68 @@ class Component extends DCLogic {
     };
     animateThreePeriodProgress();
 
-    this._onThreePeriodWheel = (e) => {
-      if (this._threePeriodTargetProgress >= this._threePeriodStepsToReveal) return;
-      if (e.deltaY <= 0) return;
-      const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
-      if (!atBottom) return;
-      this._threePeriodTargetProgress = Math.min(this._threePeriodTargetProgress + e.deltaY / THREE_PERIOD_REVEAL_DISTANCE, this._threePeriodStepsToReveal);
+    // 大事記（VERTICAL TIMELINE）：接續在「原型三時期」之後顯示。三時期用 sticky 固定＋捲動
+    // 空間驅動進度（見上方三時期區塊註解），大事記則監聽標準的 scroll 事件（涵蓋滑鼠滾輪、
+    // 觸控板、捲軸拖曳、鍵盤等各種捲動方式）。銜接不需要手動觸發：_onChronologyScroll 開頭會
+    // 檢查「三時期是否已全部展開」（`_threePeriodTargetProgress >= _threePeriodStepsToReveal`），
+    // 沒展開完就直接不動作；三時期一展開完，spacer 捲完、正常頁面內容自然接續往上捲出，
+    // 這裡的 scroll + 到底判斷才會第一次通過，開始逐筆顯示。
+    // 線段長度用即時量測（不寫死每筆固定高度），量測前等展開動畫（0.6s）跑完，做法跟原本在
+    // 「原型教學.dc.html」時完全相同，直接搬過來。
+    const TIMELINE_EXPAND_MS = 600;
+    const TIMELINE_EXTRA_TAIL_PX = 151; // 4cm，讓線段在最後一個已展開節點下方繼續延伸
+    this._chronologyRevealIndex = 0; // 完全不預先顯示，等三時期展開完才開始
+    this._chronologyRevealing = false;
+
+    const growChronologyLine = (count) => {
+      const line = document.querySelector('.sc-timeline-line');
+      const items = document.querySelectorAll('.sc-timeline-item');
+      if (!line || !items.length || count <= 0) return;
+      setTimeout(() => {
+        const idx = Math.min(count, items.length) - 1;
+        const dot = items[idx].querySelector('.sc-timeline-dot');
+        if (!dot) return;
+        const lineRect = line.getBoundingClientRect();
+        const dotRect = dot.getBoundingClientRect();
+        const distance = (dotRect.top + dotRect.height / 2) - lineRect.top;
+        line.style.height = Math.max(0, distance + TIMELINE_EXTRA_TAIL_PX) + 'px';
+      }, TIMELINE_EXPAND_MS + 20);
     };
-    window.addEventListener('wheel', this._onThreePeriodWheel, { passive: true });
+
+    this._revealNextChronologyItem = () => {
+      const items = document.querySelectorAll('.sc-timeline-item');
+      if (this._chronologyRevealIndex >= items.length) return;
+      items[this._chronologyRevealIndex].classList.add('sc-visible');
+      this._chronologyRevealIndex++;
+      growChronologyLine(this._chronologyRevealIndex);
+    };
+
+    this._onChronologyScroll = () => {
+      // 三時期還沒展開完之前，大事記完全不動——就算頁面此刻剛好也在底部
+      if (this._threePeriodTargetProgress < this._threePeriodStepsToReveal) return;
+      if (this._chronologyRevealing) return;
+      const items = document.querySelectorAll('.sc-timeline-item');
+      if (this._chronologyRevealIndex >= items.length) return;
+      const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 200;
+      if (!nearBottom) return;
+      this._chronologyRevealing = true;
+      this._revealNextChronologyItem();
+      setTimeout(() => { this._chronologyRevealing = false; }, 150);
+    };
+    window.addEventListener('scroll', this._onChronologyScroll, { passive: true });
+
+    // spacer 頂端捲出視野多少 px，就是使用者「捲進」固定畫面的距離；換算成每個 step 需要
+    // THREE_PERIOD_VH_PER_STEP 這麼多 vh，就是目標進度值。spacer 還沒捲到（rect.top>0，代表
+    // 這段還在畫面下方或剛好在畫面上緣）時，進度固定在 0，不會提早開始揭露。
+    this._onThreePeriodScroll = () => {
+      const spacer = document.getElementById('sc-three-periods-spacer');
+      if (!spacer) return;
+      const scrolledPastTop = Math.max(0, -spacer.getBoundingClientRect().top);
+      const vhPerStepPx = window.innerHeight * (THREE_PERIOD_VH_PER_STEP / 100);
+      this._threePeriodTargetProgress = Math.min(scrolledPastTop / vhPerStepPx, this._threePeriodStepsToReveal);
+    };
+    window.addEventListener('scroll', this._onThreePeriodScroll, { passive: true });
+    this._onThreePeriodScroll();
   }
 
   componentWillUnmount() {
@@ -801,9 +958,11 @@ class Component extends DCLogic {
     }
     document.removeEventListener('mousemove', this._onDocMouseMoveLight);
     if (this._lightShadowRAF) cancelAnimationFrame(this._lightShadowRAF);
-    window.removeEventListener('wheel', this._onThreePeriodWheel);
+    window.removeEventListener('resize', this._sizeThreePeriodSpacer);
     window.removeEventListener('resize', this._measureThreePeriodDots);
     if (this._threePeriodRAF) cancelAnimationFrame(this._threePeriodRAF);
+    window.removeEventListener('scroll', this._onThreePeriodScroll);
+    window.removeEventListener('scroll', this._onChronologyScroll);
   }
 
   renderVals() {
@@ -834,7 +993,8 @@ class Component extends DCLogic {
           bgSize: hasPhoto ? '328px 328px' : 'auto'
         };
       }),
-      threePeriodItems: this.threePeriodItems
+      threePeriodItems: this.threePeriodItems,
+      timelineItems: this.timelineItems
     };
   }
 }
