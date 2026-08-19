@@ -2498,7 +2498,10 @@ class Component extends DCLogic {
 
 </script>
 
-<!-- PAGE TRANSITION PRELOADER (homepage -> subpage) -->
+<!-- PAGE TRANSITION PRELOADER (homepage -> subpage)：本機子頁（.dc.html）已經不再
+     用這裡的跳字卡片動畫，改成子頁自己到達時播放進站影片（見各子頁檔案開頭同名
+     區塊）。這個區塊現在只服務「原型建築」這個外部大型子頁節點的跳字+iframe 預載
+     （playAndPreloadThenNavigate()），下面 WORD_POOL 也只有這個路徑還在用。 -->
 <script>
 (function () {
   // 快速跳字詞彙池（活頁簿1 C 欄粗體字，不含目的頁標題，由點擊的節點動態決定終點文字）
@@ -2516,9 +2519,9 @@ class Component extends DCLogic {
   // 「原型建築」節點（2026-08-17 新增）：這個節點的連結是外部網址
   // （https://www.as-structure.com/原型建築，不是本站內的 .dc.html 子頁），
   // 子頁檔案本身比較大、載入時間不像其他本機子頁幾乎瞬間完成，使用者要求
-  // 「這個動畫需要重複撥放直至子網頁檔案加載完成後再進入網頁」——不能沿用
-  // 下面 playAndNavigate() 那種「跳字跳到底、停留固定時間後就直接跳頁」的
-  // 做法（那個做法完全不管目的頁到底載入完成了沒），改用
+  // 「這個動畫需要重複撥放直至子網頁檔案加載完成後再進入網頁」——本機子頁
+  // 現在點下去直接原生導頁、不攔截（見下面 click 監聽），這個外部節點不能
+  // 沿用那種做法（不管目的頁到底載入完成了沒就直接跳走），改用
   // playAndPreloadThenNavigate()：跳字循環播放（不會播完就停），背景用一個
   // 隱藏 iframe 載入目的頁，用 iframe 的 load 事件當作「目的頁載入完成」的
   // 信號（跨網域也讀得到這個事件本身，只是讀不到內容，足夠拿來判斷載入完成）
@@ -2536,11 +2539,9 @@ class Component extends DCLogic {
   var overlay, wordEl, navigating = false;
   // playAndPreloadThenNavigate() 專用的進行中狀態，讓 pageshow（見檔案下方）
   // 在 bfcache 還原時可以一併取消，不只是清掉遮罩——這個路徑的跳字是無限
-  // 循環、逾時保險長達 20 秒，跟 playAndNavigate() 原本那種「固定跳完一輪、
-  // 通常一兩秒內就會呼叫 window.location.href」的短暫路徑不一樣，中途被
-  // bfcache 凍結再還原的機率高很多，沒清掉的話計時器/iframe load 事件還原
-  // 後繼續跑，可能在使用者已經按過上一頁、明明看到首頁了之後，卻又被強制
-  // 導去外部網址。
+  // 循環、逾時保險長達 20 秒，中途被 bfcache 凍結再還原的機率不低，沒清掉
+  // 的話計時器/iframe load 事件還原後繼續跑，可能在使用者已經按過上一頁、
+  // 明明看到首頁了之後，卻又被強制導去外部網址。
   var activeLoopTimer = null, activeSafetyTimer = null, activePreloadFrame = null;
 
   function ensureOverlay() {
@@ -2553,28 +2554,12 @@ class Component extends DCLogic {
     document.body.appendChild(overlay);
   }
 
-  function playAndNavigate(destinationWord, href) {
-    ensureOverlay();
-    overlay.style.pointerEvents = 'auto';
-    wordEl.textContent = WORD_POOL[0];
-    requestAnimationFrame(function () { overlay.style.opacity = '1'; });
-
-    var sequence = WORD_POOL.concat([destinationWord]);
-    var i = 0;
-    function flicker() {
-      wordEl.textContent = sequence[i];
-      i++;
-      if (i < sequence.length) {
-        setTimeout(flicker, FLICKER_MS);
-      } else {
-        setTimeout(function () {
-          try { sessionStorage.setItem('scTransitionIn', '1'); } catch (err) {}
-          window.location.href = href;
-        }, LANDING_HOLD_MS);
-      }
-    }
-    flicker();
-  }
+  // 本機子頁（.dc.html）不再播放跳字卡片動畫——改成跟首頁自己第一次進站
+  // 播放的同一支開場影片（uploads/網頁前導片.mp4），但影片改在「子頁那邊」
+  // 播放，不在離開首頁前播。這裡只需要設一個旗標告訴子頁「這次是從首頁點
+  // 進來的」，子頁到達時讀到旗標才播影片（見各子頁檔案開頭的
+  // PAGE TRANSITION PRELOADER），首頁本身直接讓瀏覽器原生導頁，不攔截、
+  // 不延遲。
 
   // 「原型建築」這類外部大型子頁專用：跳字不會播完固定序列就停，而是不斷
   // 循環，直到背景 iframe 回報目的頁載入完成（或逾時保險觸發）才停在目的地
@@ -2632,15 +2617,16 @@ class Component extends DCLogic {
     var isExternalPreload = !!nodeId && EXTERNAL_PRELOAD_NODE_IDS.indexOf(nodeId) !== -1;
     var isLocalSubpage = !isExternalPreload && href.slice(-8) === '.dc.html' && !/^https?:\/\//i.test(href);
     if (!isLocalSubpage && !isExternalPreload) return;
-    e.preventDefault();
-    navigating = true;
-    var labelEl = a.querySelector('div');
-    var destinationWord = labelEl ? labelEl.textContent.trim() : '';
     if (isExternalPreload) {
+      e.preventDefault();
+      navigating = true;
+      var labelEl = a.querySelector('div');
+      var destinationWord = labelEl ? labelEl.textContent.trim() : '';
       playAndPreloadThenNavigate(destinationWord || '原型建築', href);
-    } else {
-      playAndNavigate(destinationWord || '原型教學', href);
+      return;
     }
+    // 本機子頁：不攔截，讓瀏覽器原生導頁；只設旗標讓子頁知道要播進站影片
+    try { sessionStorage.setItem('scTransitionIn', '1'); } catch (err) {}
   });
 
   // 瀏覽器上一頁按鈕修正：從子頁按「上一頁」回到首頁時，瀏覽器常會直接從

@@ -6,34 +6,36 @@
 <script src="./support.js"></script>
 </head>
 <body>
-<!-- PAGE TRANSITION PRELOADER (arriving from homepage) -->
+<!-- PAGE TRANSITION PRELOADER (arriving from homepage)：跟首頁自己第一次進站播放的
+     是同一支影片（uploads/網頁前導片.mp4），只在真的從首頁節點點進來時才播——由首頁
+     點擊節點當下設定的 sessionStorage 旗標 scTransitionIn 決定，直接重新整理/直接
+     輸入網址/瀏覽器上一頁都不會播（讀不到旗標就立刻移除遮罩） -->
+<div id="sc-arrival-overlay" style="position:fixed; inset:0; z-index:99999; background:#ffffff; display:flex; align-items:center; justify-content:center; transition:opacity 0.6s ease;">
+  <video id="sc-arrival-video" autoplay muted playsinline preload="auto" style="width:100%; height:100%; object-fit:cover;">
+    <source src="uploads/網頁前導片.mp4" type="video/mp4">
+  </video>
+</div>
 <script>
 (function () {
+  var overlay = document.getElementById('sc-arrival-overlay');
+  var vid = document.getElementById('sc-arrival-video');
+  if (!overlay || !vid) return;
+
   var flag;
   try { flag = sessionStorage.getItem('scTransitionIn'); } catch (err) { flag = null; }
-  if (flag !== '1') return;
+  if (flag !== '1') { overlay.remove(); return; }
   try { sessionStorage.removeItem('scTransitionIn'); } catch (err) {}
 
-  // 本頁的大標題文字，需與 <h1> 內容一致
-  var ARRIVAL_WORD = '原型結構';
-  var HOLD_AFTER_NAV_MS = 450;
-  var EXIT_SLIDE_MS = 700;
-  var OVERLAY_BG = '#0a0a0a';
-  var TEXT_COLOR = '#ffffff';
-
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:' + OVERLAY_BG + ';display:flex;align-items:center;justify-content:center;opacity:1;transform:translateY(0);';
-  var wordEl = document.createElement('span');
-  wordEl.textContent = ARRIVAL_WORD;
-  wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:30px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
-  overlay.appendChild(wordEl);
-  document.body.appendChild(overlay);
-
-  setTimeout(function () {
-    overlay.style.transition = 'transform ' + EXIT_SLIDE_MS + 'ms cubic-bezier(.76,0,.24,1)';
-    overlay.style.transform = 'translateY(-100%)';
-    setTimeout(function () { overlay.remove(); }, EXIT_SLIDE_MS);
-  }, HOLD_AFTER_NAV_MS);
+  var revealed = false;
+  function reveal() {
+    if (revealed) return;
+    revealed = true;
+    overlay.style.opacity = '0';
+    setTimeout(function () { overlay.remove(); }, 600);
+  }
+  vid.addEventListener('ended', reveal);
+  vid.addEventListener('error', reveal);
+  setTimeout(reveal, 15000);
 })();
 </script>
 <x-dc>
