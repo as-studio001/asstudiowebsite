@@ -2492,75 +2492,83 @@ class Component extends DCLogic {
 
 </script>
 
-<!-- PAGE TRANSITION PRELOADER (homepage -> subpage) -->
+<!-- PAGE TRANSITION PRELOADER (homepage -> subpage)：本機子頁（.dc.html）點下去直接
+     原生導頁，只設一個 sessionStorage 旗標讓子頁到達時播放進站影片（見各子頁檔案
+     開頭同名區塊）。這個區塊現在只服務「原型建築」這個外部連結節點——先在首頁播
+     一次跟首頁自己進站同一支開場影片，播完/發生錯誤/逾時保險任一觸發才真正跳轉
+     到外部網址（沒辦法真的等外部頁面載入完成才跳轉，跳轉時機固定跟著影片播放
+     狀態走）。跟 `建築事務所首頁.dc.html` 同一套邏輯，2026-08-18 這次同步過去。 -->
 <script>
 (function () {
-  // 快速跳字詞彙池（活頁簿1 C 欄粗體字，不含目的頁標題，由點擊的節點動態決定終點文字）
-  var WORD_POOL = [
-    '章architecturedesign', '原型教學', '原型原點', '原型結構', '木構造', '竹構造',
-    'RC構造', '鋼構造', '成construction', '法structuredata', '構technics',
-    '原型建築', '原型獲獎'
-  ];
-  var FLICKER_MS = 130;
-  var LANDING_HOLD_MS = 550;
-  var OVERLAY_BG = '#0a0a0a';
-  var TEXT_COLOR = '#ffffff';
-  var FADE_IN_MS = 250;
+  var INTRO_VIDEO_SRC = 'uploads/網頁前導片.mp4';
+  var SAFETY_TIMEOUT_MS = 15000; // 跟首頁自己 sc-intro-overlay 的逾時保險一致
 
-  var overlay, wordEl, navigating = false;
+  // 目前只有「原型建築」（r109，外部網址、子頁檔案較大）這個節點會先播一次
+  // 開場影片再跳轉；其他所有連結（本機子頁、其他外部連結）都不受影響。用
+  // 節點 id（而不是寫死網址字串）判斷，這樣以後這個節點的網址再被同步/修改
+  // 也不用跟著改這裡。
+  var EXTERNAL_PRELOAD_NODE_IDS = ['r109'];
 
-  function ensureOverlay() {
-    if (overlay) return;
+  var overlay = null, navigating = false, safetyTimer = null;
+
+  function playIntroVideoThenNavigate(href) {
     overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:' + OVERLAY_BG + ';display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transform:translateY(0);transition:opacity ' + FADE_IN_MS + 'ms ease;';
-    wordEl = document.createElement('span');
-    wordEl.style.cssText = "font-family:'Noto Serif TC','Source Han Serif TC',serif;font-size:15px;font-weight:800;letter-spacing:.08em;color:" + TEXT_COLOR + ";white-space:nowrap;";
-    overlay.appendChild(wordEl);
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#ffffff;display:flex;align-items:center;justify-content:center;';
+    var vid = document.createElement('video');
+    vid.autoplay = true;
+    vid.muted = true;
+    vid.playsInline = true;
+    vid.preload = 'auto';
+    vid.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+    var source = document.createElement('source');
+    source.src = INTRO_VIDEO_SRC;
+    source.type = 'video/mp4';
+    vid.appendChild(source);
+    overlay.appendChild(vid);
     document.body.appendChild(overlay);
-  }
 
-  function playAndNavigate(destinationWord, href) {
-    ensureOverlay();
-    overlay.style.pointerEvents = 'auto';
-    wordEl.textContent = WORD_POOL[0];
-    requestAnimationFrame(function () { overlay.style.opacity = '1'; });
-
-    var sequence = WORD_POOL.concat([destinationWord]);
-    var i = 0;
-    function flicker() {
-      wordEl.textContent = sequence[i];
-      i++;
-      if (i < sequence.length) {
-        setTimeout(flicker, FLICKER_MS);
-      } else {
-        setTimeout(function () {
-          try { sessionStorage.setItem('scTransitionIn', '1'); } catch (err) {}
-          window.location.href = href;
-        }, LANDING_HOLD_MS);
-      }
+    var navigated = false;
+    function go() {
+      if (navigated) return;
+      navigated = true;
+      clearTimeout(safetyTimer);
+      safetyTimer = null;
+      window.location.href = href;
     }
-    flicker();
+    vid.addEventListener('ended', go);
+    vid.addEventListener('error', go);
+    safetyTimer = setTimeout(go, SAFETY_TIMEOUT_MS);
   }
 
   document.addEventListener('click', function (e) {
-    var a = e.target && e.target.closest && e.target.closest('a[href$=".dc.html"]');
+    var a = e.target && e.target.closest && e.target.closest('a[href]');
     if (!a || navigating) return;
     var href = a.getAttribute('href');
-    if (!href || /^https?:\/\//i.test(href)) return;
-    e.preventDefault();
-    navigating = true;
-    var labelEl = a.querySelector('div');
-    var destinationWord = labelEl ? labelEl.textContent.trim() : '';
-    playAndNavigate(destinationWord || '原型教學', href);
+    if (!href) return;
+    var nodeEl = a.querySelector('[data-node]');
+    var nodeId = nodeEl ? nodeEl.getAttribute('data-node') : null;
+    var isExternalPreload = !!nodeId && EXTERNAL_PRELOAD_NODE_IDS.indexOf(nodeId) !== -1;
+    var isLocalSubpage = !isExternalPreload && href.slice(-8) === '.dc.html' && !/^https?:\/\//i.test(href);
+    if (!isLocalSubpage && !isExternalPreload) return;
+    if (isExternalPreload) {
+      e.preventDefault();
+      navigating = true;
+      playIntroVideoThenNavigate(href);
+      return;
+    }
+    // 本機子頁：不攔截，讓瀏覽器原生導頁；只設旗標讓子頁知道要播進站影片
+    try { sessionStorage.setItem('scTransitionIn', '1'); } catch (err) {}
   });
 
-  // 瀏覽器上一頁按鈕修正：從子頁按「上一頁」回到首頁時，瀏覽器常會直接從
-  // bfcache 還原這個頁面當時「即將跳轉」的畫面快照——也就是遮罩還蓋在畫面上、
-  // 還沒滑開的那個瞬間，導致看起來像卡在前導動畫。用 pageshow 偵測 bfcache
-  // 還原（event.persisted），還原時直接把遮罩清掉、重置狀態，讓首頁正常顯示。
+  // 瀏覽器上一頁按鈕修正：影片播放期間如果使用者被 bfcache 還原到這個瞬間
+  // （遮罩還蓋著、即將跳轉外部網址），用 pageshow 偵測 bfcache 還原
+  // （event.persisted），還原時直接把遮罩清掉、重置狀態，讓首頁正常顯示，
+  // 不會卡住或被強制導去外部網址。
   window.addEventListener('pageshow', function (e) {
     if (!e.persisted) return;
     navigating = false;
+    clearTimeout(safetyTimer);
+    safetyTimer = null;
     if (overlay) {
       overlay.remove();
       overlay = null;
