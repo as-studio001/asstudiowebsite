@@ -204,7 +204,23 @@
       <div id="sc-section-internship">
         <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">實習</h2>
         <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">原型相信，真正的設計教育不只發生在課堂，而發生於真實的工作之中。讓實習者從設計思考、專業協作到現場實踐，理解一個想法如何成為作品，將設計教學與實務經驗合而為一，在做中學、在實踐中建立自己的判斷。</p>
-        <!-- 之後會補一張照片（學生作品、研究資料庫），維護者已預告，目前先不放 -->
+        <!-- 學生作品、研究資料庫：現場實習照片集，直式/橫式混合，用 grid + object-fit:cover
+             統一裁成一致比例排版，不寫死欄數，視窗變窄時自動換行縮成更少欄 -->
+        <style>
+          .sc-internship-grid {
+            display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px; margin-top:28px;
+          }
+          .sc-internship-grid img {
+            width:100%; aspect-ratio:4/5; object-fit:cover; display:block;
+          }
+        </style>
+        <div class="sc-internship-grid">
+          <img src="uploads/實習集/實習01.jpg" alt="實習現場照片">
+          <img src="uploads/實習集/實習02.jpg" alt="實習現場照片">
+          <img src="uploads/實習集/實習03.jpg" alt="實習現場照片">
+          <img src="uploads/實習集/實習04.jpg" alt="實習現場照片">
+          <img src="uploads/實習集/實習05.jpg" alt="實習現場照片">
+        </div>
       </div>
 
       <div id="sc-section-aesthetic">
@@ -222,7 +238,12 @@
       <div id="sc-section-method">
         <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">設計方法</h2>
         <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">原型以「建築與結構合而為一」為核心，從結構、材料、構造與空間出發，以邏輯建立設計，而非以形式覆蓋問題。我們相信好的設計不是複雜化，而是在理解事物本質後，以最清晰的方法讓建築自然形成。</p>
-        <!-- 之後會補一張照片（構法章成），維護者已預告，目前先不放 -->
+        <!-- 構法章成：兩張手繪構法草圖，寬度盡量滿版（跟隨段落寬度撐滿，不裁切、不縮小），
+             高度依照原圖比例自然縮放，不強制等高 -->
+        <div style="display:flex; flex-direction:column; gap:24px; margin-top:28px;">
+          <img src="uploads/構法草圖01.png" alt="構法草圖" style="width:100%; height:auto; display:block;">
+          <img src="uploads/構法草圖02.png" alt="構法草圖" style="width:100%; height:auto; display:block;">
+        </div>
       </div>
 
       <div id="sc-section-teaching-culture">
