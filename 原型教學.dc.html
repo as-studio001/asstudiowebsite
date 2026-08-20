@@ -238,11 +238,12 @@
       <div id="sc-section-method">
         <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">設計方法</h2>
         <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">原型以「建築與結構合而為一」為核心，從結構、材料、構造與空間出發，以邏輯建立設計，而非以形式覆蓋問題。我們相信好的設計不是複雜化，而是在理解事物本質後，以最清晰的方法讓建築自然形成。</p>
-        <!-- 構法章成：兩張手繪構法草圖，寬度盡量滿版（跟隨段落寬度撐滿，不裁切、不縮小），
-             高度依照原圖比例自然縮放，不強制等高 -->
-        <div style="display:flex; flex-direction:column; gap:24px; margin-top:28px;">
-          <img src="uploads/構法草圖01.png" alt="構法草圖" style="width:100%; height:auto; display:block;">
-          <img src="uploads/構法草圖02.png" alt="構法草圖" style="width:100%; height:auto; display:block;">
+        <!-- 構法章成：兩張手繪構法草圖。改成以高度為主的縮放（max-height:90vh），不是寬度撐滿——
+             第二張是很長的直式草圖，若改用寬度撐滿高度會遠超過螢幕高度，需要滾動才看得到全貌；
+             改成限制高度不超過螢幕高度的九成，寬度依比例自動縮小、置中，兩張圖都能一次看完整張 -->
+        <div style="display:flex; flex-direction:column; align-items:center; gap:24px; margin-top:28px;">
+          <img src="uploads/構法草圖01.png" alt="構法草圖" style="max-width:100%; max-height:90vh; width:auto; height:auto; display:block;">
+          <img src="uploads/構法草圖02.png" alt="構法草圖" style="max-width:100%; max-height:90vh; width:auto; height:auto; display:block;">
         </div>
       </div>
 
