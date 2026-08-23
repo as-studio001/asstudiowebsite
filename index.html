@@ -994,7 +994,19 @@ class Component extends DCLogic {
       // 手機版曾經讓拖曳球體本身不算「點外面」以便邊看標註邊轉動球體，但
       // 使用者後來明確要求「做任何操作都要立刻消失」，取消了那個例外——
       // 拖曳球體本身額外靠 _onGlobePointerDown 開頭那行處理，見下面）。
-      if (!inBox && this.state.flashId != null) this.dismissFlash();
+      // ⚠️ 地標 icon（_pinLink）本身要排除在外，不能被這裡的 dismissFlash()
+      // 影響到，否則會踩到一個手機真機才會發生、Playwright 模擬點擊測不出來
+      // 的 bug（2026-08-19 修正，使用者回報「手機版的搜尋系統好像壞掉了 無法
+      // 點擊地標icon進入子網頁」）：手指碰到 icon 的瞬間，mousedown 就先觸發
+      // 這裡的 dismissFlash()，緊接著下一個 requestAnimationFrame（tick() 裡）
+      // 就會把 icon 的 pointer-events 設成 none（見 dismissFlash() 附近的
+      // showPin 分支）；真機上 click 事件通常比 mousedown 晚一點才到，這時候
+      // icon 已經變成點不到，導航就直接被吃掉、完全沒反應。Playwright 的
+      // page.click()/tap() 是連續同步派發完 mousedown/click，沒有中間那個
+      // 動畫影格的空檔，所以自動化測試一直沒抓到。點擊 icon 之後本來就會原生
+      // 導頁離開這一頁，不需要急著在 mousedown 當下就淡出它。
+      const inPin = this._pinLink && e.target && this._pinLink.contains(e.target);
+      if (!inBox && !inPin && this.state.flashId != null) this.dismissFlash();
       const inMenu = e.target && e.target.closest && e.target.closest('[data-menu-box]');
       if (!inMenu && this.state.showMaterialMenu) this.setState({ showMaterialMenu: false });
       const inLangMenu = e.target && e.target.closest && e.target.closest('[data-lang-menu-box]');
