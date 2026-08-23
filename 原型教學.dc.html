@@ -196,62 +196,189 @@
     </div>
 
     <div style="font-size:28px; letter-spacing:0.1em; opacity:0.5; margin-bottom:16px;">
-      <a href="./index.html">首頁</a> / 原型教學
+      <a href="./index.html">首頁</a> / {{ pageTitle }}
     </div>
-    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:30px; font-weight:800; letter-spacing:0.02em; margin:0 0 40px 0;">原型教學</h1>
+    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:30px; font-weight:800; letter-spacing:0.02em; margin:{{ h1Margin }};">{{ pageTitle }}</h1>
+    <!-- 頁面副標題／開場大圖：選填，目前只有「原型方法」的「構・法・章・成」跟開場
+         10x10 總覽圖在用，其他頁面沒有資料時完全不會多出這兩塊、間距也維持原樣 -->
+    <sc-if value="{{ hasSubtitle }}" hint-placeholder-val="{{ false }}">
+      <div style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.5em; opacity:0.6; margin:0 0 40px 0;">{{ pageSubtitle }}</div>
+    </sc-if>
+    <sc-if value="{{ hasIntroImage }}" hint-placeholder-val="{{ false }}">
+      <figure style="margin:0 0 56px 0;">
+        <img src="{{ pageIntroImage }}" alt="" style="width:100%; max-width:900px; display:block; margin:0 auto;">
+      </figure>
+    </sc-if>
+
+    <!-- 通用照片區塊：grid（直式/橫式混合裁一致比例）或 stack（原尺寸比例堆疊置中，
+         給「構法草圖」這類需要完整看到全圖的直式圖用），由 sec.layout 決定 -->
+    <style>
+      .sc-section-photo-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px; }
+      .sc-section-photo-grid img { width:100%; aspect-ratio:4/5; object-fit:cover; display:block; }
+      .sc-section-photo-stack { display:flex; flex-direction:column; align-items:center; gap:24px; }
+      .sc-section-photo-stack img { max-width:100%; max-height:90vh; width:auto; height:auto; display:block; }
+    </style>
+
+    <!-- 垂直時間軸：直接沿用「原型原點.dc.html」大事記的版型與捲動漸進顯示邏輯，
+         拿掉原本「要等原型三時期展開完才開始」的串接判斷，改成獨立運作——一進來
+         就先顯示前 2 筆（不用捲到底才看到內容），捲動到這個區塊附近時逐筆往下顯示。
+         同一頁可以放好幾個垂直時間軸段落，各自獨立管理自己的顯示進度（見
+         componentDidMount 的 _vTimelines，一個陣列、一段一筆 controller）。 -->
+    <style>
+      .sc-timeline { position:relative; padding-left:28px; margin-left:76px; }
+      .sc-timeline-line { position:absolute; left:3px; top:6px; width:1px; height:0; transition:height 0.6s ease; }
+      .sc-timeline-item { position:relative; }
+      .sc-timeline-item-inner { overflow:hidden; max-height:0; opacity:0; padding-bottom:0; transition:max-height 0.6s ease, opacity 0.5s ease 0.1s, padding-bottom 0.6s ease; }
+      .sc-timeline-item.sc-visible .sc-timeline-item-inner { max-height:220px; opacity:1; padding-bottom:44px; }
+      .sc-timeline-item.sc-visible:last-child .sc-timeline-item-inner { padding-bottom:0; }
+      .sc-timeline-dot { position:absolute; left:-28px; top:4px; width:7px; height:7px; border-radius:50%; opacity:0; transition:opacity 0.4s ease 0.15s; }
+      .sc-timeline-item.sc-visible .sc-timeline-dot { opacity:1; }
+      .sc-timeline-year { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:30px; margin:0 0 6px 0; }
+      .sc-timeline-title { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:700; font-size:26px; letter-spacing:0.02em; opacity:0.85; margin:0 0 6px 0; }
+      .sc-timeline-desc { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:26px; line-height:1.8; opacity:0.65; margin:0; }
+      .sc-timeline-fade-hint { height:60px; margin-top:-12px; }
+    </style>
+
+    <!-- 水平時間軸：拿掉「原型原點.dc.html」原本 sticky+捲動空間頂住畫面、驅動長條
+         進度條的做法（那個做法會讓頁面憑空多出好幾個螢幕高的捲動距離，適合當成
+         整頁專屬的開場橋段，但不適合當成夾在一般內文中間、可以自由插入的小區塊），
+         改成單純的「捲到這個區塊附近，幾個時期卡片依序淡入＋位移，連接線同時畫出來」
+         ——互動變簡單很多，但維護者要求獨立運作、可以自由放進任何段落，這個取捨是
+         必要的；同一頁可以放好幾個水平時間軸段落。 -->
+    <style>
+      .sc-h-timeline-scroll { overflow-x:auto; overflow-y:hidden; padding-bottom:4px; }
+      .sc-h-timeline { position:relative; min-width:600px; }
+      .sc-h-timeline-track { position:relative; display:flex; justify-content:space-between; gap:32px; }
+      .sc-h-timeline-line { position:absolute; top:5px; left:0; height:1px; width:0; background:#B4A249; z-index:0; transition:width 0.6s ease; }
+      .sc-h-timeline-step {
+        position:relative; flex:1; min-width:180px; display:flex; flex-direction:column; align-items:center; text-align:center;
+        opacity:0; transform:translateY(14px); transition:opacity 0.5s ease, transform 0.5s ease;
+      }
+      .sc-h-timeline-step.sc-visible { opacity:1; transform:translateY(0); }
+      .sc-h-timeline-dot { position:relative; z-index:1; width:10px; height:10px; border-radius:50%; margin-bottom:24px; flex-shrink:0; }
+      .sc-h-timeline-period { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:30px; letter-spacing:0.02em; margin:0 0 8px 0; }
+      .sc-h-timeline-event { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:700; font-size:26px; letter-spacing:0.05em; opacity:0.55; margin:0 0 10px 0; }
+      .sc-h-timeline-desc { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:26px; line-height:1.8; opacity:0.85; margin:0; max-width:220px; }
+    </style>
+
+    <!-- 案例資訊卡（手風琴）：來自「維護手冊_案例資訊卡元件.md」的標準版型，開合、
+         展開時的浮起光暈都照抄；標題文字跟著游標的光源陰影效果這次沒有做（純視覺
+         點綴、跟內容編輯無關，先省略降低複雜度，之後真的要再補）。這次多加了「照片」
+         （簡單版：展開後在規格文字上方放 1 排照片），中英文規格是自由格式的多行文字
+         （後台是兩個文字框，換行就會變成 <br>，不用另外拆欄位）。 -->
+    <style>
+      .sc-accordion { border-width:1px; border-style:solid; border-radius:14px; padding:4px 24px; box-shadow:0 0 0 0 rgba(180,162,73,0); transition:box-shadow 0.6s cubic-bezier(.16,1,.3,1), transform 0.55s cubic-bezier(.34,1.56,.64,1), border-color 0.4s ease; }
+      .sc-accordion.open { transform:scale(1.008); box-shadow:0 12px 32px -12px rgba(180,162,73,0.4), 0 0 0 1px rgba(180,162,73,0.3); }
+      .sc-accordion-header { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; background:none; border:none; cursor:pointer; padding:20px 0; font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:15px; font-weight:800; letter-spacing:0.02em; text-align:left; }
+      .sc-accordion-chevron { flex-shrink:0; transition:transform 0.5s cubic-bezier(.34,1.56,.64,1); }
+      .sc-accordion.open .sc-accordion-chevron { transform:rotate(180deg); }
+      .sc-accordion-title { display:inline-block; }
+      .sc-accordion-panel { max-height:0; overflow:hidden; transition:max-height 0.6s cubic-bezier(.16,1,.3,1); }
+      .sc-accordion-panel::before { content:''; display:block; height:1px; width:0; background:#B4A249; margin-bottom:16px; transition:width 0.6s cubic-bezier(.16,1,.3,1) 0.08s; }
+      .sc-accordion.open .sc-accordion-panel::before { width:100%; }
+      .sc-accordion-panel-inner { padding:0 0 24px 0; opacity:0; transform:translateY(-8px); transition:opacity 0.5s ease 0.18s, transform 0.5s cubic-bezier(.16,1,.3,1) 0.18s; }
+      .sc-accordion.open .sc-accordion-panel-inner { opacity:1; transform:translateY(0); }
+      .sc-accordion-photos { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px; margin-bottom:18px; }
+      .sc-accordion-photos img { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; border-radius:6px; }
+      .sc-accordion-spec { white-space:pre-line; }
+    </style>
+
+    <!-- 內文段落（sections）改成資料驅動（content/subpages/teaching.json，見後台
+         「子頁面」編輯器）——每一段自己就是一種功能：小標題／內文／照片／垂直
+         時間軸／水平時間軸／案例資訊卡，可以自由新增/刪除/拖曳排序。這裡渲染的是
+         「內容段落」（不含 sections[0] 的照片滑塊，滑塊資料改由上面 galleryItems
+         直接渲染，見 renderVals()）。沒有資料（抓不到 JSON）時用 Component 裡的
+         _fallbackSections 當退回值。 -->
     <div style="display:flex; flex-direction:column; gap:72px;">
-
-      <div id="sc-section-internship">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">實習</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">原型相信，真正的設計教育不只發生在課堂，而發生於真實的工作之中。讓實習者從設計思考、專業協作到現場實踐，理解一個想法如何成為作品，將設計教學與實務經驗合而為一，在做中學、在實踐中建立自己的判斷。</p>
-        <!-- 學生作品、研究資料庫：現場實習照片集，直式/橫式混合，用 grid + object-fit:cover
-             統一裁成一致比例排版，不寫死欄數，視窗變窄時自動換行縮成更少欄 -->
-        <style>
-          .sc-internship-grid {
-            display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px; margin-top:28px;
-          }
-          .sc-internship-grid img {
-            width:100%; aspect-ratio:4/5; object-fit:cover; display:block;
-          }
-        </style>
-        <div class="sc-internship-grid">
-          <img src="uploads/實習集/實習01.jpg" alt="實習現場照片">
-          <img src="uploads/實習集/實習02.jpg" alt="實習現場照片">
-          <img src="uploads/實習集/實習03.jpg" alt="實習現場照片">
-          <img src="uploads/實習集/實習04.jpg" alt="實習現場照片">
-          <img src="uploads/實習集/實習05.jpg" alt="實習現場照片">
+      <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="5">
+        <div id="{{ sec.id }}">
+          <sc-if value="{{ sec.isHeading }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ !sec.isH3 }}" hint-placeholder-val="{{ true }}">
+              <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">{{ sec.text }}</h2>
+            </sc-if>
+            <sc-if value="{{ sec.isH3 }}" hint-placeholder-val="{{ false }}">
+              <!-- 小標題（h3）：獨立一段插在中間用，例如「原型方法」那種穿插好幾個
+                   案例小節的排版 -->
+              <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.02em; margin:40px 0 12px 0;">{{ sec.text }}</h3>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{ sec.isBody }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ !sec.isEmphasis }}" hint-placeholder-val="{{ true }}">
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">{{ sec.text }}</p>
+            </sc-if>
+            <sc-if value="{{ sec.isEmphasis }}" hint-placeholder-val="{{ false }}">
+              <!-- 強調段（結語）：比一般內文大一號、粗體、灰階，用來收尾一段的重點句 -->
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:32px; font-weight:700; line-height:1.9; opacity:0.5; margin:0;">{{ sec.text }}</p>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{ sec.isPhotosGrid }}" hint-placeholder-val="{{ false }}">
+            <div class="sc-section-photo-grid">
+              <sc-for list="{{ sec.images }}" as="img"><img src="{{ img }}" alt=""></sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ sec.isPhotosStack }}" hint-placeholder-val="{{ false }}">
+            <div class="sc-section-photo-stack">
+              <sc-for list="{{ sec.images }}" as="img"><img src="{{ img }}" alt=""></sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ sec.isTimelineVertical }}" hint-placeholder-val="{{ false }}">
+            <div class="sc-timeline" data-sc-vtimeline="{{ sec.instanceId }}">
+              <div class="sc-timeline-line" style="background:{{ textColor }};"></div>
+              <sc-for list="{{ sec.items }}" as="tItem">
+                <div class="sc-timeline-item">
+                  <span class="sc-timeline-dot" style="background:{{ textColor }};"></span>
+                  <div class="sc-timeline-item-inner">
+                    <p class="sc-timeline-year" style="color:{{ textColor }};">{{ tItem.year }}</p>
+                    <p class="sc-timeline-title" style="color:{{ textColor }};">{{ tItem.title }}</p>
+                    <p class="sc-timeline-desc" style="color:{{ textColor }};">{{ tItem.desc }}</p>
+                  </div>
+                </div>
+              </sc-for>
+              <div class="sc-timeline-fade-hint" style="background:linear-gradient(to bottom, transparent, {{ bgColor }});"></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ sec.isTimelineHorizontal }}" hint-placeholder-val="{{ false }}">
+            <div class="sc-h-timeline-scroll" data-sc-htimeline="{{ sec.instanceId }}">
+              <div class="sc-h-timeline">
+                <div class="sc-h-timeline-track">
+                  <div class="sc-h-timeline-line"></div>
+                  <sc-for list="{{ sec.items }}" as="item">
+                    <div class="sc-h-timeline-step">
+                      <span class="sc-h-timeline-dot" style="background:#B4A249;"></span>
+                      <p class="sc-h-timeline-period" style="color:{{ textColor }};">{{ item.period }}</p>
+                      <p class="sc-h-timeline-event" style="color:{{ textColor }};">{{ item.event }}</p>
+                      <p class="sc-h-timeline-desc" style="color:{{ textColor }};">{{ item.desc }}</p>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ sec.isCaseCard }}" hint-placeholder-val="{{ false }}">
+            <div class="sc-accordion" data-sc-card="{{ sec.instanceId }}" style="border-color:{{ isDarkMode ? 'oklch(0.3 0 0)' : 'oklch(0.85 0 0)' }};">
+              <button type="button" class="sc-accordion-header" style="color:{{ textColor }};">
+                <span class="sc-accordion-title">{{ sec.title }}</span>
+                <svg class="sc-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <div class="sc-accordion-panel">
+                <div class="sc-accordion-panel-inner">
+                  <sc-if value="{{ sec.hasPhotos }}" hint-placeholder-val="{{ false }}">
+                    <div class="sc-accordion-photos">
+                      <sc-for list="{{ sec.photos }}" as="img"><img src="{{ img }}" alt=""></sc-for>
+                    </div>
+                  </sc-if>
+                  <p class="sc-accordion-spec" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 12px 0; color:{{ textColor }};">{{ sec.specZh }}</p>
+                  <sc-if value="{{ sec.hasSpecEn }}" hint-placeholder-val="{{ false }}">
+                    <p class="sc-accordion-spec" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};">{{ sec.specEn }}</p>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-if>
         </div>
-      </div>
-
-      <div id="sc-section-aesthetic">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">美感教育</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">結構不只是支撐建築的技術，更是建築美感的來源。我們致力於讓結構被看見、被理解，從尺度、比例、材料到受力邏輯，將專業轉化為大眾能理解的建築語言，重新建立人與建築結構之間的美學關係。</p>
-        <!-- 之後會補一張照片（學生作品、研究資料庫），維護者已預告，目前先不放 -->
-      </div>
-
-      <div id="sc-section-university">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">大學教學</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">原型將大學視為思想交流與方法養成的場所。除了建築與結構的專業知識，更重視設計理念、邏輯與方法的傳遞，引導學生理解設計如何從問題出發、經由思考形成，並在建築與結構的整合中建立屬於自己的設計觀。</p>
-        <!-- 之後會補一張照片（學生作品、研究資料庫），維護者已預告，目前先不放 -->
-      </div>
-
-      <div id="sc-section-method">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">設計方法</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">原型以「建築與結構合而為一」為核心，從結構、材料、構造與空間出發，以邏輯建立設計，而非以形式覆蓋問題。我們相信好的設計不是複雜化，而是在理解事物本質後，以最清晰的方法讓建築自然形成。</p>
-        <!-- 構法章成：兩張手繪構法草圖。改成以高度為主的縮放（max-height:90vh），不是寬度撐滿——
-             第二張是很長的直式草圖，若改用寬度撐滿高度會遠超過螢幕高度，需要滾動才看得到全貌；
-             改成限制高度不超過螢幕高度的九成，寬度依比例自動縮小、置中，兩張圖都能一次看完整張 -->
-        <div style="display:flex; flex-direction:column; align-items:center; gap:24px; margin-top:28px;">
-          <img src="uploads/構法草圖01.png" alt="構法草圖" style="max-width:100%; max-height:90vh; width:auto; height:auto; display:block;">
-          <img src="uploads/構法草圖02.png" alt="構法草圖" style="max-width:100%; max-height:90vh; width:auto; height:auto; display:block;">
-        </div>
-      </div>
-
-      <div id="sc-section-teaching-culture">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">教學文化</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">教育是原型文化的本體，也是原型持續前進的方式。我們從職場、實習到學校成為相互連結的學習場域，透過實務傳承、思想交流與共同實踐，延續原型對建築與結構的初心，讓每一代人都重新理解原型的原點，並創造下一個原型。</p>
-      </div>
-
+      </sc-for>
     </div>
   </section>
 
@@ -293,16 +420,39 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { isDarkMode: false, showMaterialMenu: false };
+  state = { isDarkMode: false, showMaterialMenu: false, data: null };
 
-  // 資料來源：活頁簿1.xlsx「原型教學」工作表（編號／大標／小標）
-  // target：點擊滑塊後捲動至對應段落（id 見下方內文區塊），無 target 者點擊無動作
-  galleryItems = [
-    { num: '01', zh: '實習', en: 'Internship', target: 'sc-section-internship', photo: 'uploads/實習.jpg', textOverride: '#ffffff' },
-    { num: '02', zh: '美感教育', en: 'Aesthetic Education', target: 'sc-section-aesthetic', photo: 'uploads/美感教育.jpg', textOverride: '#ffffff' },
-    { num: '03', zh: '大學教學', en: 'University Teaching', target: 'sc-section-university', photo: 'uploads/大學教學.jpg', textOverride: '#ffffff' },
-    { num: '04', zh: '教學文化', en: 'Teaching Culture', target: 'sc-section-teaching-culture', photo: 'uploads/教學文化.jpg', textOverride: '#ffffff' },
-    { num: '05', zh: '設計方法', en: 'Design Methodology', target: 'sc-section-method', photo: 'uploads/設計方法.png', textOverride: '#ffffff' }
+  // 內容改成後台可編輯（content/subpages/teaching.json），這裡的 _fallbackSections
+  // 只在「抓不到 JSON」時當退回值用，內容本身不再是渲染時唯一的資料來源——見
+  // componentDidMount() 的 fetch 邏輯與 renderVals() 怎麼在 state.data 跟這份
+  // fallback 之間選擇。
+  pageTitle = '原型教學';
+
+  // 每一段是「一段一種功能」的扁平清單，不是「段落包多個區塊」——sections[0]
+  // 固定是照片滑塊（type: gallery-slider），其餘每段自己選一種類型（小標題／
+  // 內文／照片／垂直時間軸／水平時間軸／案例資訊卡）。target：點擊滑塊後捲動
+  // 至對應段落（id 見下方各段落），無 target 者點擊無動作。這裡是抓不到 JSON
+  // 時的退回內容，結構要跟 content/subpages/teaching.json 的 sections[] 完全對應。
+  _fallbackSections = [
+    { id: 'sc-section-gallery', type: 'gallery-slider', items: [
+      { num: '01', zh: '實習', en: 'Internship', target: 'sc-section-internship', photo: 'uploads/實習.jpg', textOverride: '#ffffff' },
+      { num: '02', zh: '美感教育', en: 'Aesthetic Education', target: 'sc-section-aesthetic', photo: 'uploads/美感教育.jpg', textOverride: '#ffffff' },
+      { num: '03', zh: '大學教學', en: 'University Teaching', target: 'sc-section-university', photo: 'uploads/大學教學.jpg', textOverride: '#ffffff' },
+      { num: '04', zh: '教學文化', en: 'Teaching Culture', target: 'sc-section-teaching-culture', photo: 'uploads/教學文化.jpg', textOverride: '#ffffff' },
+      { num: '05', zh: '設計方法', en: 'Design Methodology', target: 'sc-section-method', photo: 'uploads/設計方法.png', textOverride: '#ffffff' }
+    ] },
+    { id: 'sc-section-internship', type: 'heading', text: '實習' },
+    { id: 'sc-section-internship-body', type: 'body', text: '原型相信，真正的設計教育不只發生在課堂，而發生於真實的工作之中。讓實習者從設計思考、專業協作到現場實踐，理解一個想法如何成為作品，將設計教學與實務經驗合而為一，在做中學、在實踐中建立自己的判斷。' },
+    { id: 'sc-section-internship-photos', type: 'photos', layout: 'grid', images: ['uploads/實習集/實習01.jpg', 'uploads/實習集/實習02.jpg', 'uploads/實習集/實習03.jpg', 'uploads/實習集/實習04.jpg', 'uploads/實習集/實習05.jpg'] },
+    { id: 'sc-section-aesthetic', type: 'heading', text: '美感教育' },
+    { id: 'sc-section-aesthetic-body', type: 'body', text: '結構不只是支撐建築的技術，更是建築美感的來源。我們致力於讓結構被看見、被理解，從尺度、比例、材料到受力邏輯，將專業轉化為大眾能理解的建築語言，重新建立人與建築結構之間的美學關係。' },
+    { id: 'sc-section-university', type: 'heading', text: '大學教學' },
+    { id: 'sc-section-university-body', type: 'body', text: '原型將大學視為思想交流與方法養成的場所。除了建築與結構的專業知識，更重視設計理念、邏輯與方法的傳遞，引導學生理解設計如何從問題出發、經由思考形成，並在建築與結構的整合中建立屬於自己的設計觀。' },
+    { id: 'sc-section-method', type: 'heading', text: '設計方法' },
+    { id: 'sc-section-method-body', type: 'body', text: '原型以「建築與結構合而為一」為核心，從結構、材料、構造與空間出發，以邏輯建立設計，而非以形式覆蓋問題。我們相信好的設計不是複雜化，而是在理解事物本質後，以最清晰的方法讓建築自然形成。' },
+    { id: 'sc-section-method-photos', type: 'photos', layout: 'stack', images: ['uploads/構法草圖01.png', 'uploads/構法草圖02.png'] },
+    { id: 'sc-section-teaching-culture', type: 'heading', text: '教學文化' },
+    { id: 'sc-section-teaching-culture-body', type: 'body', text: '教育是原型文化的本體，也是原型持續前進的方式。我們從職場、實習到學校成為相互連結的學習場域，透過實務傳承、思想交流與共同實踐，延續原型對建築與結構的初心，讓每一代人都重新理解原型的原點，並創造下一個原型。' }
   ];
 
   scrollToSection(id) {
@@ -320,6 +470,26 @@ class Component extends DCLogic {
   }
 
   componentDidMount() {
+    // 內容資料：改成後台可編輯（content/subpages/teaching.json，見「後台」
+    // repo 的「子頁面」分頁），fetch 到就 setState 換上新內容；抓不到（離線、
+    // JSON 還沒發布）就維持 renderVals() 裡的 _fallbackSections 退回值，
+    // 頁面不會空白或壞掉。
+    fetch('https://as-studio001.github.io/Internal-Pages/content/subpages/teaching.json', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!json) return;
+        // 這個 DC 引擎沒有確認過支援 componentDidUpdate 這個 React 生命週期，
+        // 不要賭它會自動觸發——改用 setState 本身支援的第二個參數（重繪完成後
+        // 的 callback，這個機制有在 support.js 原始碼裡確認過會真的被呼叫），
+        // 資料換新之後，段落對應的 DOM 節點也重新產生了，時間軸/資訊卡這類
+        // 需要 JS 互動的段落要重新綁一次事件監聽器，不然新內容點了都沒反應。
+        this.setState({ data: json }, () => {
+          this._teardownSectionWidgets();
+          this._setupSectionWidgets();
+        });
+      })
+      .catch(() => {});
+
     this._onDocMouseDown = (e) => {
       const inMenu = e.target && e.target.closest && e.target.closest('[data-menu-box]');
       if (!inMenu && this.state.showMaterialMenu) this.setState({ showMaterialMenu: false });
@@ -335,9 +505,6 @@ class Component extends DCLogic {
       if (!gallery) return;
       const totalWidth = gallery.clientWidth;
       if (!totalWidth) return;
-      // 通用公式，不寫死滑塊數量：懸停中的滑塊 flex:HOVER_FLEX，其餘每個都是 flex:1。
-      // HOVER_FLEX 要跟 CSS 的 .sc-gallery-panel:hover { flex:__; } 保持一致（目前是 4）。
-      // 不管這個版面以後套用在哪個子頁面、放幾個滑塊，都會自動算出正確的展開正方形尺寸。
       const HOVER_FLEX = 4;
       const panelCount = document.querySelectorAll('.sc-gallery-panel').length;
       if (!panelCount) return;
@@ -420,6 +587,139 @@ class Component extends DCLogic {
       };
       animateChain();
     })();
+
+    this._setupSectionWidgets();
+  }
+
+  // 三種比較複雜的段落類型（垂直時間軸／水平時間軸／案例資訊卡）需要 JS 互動，
+  // 抓到新資料、DOM 節點重新產生之後要重新綁一次——只在「資料真的換了」（fetch
+  // 完成，見上面 componentDidMount 裡 setState 的 callback）才重綁，不要綁在
+  // componentDidUpdate（每次 setState 都會觸發，包含切換 Dark/Light），不然
+  // 切換深淺色模式會把時間軸已經捲動顯示到的進度重置回初始的前 2 筆，明明只是
+  // 換個顏色卻讓使用者剛才捲出來的內容消失，是不必要的副作用。
+  _setupSectionWidgets() {
+    this._setupVerticalTimelines();
+    this._setupHorizontalTimelines();
+    this._setupAccordionCards();
+  }
+
+  _teardownSectionWidgets() {
+    if (this._onVTimelineScroll) window.removeEventListener('scroll', this._onVTimelineScroll);
+    if (this._onHTimelineScroll) window.removeEventListener('scroll', this._onHTimelineScroll);
+    if (this._accordionHeaders) {
+      this._accordionHeaders.forEach((header) => header.removeEventListener('click', this._onAccordionHeaderClick));
+    }
+  }
+
+  // 垂直時間軸：跟「原型原點.dc.html」的大事記同一套版型／捲動漸進顯示邏輯，
+  // 拿掉「要等水平時間軸展開完才開始」的串接判斷，改成獨立運作——一進來就先
+  // 顯示前 2 筆，捲動到這個區塊附近時再逐筆往下顯示。同一頁可能有好幾個這種
+  // 段落，各自是 _vTimelines 陣列裡一筆獨立的 controller，互不影響。
+  _setupVerticalTimelines() {
+    const containers = Array.from(document.querySelectorAll('[data-sc-vtimeline]'));
+    this._vTimelines = containers.map((container) => ({ container, revealIndex: 0, revealing: false }));
+
+    const growLine = (t) => {
+      const items = t.container.querySelectorAll('.sc-timeline-item');
+      const line = t.container.querySelector('.sc-timeline-line');
+      if (!line || !items.length || t.revealIndex <= 0) return;
+      setTimeout(() => {
+        const idx = Math.min(t.revealIndex, items.length) - 1;
+        const dot = items[idx] && items[idx].querySelector('.sc-timeline-dot');
+        if (!dot) return;
+        const lineRect = line.getBoundingClientRect();
+        const dotRect = dot.getBoundingClientRect();
+        const distance = (dotRect.top + dotRect.height / 2) - lineRect.top;
+        line.style.height = Math.max(0, distance + 151) + 'px'; // 151px ≈ 4cm，讓線段在最後一個節點下方繼續延伸
+      }, 620);
+    };
+
+    const revealNext = (t) => {
+      const items = t.container.querySelectorAll('.sc-timeline-item');
+      if (t.revealIndex >= items.length) return;
+      items[t.revealIndex].classList.add('sc-visible');
+      t.revealIndex++;
+      growLine(t);
+    };
+
+    // 一開始先預先顯示前 2 筆，不用捲動就看得到內容（獨立運作時沒有前面的
+    // 水平時間軸幫忙鋪陳進場節奏，全部留白等捲到底才顯示會很像沒資料）
+    this._vTimelines.forEach((t) => {
+      revealNext(t);
+      revealNext(t);
+    });
+
+    this._onVTimelineScroll = () => {
+      this._vTimelines.forEach((t) => {
+        if (t.revealing) return;
+        const items = t.container.querySelectorAll('.sc-timeline-item');
+        if (t.revealIndex >= items.length) return;
+        const rect = t.container.getBoundingClientRect();
+        if (rect.top > window.innerHeight - 120) return;
+        t.revealing = true;
+        revealNext(t);
+        setTimeout(() => { t.revealing = false; }, 150);
+      });
+    };
+    window.addEventListener('scroll', this._onVTimelineScroll, { passive: true });
+    this._onVTimelineScroll();
+  }
+
+  // 水平時間軸：捲到這個區塊附近時，各時期卡片依序（錯開 150ms）淡入＋位移，
+  // 連接線同時量測第一個跟最後一個點的實際水平中心畫出來，跟垂直時間軸一樣
+  // 用陣列管理多個獨立實例。
+  _setupHorizontalTimelines() {
+    const containers = Array.from(document.querySelectorAll('[data-sc-htimeline]'));
+    this._hTimelines = containers.map((container) => ({ container, revealed: false }));
+
+    const reveal = (t) => {
+      t.revealed = true;
+      const steps = t.container.querySelectorAll('.sc-h-timeline-step');
+      steps.forEach((el, i) => {
+        setTimeout(() => el.classList.add('sc-visible'), i * 150);
+      });
+      setTimeout(() => {
+        const line = t.container.querySelector('.sc-h-timeline-line');
+        const track = t.container.querySelector('.sc-h-timeline-track');
+        const dots = t.container.querySelectorAll('.sc-h-timeline-dot');
+        if (!line || !track || dots.length < 2) return;
+        const trackRect = track.getBoundingClientRect();
+        const firstRect = dots[0].getBoundingClientRect();
+        const lastRect = dots[dots.length - 1].getBoundingClientRect();
+        const first = (firstRect.left + firstRect.width / 2) - trackRect.left;
+        const last = (lastRect.left + lastRect.width / 2) - trackRect.left;
+        line.style.left = first + 'px';
+        line.style.width = Math.max(0, last - first) + 'px';
+      }, 200);
+    };
+
+    this._onHTimelineScroll = () => {
+      this._hTimelines.forEach((t) => {
+        if (t.revealed) return;
+        const rect = t.container.getBoundingClientRect();
+        if (rect.top > window.innerHeight - 100) return;
+        reveal(t);
+      });
+    };
+    window.addEventListener('scroll', this._onHTimelineScroll, { passive: true });
+    this._onHTimelineScroll();
+  }
+
+  // 案例資訊卡（手風琴）：點標題展開/收合，展開高度即時量測內容的 scrollHeight，
+  // 一份監聽器靠 querySelectorAll 涵蓋頁面上所有卡片，同一頁有幾張都不用另外處理。
+  _setupAccordionCards() {
+    this._onAccordionHeaderClick = (e) => {
+      const header = e.currentTarget;
+      const accordion = header.closest('.sc-accordion');
+      if (!accordion) return;
+      const panel = accordion.querySelector('.sc-accordion-panel');
+      const inner = accordion.querySelector('.sc-accordion-panel-inner');
+      if (!panel || !inner) return;
+      const isOpen = accordion.classList.toggle('open');
+      panel.style.maxHeight = isOpen ? inner.scrollHeight + 'px' : '0px';
+    };
+    this._accordionHeaders = Array.from(document.querySelectorAll('.sc-accordion-header'));
+    this._accordionHeaders.forEach((header) => header.addEventListener('click', this._onAccordionHeaderClick));
   }
 
   componentWillUnmount() {
@@ -429,44 +729,80 @@ class Component extends DCLogic {
     const gallery = document.getElementById('sc-gallery');
     if (gallery && this._onGalleryMouseMove) gallery.removeEventListener('mousemove', this._onGalleryMouseMove);
     if (gallery && this._onGalleryMouseLeave) gallery.removeEventListener('mouseleave', this._onGalleryMouseLeave);
+    this._teardownSectionWidgets();
   }
 
   renderVals() {
     const isDarkMode = this.state.isDarkMode;
+    const data = this.state.data;
+    // sections[0] 固定是照片滑塊（type: gallery-slider），其餘（contentSections）
+    // 才是真正逐段渲染的內容——兩者分開處理是因為滑塊有自己完全不同的橫向
+    // hover-expand 排版，不走下面 gap:72px 的直式段落流。
+    const allSections = (data && data.sections) || this._fallbackSections;
+    const gallerySection = allSections[0] || { items: [] };
+    const galleryItems = gallerySection.items || [];
+    const contentSections = allSections.slice(1);
     return {
       isDarkMode,
+      pageTitle: (data && data.title) || this.pageTitle,
+      pageSubtitle: (data && data.subtitle) || '',
+      hasSubtitle: !!(data && data.subtitle),
+      pageIntroImage: (data && data.introImage) || '',
+      hasIntroImage: !!(data && data.introImage),
+      // 有副標題的頁面（目前只有原型方法）h1 下方留白縮小到 12px（副標題自己再接
+      // 40px），沒有副標題的頁面維持原本 h1 直接留 40px，兩種頁面視覺間距都不變
+      h1Margin: (data && data.subtitle) ? '0 0 12px 0' : '0 0 40px 0',
       bgColor: isDarkMode ? '#0a0a0a' : '#ffffff',
       textColor: isDarkMode ? '#ffffff' : '#1a1a1a',
       // 頁首 logo（2026-08-17 改成跟主網頁一樣的 uploads/favicon.png，白色線稿）：
       // 濾鏡邏輯要跟主網頁的 logoFilter 一致（深色模式不轉、淺色模式反轉成黑），
-      // 不能直接沿用原本 logo_20210310101340.png（深色線稿）的反向濾鏡公式。
-      // 另外原本樣板裡是直接寫 `{{ isDarkMode ? 'invert(1)' : 'none' }}` 這種
-      // 三元運算，DC 樣板引擎的 {{ }} 不支援三元/邏輯運算子，會靜默失效（見
-      // 維護手冊「已知的資料相依細節」），實測這裡的 filter 屬性確實整個消失、
-      // 深淺模式切換都沒有真的套用濾鏡——改成跟主網頁一樣，在這裡算成一個
-      // 單純命名變數再回傳，樣板只寫 `{{ logoFilter }}`，才會真的生效。
+      // DC 樣板引擎的 {{ }} 不支援三元/邏輯運算子，這裡算成一個單純命名變數再回傳。
       logoFilter: isDarkMode ? 'none' : 'invert(1)',
       showMaterialMenu: this.state.showMaterialMenu,
       toggleMaterialMenu: () => this.toggleMaterialMenu(),
       toggleDarkMode: () => this.toggleDarkMode(),
-      galleryItems: this.galleryItems.map((it, idx) => {
+      galleryItems: galleryItems.map((it) => {
         const lineColor = isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(136,136,136,0.8)';
         const hasPhoto = !!it.photo;
         return {
           ...it,
           bg: isDarkMode ? '#0a0a0a' : '#ffffff',
-          // 有照片的滑塊用固定文字色（不隨深/淺色模式變動，因為照片本身也不會變）；
-          // 沒照片的維持跟著 isDarkMode 走
           text: it.textOverride || (isDarkMode ? '#ffffff' : '#1a1a1a'),
           borderLeft: '0.5px solid ' + lineColor,
           goTo: () => this.scrollToSection(it.target),
           hasPhoto,
-          // 展開後面板約 360x340px，圖片固定用這個尺寸鋪滿、靠左定位，
-          // 收合/展開之間圖片本身完全不變，只是面板變寬露出更多，不是切換圖片
           bgImage: hasPhoto ? "url('" + it.photo + "')" : 'none',
           bgPosition: hasPhoto ? 'left center' : '0 0',
           bgSize: hasPhoto ? '328px 328px' : 'auto'
         };
+      }),
+      // 每段依 type 轉成模板需要的欄位（isHeading/isBody/... 這些布林值 + 各自
+      // 類型專屬的欄位），instanceId 給有多實例需求的段落類型（時間軸／資訊卡）
+      // 當 DOM 查詢的錨點。
+      sections: contentSections.map((s, i) => {
+        const si = i + 1;
+        const instanceId = 'sec' + si;
+        const base = {
+          ...s,
+          instanceId,
+          isHeading: s.type === 'heading',
+          isBody: s.type === 'body',
+          isPhotosGrid: s.type === 'photos' && s.layout !== 'stack',
+          isPhotosStack: s.type === 'photos' && s.layout === 'stack',
+          isTimelineVertical: s.type === 'timeline-vertical',
+          isTimelineHorizontal: s.type === 'timeline-horizontal',
+          isCaseCard: s.type === 'case-card'
+        };
+        if (s.type === 'heading') return { ...base, text: s.text || '', isH3: s.level === 'h3' };
+        if (s.type === 'body') return { ...base, text: s.text || '', isEmphasis: s.style === 'emphasis' };
+        if (s.type === 'photos') return { ...base, images: s.images || [] };
+        if (s.type === 'timeline-vertical' || s.type === 'timeline-horizontal') return { ...base, items: s.items || [] };
+        if (s.type === 'case-card') {
+          const photos = s.photos || [];
+          const specEn = s.specEn || '';
+          return { ...base, title: s.title || '', photos, hasPhotos: photos.length > 0, specZh: s.specZh || '', specEn, hasSpecEn: !!specEn.trim() };
+        }
+        return base;
       })
     };
   }
