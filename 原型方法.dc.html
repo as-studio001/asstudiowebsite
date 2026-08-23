@@ -103,8 +103,7 @@
   <!-- PAGE CONTENT -->
   <section style="padding:220px 40px 160px; max-width:1600px; margin:0 auto;">
 
-    <!-- HOVER-EXPAND GALLERY (skiper35 效果的替代版；此頁不在活頁簿既有候選工作表清單裡，
-         galleryItems 四筆來自維護者直接提供的「構・法・章・成」文案，非 Excel 驅動) -->
+    <!-- HOVER-EXPAND GALLERY (skiper35 效果的替代版，來自「活頁簿1／原型方法」工作表，4 欄) -->
     <style>
       .sc-gallery { position:relative; display:flex; height:328px; margin-bottom:56px; }
       /* 游標彗星尾巴：容器包住整個圖片列（contained area），dot 只在滑鼠停留在列內時顯示，
@@ -175,7 +174,7 @@
       .sc-gallery-panel:hover .sc-gallery-main { transform:rotate(0deg); }
     </style>
     <div class="sc-gallery" id="sc-gallery">
-      <sc-for list="{{ galleryItems }}" as="item" hint-placeholder-count="4">
+      <sc-for list="{{ galleryItems }}" as="item" hint-placeholder-count="7">
         <div class="sc-gallery-panel" data-photo="{{ item.hasPhoto }}" onClick="{{ item.goTo }}" style="background-color:{{ item.bg }}; border-left:{{ item.borderLeft }}; background-image:{{ item.bgImage }}; background-repeat:no-repeat; background-position:{{ item.bgPosition }}; background-size:{{ item.bgSize }};">
           <sc-if value="{{ !item.hasPhoto }}" hint-placeholder-val="{{ true }}">
             <svg class="sc-gallery-icon" viewBox="0 0 24 24" fill="none" stroke="{{ item.text }}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -197,94 +196,175 @@
     </div>
 
     <div style="font-size:28px; letter-spacing:0.1em; opacity:0.5; margin-bottom:16px;">
-      <a href="./index.html">首頁</a> / 原型方法
+      <a href="./index.html">首頁</a> / {{ pageTitle }}
     </div>
-    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:30px; font-weight:800; letter-spacing:0.02em; margin:0 0 12px 0;">原型方法</h1>
-    <div style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.5em; opacity:0.6; margin:0 0 40px 0;">構・法・章・成</div>
+    <h1 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:30px; font-weight:800; letter-spacing:0.02em; margin:{{ h1Margin }};">{{ pageTitle }}</h1>
+    <!-- 頁面副標題／開場大圖：這頁專用，「構・法・章・成」跟開場 10x10 總覽圖 -->
+    <sc-if value="{{ hasSubtitle }}" hint-placeholder-val="{{ true }}">
+      <div style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.5em; opacity:0.6; margin:0 0 40px 0;">{{ pageSubtitle }}</div>
+    </sc-if>
+    <sc-if value="{{ hasIntroImage }}" hint-placeholder-val="{{ true }}">
+      <figure style="margin:0 0 56px 0;">
+        <img src="{{ pageIntroImage }}" alt="" style="width:100%; max-width:900px; display:block; margin:0 auto;">
+      </figure>
+    </sc-if>
 
-    <!-- 維護者直接提供的截圖（非簡報抽出檔，是 C:\Users\USER\Pictures\Screenshots\ 底下的原始截圖），
-         內容跟簡報《10x10》第1頁一樣，維護者要求原圖插入、不裁切 -->
-    <figure style="margin:0 0 56px 0;">
-      <img src="uploads/原型方法/10x10結構原型總覽.png" alt="10x10：10個結構原型 10種設計方法" style="width:100%; max-width:900px; display:block; margin:0 auto;">
-    </figure>
+    <!-- 通用照片區塊：grid（直式/橫式混合裁一致比例）或 stack（原尺寸比例堆疊置中，
+         這頁大量使用 stack 顯示構法草圖／案例圖這類要看清楚全圖的直式圖） -->
+    <style>
+      .sc-section-photo-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px; }
+      .sc-section-photo-grid img { width:100%; aspect-ratio:4/5; object-fit:cover; display:block; }
+      .sc-section-photo-stack { display:flex; flex-direction:column; align-items:center; gap:24px; }
+      .sc-section-photo-stack img { max-width:100%; max-height:90vh; width:auto; height:auto; display:block; }
+    </style>
 
-    <!-- 以下四段是維護者直接提供的手寫文案（非 Excel 驅動），對應畫廊滑塊 01-04。
-         每段結尾的結語 <p>（例如「構，不僅是組合的關係理解而是精準幾何的建構。」）刻意比內文大一號（32px > 內文 26px）、
-         weight:700、opacity:0.5 呈現灰階效果，跟內文做出區隔，是維護者指定的樣式。
-         曾經融合過簡報《10x10》（D:\2026as實習\網頁\構法章成.pptx）摘錄的補充段落，後來維護者要求整段刪除，
-         這頁目前只剩最初的手寫文案，過程見「維護手冊_子網頁資料同步.md」-->
-    <div style="display:flex; flex-direction:column; gap:112px;">
+    <!-- 垂直時間軸（這頁沒有用到，CSS 留著跟其他頁一致，不影響渲染） -->
+    <style>
+      .sc-timeline { position:relative; padding-left:28px; margin-left:76px; }
+      .sc-timeline-line { position:absolute; left:3px; top:6px; width:1px; height:0; transition:height 0.6s ease; }
+      .sc-timeline-item { position:relative; }
+      .sc-timeline-item-inner { overflow:hidden; max-height:0; opacity:0; padding-bottom:0; transition:max-height 0.6s ease, opacity 0.5s ease 0.1s, padding-bottom 0.6s ease; }
+      .sc-timeline-item.sc-visible .sc-timeline-item-inner { max-height:220px; opacity:1; padding-bottom:44px; }
+      .sc-timeline-item.sc-visible:last-child .sc-timeline-item-inner { padding-bottom:0; }
+      .sc-timeline-dot { position:absolute; left:-28px; top:4px; width:7px; height:7px; border-radius:50%; opacity:0; transition:opacity 0.4s ease 0.15s; }
+      .sc-timeline-item.sc-visible .sc-timeline-dot { opacity:1; }
+      .sc-timeline-year { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:30px; margin:0 0 6px 0; }
+      .sc-timeline-title { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:700; font-size:26px; letter-spacing:0.02em; opacity:0.85; margin:0 0 6px 0; }
+      .sc-timeline-desc { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:26px; line-height:1.8; opacity:0.65; margin:0; }
+      .sc-timeline-fade-hint { height:60px; margin-top:-12px; }
+    </style>
 
-      <div id="sc-section-gou">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">構｜組構・幾何</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">「構」是原型對建築最初的理解，從組構關係與幾何秩序開始，尋找空間、材料與力量之間的基本關係。結構不是附加於建築的技術，而是形成建築的起點。透過幾何學找尋尺度、比例、形體與受力邏輯，建立清晰而具有秩序的空間骨架，使幾何成為可被感知的結構語言。</p>
-        <!-- 摘自簡報《10x10》第4/5頁，維護者要求只放文字、不放圖片 -->
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:24px 0 0 0;">水平不只是地平線向度的延伸，也是結構跨越兩端的思考，除了本身構成的纖細美感，還要考慮結構工學在形式與系統上的支撐。</p>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:24px 0 0 0;">曼妙地身軀往上攀爬，當建築追求高度的表現之下，又賦予地表甚麼意義？是無限慾望延伸，還是充滿向上努力的姿態，不管如何，當不斷攀延的高塔建築呈現動人的體態時，那是一種纖細之美。</p>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:32px; font-weight:700; line-height:1.9; opacity:0.5; margin:24px 0 0 0;">構，不僅是組合的關係理解而是精準幾何的建構。</p>
-      </div>
+    <!-- 水平時間軸（這頁沒有用到，CSS 留著跟其他頁一致，不影響渲染） -->
+    <style>
+      .sc-h-timeline-scroll { overflow-x:auto; overflow-y:hidden; padding-bottom:4px; }
+      .sc-h-timeline { position:relative; min-width:600px; }
+      .sc-h-timeline-track { position:relative; display:flex; justify-content:space-between; gap:32px; }
+      .sc-h-timeline-line { position:absolute; top:5px; left:0; height:1px; width:0; background:#B4A249; z-index:0; transition:width 0.6s ease; }
+      .sc-h-timeline-step {
+        position:relative; flex:1; min-width:180px; display:flex; flex-direction:column; align-items:center; text-align:center;
+        opacity:0; transform:translateY(14px); transition:opacity 0.5s ease, transform 0.5s ease;
+      }
+      .sc-h-timeline-step.sc-visible { opacity:1; transform:translateY(0); }
+      .sc-h-timeline-dot { position:relative; z-index:1; width:10px; height:10px; border-radius:50%; margin-bottom:24px; flex-shrink:0; }
+      .sc-h-timeline-period { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:800; font-size:30px; letter-spacing:0.02em; margin:0 0 8px 0; }
+      .sc-h-timeline-event { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:700; font-size:26px; letter-spacing:0.05em; opacity:0.55; margin:0 0 10px 0; }
+      .sc-h-timeline-desc { font-family:'Noto Serif TC','Source Han Serif TC',serif; font-weight:200; font-size:26px; line-height:1.8; opacity:0.85; margin:0; max-width:220px; }
+    </style>
 
-      <div id="sc-section-fa">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">法｜方法・系統</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">「法」是將想法轉化為設計的方法。原型從條件、材料、結構與施工出發，建立可理解、可推演、可重複的設計系統。方法不是限制創意，而是讓創意具備實現的邏輯；透過系統化思考整合不同尺度與專業，使每一個設計決定都有依據，讓建築從概念逐步走向清晰。</p>
-        <!-- 摘自簡報《10x10》第6/10頁 -->
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:24px 0 0 0;">同樣是水平跨越，六角形之旋轉，轉置了結構思維。相同的條件下，因為「構法＋幾何學」之不同，演繹出不一樣的設計。</p>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:24px 0 0 0;">隨著地景變化的結構體，透過立體空間桁架構造得以呈現，所不同的是，它不僅僅是屋頂結構體，同樣也是地景建築上部的遊走空間。幾何的蔓妙線條讓整個空間有趣活潑了起來。</p>
+    <!-- 案例資訊卡（這頁沒有用到，CSS 留著跟其他頁一致，不影響渲染） -->
+    <style>
+      .sc-accordion { border-width:1px; border-style:solid; border-radius:14px; padding:4px 24px; box-shadow:0 0 0 0 rgba(180,162,73,0); transition:box-shadow 0.6s cubic-bezier(.16,1,.3,1), transform 0.55s cubic-bezier(.34,1.56,.64,1), border-color 0.4s ease; }
+      .sc-accordion.open { transform:scale(1.008); box-shadow:0 12px 32px -12px rgba(180,162,73,0.4), 0 0 0 1px rgba(180,162,73,0.3); }
+      .sc-accordion-header { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; background:none; border:none; cursor:pointer; padding:20px 0; font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:15px; font-weight:800; letter-spacing:0.02em; text-align:left; }
+      .sc-accordion-chevron { flex-shrink:0; transition:transform 0.5s cubic-bezier(.34,1.56,.64,1); }
+      .sc-accordion.open .sc-accordion-chevron { transform:rotate(180deg); }
+      .sc-accordion-title { display:inline-block; }
+      .sc-accordion-panel { max-height:0; overflow:hidden; transition:max-height 0.6s cubic-bezier(.16,1,.3,1); }
+      .sc-accordion-panel::before { content:''; display:block; height:1px; width:0; background:#B4A249; margin-bottom:16px; transition:width 0.6s cubic-bezier(.16,1,.3,1) 0.08s; }
+      .sc-accordion.open .sc-accordion-panel::before { width:100%; }
+      .sc-accordion-panel-inner { padding:0 0 24px 0; opacity:0; transform:translateY(-8px); transition:opacity 0.5s ease 0.18s, transform 0.5s cubic-bezier(.16,1,.3,1) 0.18s; }
+      .sc-accordion.open .sc-accordion-panel-inner { opacity:1; transform:translateY(0); }
+      .sc-accordion-photos { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px; margin-bottom:18px; }
+      .sc-accordion-photos img { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; border-radius:6px; }
+      .sc-accordion-spec { white-space:pre-line; }
+    </style>
 
-        <!-- 案例解說：雲林農業博覽會（簡報第7頁），維護者要求搭配1-2張照片 -->
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.02em; margin:40px 0 12px 0;">雲林農業博覽會</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">農博的精神其實並不是建築，而是大地！因此結構的語彙自然導向了最呼應大地的材料，又或是一直以來被我們所遺忘、但是卻又是台灣長期豐富資源的竹子！透過「竹構築」與「結構原型」，我們實現了它。</p>
-        <div style="display:flex; flex-wrap:wrap; gap:24px; margin-top:24px;">
-          <img src="uploads/原型方法/雲林農業博覽會-地景.jpg" alt="雲林農業博覽會 地景" style="height:320px; width:auto; max-width:100%; object-fit:cover; display:block;">
-          <img src="uploads/原型方法/雲林農業博覽會-構築.jpg" alt="雲林農業博覽會 竹構築施工" style="height:320px; width:auto; max-width:100%; object-fit:cover; display:block;">
+    <!-- 內文段落（sections）改成資料驅動（content/subpages/method.json，見後台
+         「子頁面」編輯器）——每一段自己就是一種功能：小標題／內文／照片／垂直
+         時間軸／水平時間軸／案例資訊卡，可以自由新增/刪除/拖曳排序。這裡渲染的是
+         「內容段落」（不含 sections[0] 的照片滑塊，滑塊資料改由上面 galleryItems
+         直接渲染，見 renderVals()）。沒有資料（抓不到 JSON）時用 Component 裡的
+         _fallbackSections 當退回值。 -->
+    <div style="display:flex; flex-direction:column; gap:72px;">
+      <sc-for list="{{ sections }}" as="sec" hint-placeholder-count="5">
+        <div id="{{ sec.id }}">
+          <sc-if value="{{ sec.isHeading }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ !sec.isH3 }}" hint-placeholder-val="{{ true }}">
+              <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">{{ sec.text }}</h2>
+            </sc-if>
+            <sc-if value="{{ sec.isH3 }}" hint-placeholder-val="{{ false }}">
+              <!-- 小標題（h3）：段落內文中間再插一個更小的子標題，這頁大量用來穿插
+                   一個又一個案例小節（雲林農業博覽會／拱原型／仿生結構⋯） -->
+              <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.02em; margin:40px 0 12px 0;">{{ sec.text }}</h3>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{ sec.isBody }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ !sec.isEmphasis }}" hint-placeholder-val="{{ true }}">
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">{{ sec.text }}</p>
+            </sc-if>
+            <sc-if value="{{ sec.isEmphasis }}" hint-placeholder-val="{{ false }}">
+              <!-- 強調段（結語）：這頁每個「構／法／章／成」小節結尾都有一句 -->
+              <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:32px; font-weight:700; line-height:1.9; opacity:0.5; margin:0;">{{ sec.text }}</p>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{ sec.isPhotosGrid }}" hint-placeholder-val="{{ false }}">
+            <div class="sc-section-photo-grid">
+              <sc-for list="{{ sec.images }}" as="img"><img src="{{ img }}" alt=""></sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ sec.isPhotosStack }}" hint-placeholder-val="{{ false }}">
+            <div class="sc-section-photo-stack">
+              <sc-for list="{{ sec.images }}" as="img"><img src="{{ img }}" alt=""></sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ sec.isTimelineVertical }}" hint-placeholder-val="{{ false }}">
+            <div class="sc-timeline" data-sc-vtimeline="{{ sec.instanceId }}">
+              <div class="sc-timeline-line" style="background:{{ textColor }};"></div>
+              <sc-for list="{{ sec.items }}" as="tItem">
+                <div class="sc-timeline-item">
+                  <span class="sc-timeline-dot" style="background:{{ textColor }};"></span>
+                  <div class="sc-timeline-item-inner">
+                    <p class="sc-timeline-year" style="color:{{ textColor }};">{{ tItem.year }}</p>
+                    <p class="sc-timeline-title" style="color:{{ textColor }};">{{ tItem.title }}</p>
+                    <p class="sc-timeline-desc" style="color:{{ textColor }};">{{ tItem.desc }}</p>
+                  </div>
+                </div>
+              </sc-for>
+              <div class="sc-timeline-fade-hint" style="background:linear-gradient(to bottom, transparent, {{ bgColor }});"></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ sec.isTimelineHorizontal }}" hint-placeholder-val="{{ false }}">
+            <div class="sc-h-timeline-scroll" data-sc-htimeline="{{ sec.instanceId }}">
+              <div class="sc-h-timeline">
+                <div class="sc-h-timeline-track">
+                  <div class="sc-h-timeline-line"></div>
+                  <sc-for list="{{ sec.items }}" as="item">
+                    <div class="sc-h-timeline-step">
+                      <span class="sc-h-timeline-dot" style="background:#B4A249;"></span>
+                      <p class="sc-h-timeline-period" style="color:{{ textColor }};">{{ item.period }}</p>
+                      <p class="sc-h-timeline-event" style="color:{{ textColor }};">{{ item.event }}</p>
+                      <p class="sc-h-timeline-desc" style="color:{{ textColor }};">{{ item.desc }}</p>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ sec.isCaseCard }}" hint-placeholder-val="{{ false }}">
+            <div class="sc-accordion" data-sc-card="{{ sec.instanceId }}" style="border-color:{{ isDarkMode ? 'oklch(0.3 0 0)' : 'oklch(0.85 0 0)' }};">
+              <button type="button" class="sc-accordion-header" style="color:{{ textColor }};">
+                <span class="sc-accordion-title">{{ sec.title }}</span>
+                <svg class="sc-accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <div class="sc-accordion-panel">
+                <div class="sc-accordion-panel-inner">
+                  <sc-if value="{{ sec.hasPhotos }}" hint-placeholder-val="{{ false }}">
+                    <div class="sc-accordion-photos">
+                      <sc-for list="{{ sec.photos }}" as="img"><img src="{{ img }}" alt=""></sc-for>
+                    </div>
+                  </sc-if>
+                  <p class="sc-accordion-spec" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.9; opacity:0.85; margin:0 0 12px 0; color:{{ textColor }};">{{ sec.specZh }}</p>
+                  <sc-if value="{{ sec.hasSpecEn }}" hint-placeholder-val="{{ false }}">
+                    <p class="sc-accordion-spec" style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:13px; font-weight:200; line-height:1.85; opacity:0.65; margin:0; color:{{ textColor }};">{{ sec.specEn }}</p>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </sc-if>
         </div>
-
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:32px; font-weight:700; line-height:1.9; opacity:0.5; margin:40px 0 0 0;">法，是系統化的極致表現。</p>
-      </div>
-
-      <div id="sc-section-zhang">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">章｜原型・構築</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">「章」是原型對自己論述的建立，也是從方法走向構築的過程。萬物皆以原型誕生，並皆從材料、結構、尺度與細部中尋找自身的秩序，形成獨立而可辨識的構築章法。原型的意涵不追求形式的複製，而是從條件中提煉規律，讓每一次設計成為對建築本質的一次重新詮釋。</p>
-
-        <!-- 摘自簡報《10x10》第11/12頁：拱原型－青島國家游泳館設計案 -->
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.02em; margin:40px 0 12px 0;">拱原型－青島國家游泳館設計案</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">拱的「結構原型」是一種受壓機制，因為會受到上下左右各方向之受力作用，形成剖面中原型之不同受力狀態，而這狀態就是結構設計原型的起點。當我們知道受力的分佈時，就可以因應它的變化給予相應的結構設計。</p>
-        <img src="uploads/原型方法/拱原型-結構圖.jpg" alt="拱原型結構分析圖" style="width:100%; max-width:640px; display:block; margin:24px auto 0;">
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:24px 0 0 0;">僅由單純「拱之結構原型」，試圖創造出充滿魅力的大跨度空間。每道拱藉由原型去分析其受力之狀態，也因此形構出大大小小不同斷面拱的存在，整體的力學結構因而清晰動人。</p>
-        <img src="uploads/原型方法/拱之結構原型-隧道.jpg" alt="拱之結構原型隧道模型" style="width:100%; display:block; margin:24px 0 0;">
-
-        <!-- 摘自簡報《10x10》第13/14頁：仿生結構（簡體中文原文，已轉換為繁體，來源不是事務所自己的正式文案，是簡報引用的技術說明） -->
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.02em; margin:40px 0 12px 0;">仿生結構</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">仿生結構的特徵之一，是可以透過電腦將結構解析的結果原封不動地嫁接到結構形態上，這樣所使用的鋼材量將達到必要的最小限度。比如在以往的空間網架結構中，是將結構解析的結果系統化後選擇其中的最大值然後決定材料的尺寸，因此沒有必要使用最大值的部分也都過度使用了大斷面材料，從而造成浪費。為了對此進行反省，終於產生了自然界已有的必然的結構原理——仿生結構。因此，仿生結構是有史以來資材使用最少、覆蓋空間最大，而且可以被支撐的事物。為了最大限度地利用電腦來進行鋼結構的生產和安裝，有必要採用立體幾何學來徹底實現仿生結構，結構形態的幾何性整理是必要不可缺少的。</p>
-        <img src="uploads/原型方法/仿生結構-受力分析.jpg" alt="仿生結構受力分析" style="width:100%; max-width:640px; display:block; margin:24px auto 0;">
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:24px 0 0 0;">仿生結構由「外皮」和「內皮」雙重構造所構成，無論哪一層都是剪切薄鐵皮而形成的，透過電腦解析後決定外皮和內皮之間最為適宜的間隔尺寸，因此這種間隔在不同部位尺寸都不同。外側和內側描繪著二維曲線，然後用螺栓或焊接將外皮和內皮組裝，從而自然地形成三維曲面。充分利用電腦精確切割、展開圖繪製等技術的話，造價低、工期短，而且用最少量的鋼材都能夠被實現。</p>
-        <img src="uploads/原型方法/仿生結構-構造細部.jpg" alt="仿生結構外皮構造細部" style="width:100%; max-width:480px; display:block; margin:24px auto 0;">
-
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:32px; font-weight:700; line-height:1.9; opacity:0.5; margin:40px 0 0 0;">章，是用於原型的探索與創造。</p>
-      </div>
-
-      <div id="sc-section-cheng">
-        <h2 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:700; letter-spacing:0.02em; margin:0 0 12px 0;">成｜落地・實踐</h2>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">「成」是設計真正完成的時刻，也是原型最重視的實踐。一個經典構造物必然經歷設計思考與時間的驗證，但唯有從圖紙上轉化成真實討論的條件才能成為真實的建築。原型重視從圖面到現場的每一個環節，讓設計經得起製作、建造與使用的考驗，使思想最終落地，讓建築真正成為可以被使用、感受與延續的作品。</p>
-
-        <!-- 摘自簡報《10x10》第15頁 -->
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.02em; margin:40px 0 12px 0;">上海世界博覽會 中國船舶館</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">在SDG構造設計集團在職期間，2010年歷經了上海世界博覽會的建築工地，深知再好的設計沒有真實地被實踐出來，最後可能只是一張設計圖。而結構原型理念，就是要導入合理的結構設計方法，讓建築能夠被予以實踐。</p>
-        <img src="uploads/原型方法/上海世博會中國船舶館-工地.jpg" alt="上海世界博覽會 中國船舶館 工地" style="width:100%; display:block; margin:24px 0 0;">
-
-        <!-- 摘自簡報《10x10》第16頁 -->
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.02em; margin:40px 0 12px 0;">韓國仁川會展中心</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">一個導入預力思維的結構作品，特色在於藉由一圈一圈的預力，緊箍牢牢扣住每一圈混凝土，而環向與縱向的預力作用，讓懸挑的尺度達到最大——預力混凝土壁體結構。</p>
-        <img src="uploads/原型方法/韓國仁川會展中心-外觀.jpg" alt="韓國仁川會展中心" style="width:100%; display:block; margin:24px 0 0;">
-
-        <!-- 摘自簡報《10x10》第19頁 -->
-        <h3 style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:22px; font-weight:700; letter-spacing:0.02em; margin:40px 0 12px 0;">新營服務區公共廁所</h3>
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:26px; font-weight:200; line-height:1.9; opacity:0.85; margin:0;">一座位於高速公路服務區的公廁，究竟它應該怎樣被對待？我們思考著這個問題：它是否應該就像人們穿越高速公路般如風疾馳？又或者它是條順應著高速曲率、滑順的曲線？不管如何，輕盈如風般飛翔的結構屋頂，就像是這條高速公路告訴我們的語言——人們快速地來去，輕盈地不留一點痕跡。</p>
-        <img src="uploads/原型方法/新營服務區公共廁所-外觀.jpg" alt="新營服務區公共廁所" style="width:100%; display:block; margin:24px 0 0;">
-
-        <p style="font-family:'Noto Serif TC','Source Han Serif TC',serif; font-size:32px; font-weight:700; line-height:1.9; opacity:0.5; margin:40px 0 0 0;">成，是致力於將想法實踐出來。</p>
-      </div>
-
+      </sc-for>
     </div>
   </section>
 
@@ -326,20 +406,68 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { isDarkMode: false, showMaterialMenu: false };
+  state = { isDarkMode: false, showMaterialMenu: false, data: null };
 
-  // 資料來源：不是 Excel 驅動——這頁不在活頁簿既有候選工作表清單裡，
-  // 維護者直接在對話裡提供「構・法・章・成」四段文案，zh/en 直接取自文案裡的
-  // 單字＋副標（例如「構｜組構・幾何」），en 欄位放的是中文副標，不是英文翻譯
-  // target：點擊滑塊後捲動至對應段落（id 見下方內文區塊）
-  // photo：維護者指定簡報《10x10》裡的特定頁（第4/6/12/19頁）作為對應滑塊的照片，
-  // Claude 用 PIL 去掉圖片裡的文字、裁切成正方形後存進 uploads/原型方法/，
-  // 檔名直接對應 zh（構.jpg／法.jpg／章.jpg／成.jpg），細節見「維護手冊_子網頁資料同步.md」
-  galleryItems = [
-    { num: '01', zh: '構', en: '組構・幾何', target: 'sc-section-gou', photo: 'uploads/原型方法/構.jpg', textOverride: '#ffffff' },
-    { num: '02', zh: '法', en: '方法・系統', target: 'sc-section-fa', photo: 'uploads/原型方法/法.jpg', textOverride: '#ffffff' },
-    { num: '03', zh: '章', en: '原型・構築', target: 'sc-section-zhang', photo: 'uploads/原型方法/章.jpg', textOverride: '#ffffff' },
-    { num: '04', zh: '成', en: '落地・實踐', target: 'sc-section-cheng', photo: 'uploads/原型方法/成.jpg', textOverride: '#ffffff' }
+  pageTitle = '原型方法';
+  // 這頁有副標題／開場大圖，data 抓不到時（離線／JSON 還沒發布）也要有退回值，
+  // 不然 hasSubtitle/hasIntroImage 只看 state.data 會在退回模式下整組消失
+  pageSubtitleFallback = '構・法・章・成';
+  pageIntroImageFallback = 'uploads/原型方法/10x10結構原型總覽.png';
+
+  // 內容改成後台可編輯（content/subpages/method.json），這裡的 _fallbackSections
+  // 只在「抓不到 JSON」時當退回值用。sections[0] 固定是照片滑塊（type:
+  // gallery-slider），其餘每段是「一段一種功能」的扁平清單，跟「原型教學」同一套
+  // schema——這頁大量使用 h3 小標題（level: 'h3'）跟強調段（style: 'emphasis'）
+  // 穿插案例小節。
+  _fallbackSections = [
+    {
+      "id": "sc-section-gallery",
+      "type": "gallery-slider",
+      "items": [
+        { "num": "01", "zh": "構", "en": "組構・幾何", "target": "sc-section-gou", "photo": "uploads/原型方法/構.jpg", "textOverride": "#ffffff" },
+        { "num": "02", "zh": "法", "en": "方法・系統", "target": "sc-section-fa", "photo": "uploads/原型方法/法.jpg", "textOverride": "#ffffff" },
+        { "num": "03", "zh": "章", "en": "原型・構築", "target": "sc-section-zhang", "photo": "uploads/原型方法/章.jpg", "textOverride": "#ffffff" },
+        { "num": "04", "zh": "成", "en": "落地・實踐", "target": "sc-section-cheng", "photo": "uploads/原型方法/成.jpg", "textOverride": "#ffffff" }
+      ]
+    },
+    { "id": "sc-section-gou", "type": "heading", "text": "構｜組構・幾何" },
+    { "id": "sc-section-gou-body-1", "type": "body", "text": "「構」是原型對建築最初的理解，從組構關係與幾何秩序開始，尋找空間、材料與力量之間的基本關係。結構不是附加於建築的技術，而是形成建築的起點。透過幾何學找尋尺度、比例、形體與受力邏輯，建立清晰而具有秩序的空間骨架，使幾何成為可被感知的結構語言。" },
+    { "id": "sc-section-gou-body-2", "type": "body", "text": "水平不只是地平線向度的延伸，也是結構跨越兩端的思考，除了本身構成的纖細美感，還要考慮結構工學在形式與系統上的支撐。" },
+    { "id": "sc-section-gou-body-3", "type": "body", "text": "曼妙地身軀往上攀爬，當建築追求高度的表現之下，又賦予地表甚麼意義？是無限慾望延伸，還是充滿向上努力的姿態，不管如何，當不斷攀延的高塔建築呈現動人的體態時，那是一種纖細之美。" },
+    { "id": "sc-section-gou-body-4", "type": "body", "style": "emphasis", "text": "構，不僅是組合的關係理解而是精準幾何的建構。" },
+    { "id": "sc-section-fa", "type": "heading", "text": "法｜方法・系統" },
+    { "id": "sc-section-fa-body-1", "type": "body", "text": "「法」是將想法轉化為設計的方法。原型從條件、材料、結構與施工出發，建立可理解、可推演、可重複的設計系統。方法不是限制創意，而是讓創意具備實現的邏輯；透過系統化思考整合不同尺度與專業，使每一個設計決定都有依據，讓建築從概念逐步走向清晰。" },
+    { "id": "sc-section-fa-body-2", "type": "body", "text": "同樣是水平跨越，六角形之旋轉，轉置了結構思維。相同的條件下，因為「構法＋幾何學」之不同，演繹出不一樣的設計。" },
+    { "id": "sc-section-fa-body-3", "type": "body", "text": "隨著地景變化的結構體，透過立體空間桁架構造得以呈現，所不同的是，它不僅僅是屋頂結構體，同樣也是地景建築上部的遊走空間。幾何的蔓妙線條讓整個空間有趣活潑了起來。" },
+    { "id": "sc-section-fa-h3-1", "type": "heading", "level": "h3", "text": "雲林農業博覽會" },
+    { "id": "sc-section-fa-body-4", "type": "body", "text": "農博的精神其實並不是建築，而是大地！因此結構的語彙自然導向了最呼應大地的材料，又或是一直以來被我們所遺忘、但是卻又是台灣長期豐富資源的竹子！透過「竹構築」與「結構原型」，我們實現了它。" },
+    { "id": "sc-section-fa-photos-1", "type": "photos", "layout": "grid", "images": ["uploads/原型方法/雲林農業博覽會-地景.jpg", "uploads/原型方法/雲林農業博覽會-構築.jpg"] },
+    { "id": "sc-section-fa-body-5", "type": "body", "style": "emphasis", "text": "法，是系統化的極致表現。" },
+    { "id": "sc-section-zhang", "type": "heading", "text": "章｜原型・構築" },
+    { "id": "sc-section-zhang-body-1", "type": "body", "text": "「章」是原型對自己論述的建立，也是從方法走向構築的過程。萬物皆以原型誕生，並皆從材料、結構、尺度與細部中尋找自身的秩序，形成獨立而可辨識的構築章法。原型的意涵不追求形式的複製，而是從條件中提煉規律，讓每一次設計成為對建築本質的一次重新詮釋。" },
+    { "id": "sc-section-zhang-h3-1", "type": "heading", "level": "h3", "text": "拱原型－青島國家游泳館設計案" },
+    { "id": "sc-section-zhang-body-2", "type": "body", "text": "拱的「結構原型」是一種受壓機制，因為會受到上下左右各方向之受力作用，形成剖面中原型之不同受力狀態，而這狀態就是結構設計原型的起點。當我們知道受力的分佈時，就可以因應它的變化給予相應的結構設計。" },
+    { "id": "sc-section-zhang-photos-1", "type": "photos", "layout": "stack", "images": ["uploads/原型方法/拱原型-結構圖.jpg"] },
+    { "id": "sc-section-zhang-body-3", "type": "body", "text": "僅由單純「拱之結構原型」，試圖創造出充滿魅力的大跨度空間。每道拱藉由原型去分析其受力之狀態，也因此形構出大大小小不同斷面拱的存在，整體的力學結構因而清晰動人。" },
+    { "id": "sc-section-zhang-photos-2", "type": "photos", "layout": "stack", "images": ["uploads/原型方法/拱之結構原型-隧道.jpg"] },
+    { "id": "sc-section-zhang-h3-2", "type": "heading", "level": "h3", "text": "仿生結構" },
+    { "id": "sc-section-zhang-body-4", "type": "body", "text": "仿生結構的特徵之一，是可以透過電腦將結構解析的結果原封不動地嫁接到結構形態上，這樣所使用的鋼材量將達到必要的最小限度。比如在以往的空間網架結構中，是將結構解析的結果系統化後選擇其中的最大值然後決定材料的尺寸，因此沒有必要使用最大值的部分也都過度使用了大斷面材料，從而造成浪費。為了對此進行反省，終於產生了自然界已有的必然的結構原理——仿生結構。因此，仿生結構是有史以來資材使用最少、覆蓋空間最大，而且可以被支撐的事物。為了最大限度地利用電腦來進行鋼結構的生產和安裝，有必要採用立體幾何學來徹底實現仿生結構，結構形態的幾何性整理是必要不可缺少的。" },
+    { "id": "sc-section-zhang-photos-3", "type": "photos", "layout": "stack", "images": ["uploads/原型方法/仿生結構-受力分析.jpg"] },
+    { "id": "sc-section-zhang-body-5", "type": "body", "text": "仿生結構由「外皮」和「內皮」雙重構造所構成，無論哪一層都是剪切薄鐵皮而形成的，透過電腦解析後決定外皮和內皮之間最為適宜的間隔尺寸，因此這種間隔在不同部位尺寸都不同。外側和內側描繪著二維曲線，然後用螺栓或焊接將外皮和內皮組裝，從而自然地形成三維曲面。充分利用電腦精確切割、展開圖繪製等技術的話，造價低、工期短，而且用最少量的鋼材都能夠被實現。" },
+    { "id": "sc-section-zhang-photos-4", "type": "photos", "layout": "stack", "images": ["uploads/原型方法/仿生結構-構造細部.jpg"] },
+    { "id": "sc-section-zhang-body-6", "type": "body", "style": "emphasis", "text": "章，是用於原型的探索與創造。" },
+    { "id": "sc-section-cheng", "type": "heading", "text": "成｜落地・實踐" },
+    { "id": "sc-section-cheng-body-1", "type": "body", "text": "「成」是設計真正完成的時刻，也是原型最重視的實踐。一個經典構造物必然經歷設計思考與時間的驗證，但唯有從圖紙上轉化成真實討論的條件才能成為真實的建築。原型重視從圖面到現場的每一個環節，讓設計經得起製作、建造與使用的考驗，使思想最終落地，讓建築真正成為可以被使用、感受與延續的作品。" },
+    { "id": "sc-section-cheng-h3-1", "type": "heading", "level": "h3", "text": "上海世界博覽會 中國船舶館" },
+    { "id": "sc-section-cheng-body-2", "type": "body", "text": "在SDG構造設計集團在職期間，2010年歷經了上海世界博覽會的建築工地，深知再好的設計沒有真實地被實踐出來，最後可能只是一張設計圖。而結構原型理念，就是要導入合理的結構設計方法，讓建築能夠被予以實踐。" },
+    { "id": "sc-section-cheng-photos-1", "type": "photos", "layout": "stack", "images": ["uploads/原型方法/上海世博會中國船舶館-工地.jpg"] },
+    { "id": "sc-section-cheng-h3-2", "type": "heading", "level": "h3", "text": "韓國仁川會展中心" },
+    { "id": "sc-section-cheng-body-3", "type": "body", "text": "一個導入預力思維的結構作品，特色在於藉由一圈一圈的預力，緊箍牢牢扣住每一圈混凝土，而環向與縱向的預力作用，讓懸挑的尺度達到最大——預力混凝土壁體結構。" },
+    { "id": "sc-section-cheng-photos-2", "type": "photos", "layout": "stack", "images": ["uploads/原型方法/韓國仁川會展中心-外觀.jpg"] },
+    { "id": "sc-section-cheng-h3-3", "type": "heading", "level": "h3", "text": "新營服務區公共廁所" },
+    { "id": "sc-section-cheng-body-4", "type": "body", "text": "一座位於高速公路服務區的公廁，究竟它應該怎樣被對待？我們思考著這個問題：它是否應該就像人們穿越高速公路般如風疾馳？又或者它是條順應著高速曲率、滑順的曲線？不管如何，輕盈如風般飛翔的結構屋頂，就像是這條高速公路告訴我們的語言——人們快速地來去，輕盈地不留一點痕跡。" },
+    { "id": "sc-section-cheng-photos-3", "type": "photos", "layout": "stack", "images": ["uploads/原型方法/新營服務區公共廁所-外觀.jpg"] },
+    { "id": "sc-section-cheng-body-5", "type": "body", "style": "emphasis", "text": "成，是致力於將想法實踐出來。" }
   ];
 
   scrollToSection(id) {
@@ -357,24 +485,28 @@ class Component extends DCLogic {
   }
 
   componentDidMount() {
+    fetch('https://as-studio001.github.io/Internal-Pages/content/subpages/method.json', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!json) return;
+        this.setState({ data: json }, () => {
+          this._teardownSectionWidgets();
+          this._setupSectionWidgets();
+        });
+      })
+      .catch(() => {});
+
     this._onDocMouseDown = (e) => {
       const inMenu = e.target && e.target.closest && e.target.closest('[data-menu-box]');
       if (!inMenu && this.state.showMaterialMenu) this.setState({ showMaterialMenu: false });
     };
     document.addEventListener('mousedown', this._onDocMouseDown);
 
-    // 畫廊滑塊展開後要是正方形：實際可用寬度會隨瀏覽器/預覽視窗大小改變，
-    // 不能寫死固定 px（那樣只在特定視窗寬度下才會剛好是正方形）。
-    // 改成即時量測 .sc-gallery 的實際寬度，換算「展開後應有的寬度」，
-    // 直接設成滑塊高度，並同步更新照片的 background-size 與編號的位移量。
     this._sizeGallerySquare = () => {
       const gallery = document.getElementById('sc-gallery');
       if (!gallery) return;
       const totalWidth = gallery.clientWidth;
       if (!totalWidth) return;
-      // 通用公式，不寫死滑塊數量：懸停中的滑塊 flex:HOVER_FLEX，其餘每個都是 flex:1。
-      // HOVER_FLEX 要跟 CSS 的 .sc-gallery-panel:hover { flex:__; } 保持一致（目前是 4）。
-      // 不管這個版面以後套用在哪個子頁面、放幾個滑塊，都會自動算出正確的展開正方形尺寸。
       const HOVER_FLEX = 4;
       const panelCount = document.querySelectorAll('.sc-gallery-panel').length;
       if (!panelCount) return;
@@ -400,9 +532,6 @@ class Component extends DCLogic {
     this._sizeGallerySquare();
     window.addEventListener('resize', this._sizeGallerySquare);
 
-    // 游標彗星尾巴：容器是 #sc-cursor-chain（絕對定位、蓋滿 #sc-gallery、pointer-events:none，
-    // 不擋滑塊的 hover/click）。dot 只建立一次；每幀用 lerp 讓每個 dot 往「前一個 dot」靠近
-    // 35%（第一個 dot 追游標本身），越後面的 dot 越小越淡，形成拖尾。滑鼠離開容器就淡出隱藏。
     (() => {
       const container = document.getElementById('sc-cursor-chain');
       const gallery = document.getElementById('sc-gallery');
@@ -457,6 +586,122 @@ class Component extends DCLogic {
       };
       animateChain();
     })();
+
+    this._setupSectionWidgets();
+  }
+
+  _setupSectionWidgets() {
+    this._setupVerticalTimelines();
+    this._setupHorizontalTimelines();
+    this._setupAccordionCards();
+  }
+
+  _teardownSectionWidgets() {
+    if (this._onVTimelineScroll) window.removeEventListener('scroll', this._onVTimelineScroll);
+    if (this._onHTimelineScroll) window.removeEventListener('scroll', this._onHTimelineScroll);
+    if (this._accordionHeaders) {
+      this._accordionHeaders.forEach((header) => header.removeEventListener('click', this._onAccordionHeaderClick));
+    }
+  }
+
+  _setupVerticalTimelines() {
+    const containers = Array.from(document.querySelectorAll('[data-sc-vtimeline]'));
+    this._vTimelines = containers.map((container) => ({ container, revealIndex: 0, revealing: false }));
+
+    const growLine = (t) => {
+      const items = t.container.querySelectorAll('.sc-timeline-item');
+      const line = t.container.querySelector('.sc-timeline-line');
+      if (!line || !items.length || t.revealIndex <= 0) return;
+      setTimeout(() => {
+        const idx = Math.min(t.revealIndex, items.length) - 1;
+        const dot = items[idx] && items[idx].querySelector('.sc-timeline-dot');
+        if (!dot) return;
+        const lineRect = line.getBoundingClientRect();
+        const dotRect = dot.getBoundingClientRect();
+        const distance = (dotRect.top + dotRect.height / 2) - lineRect.top;
+        line.style.height = Math.max(0, distance + 151) + 'px';
+      }, 620);
+    };
+
+    const revealNext = (t) => {
+      const items = t.container.querySelectorAll('.sc-timeline-item');
+      if (t.revealIndex >= items.length) return;
+      items[t.revealIndex].classList.add('sc-visible');
+      t.revealIndex++;
+      growLine(t);
+    };
+
+    this._vTimelines.forEach((t) => {
+      revealNext(t);
+      revealNext(t);
+    });
+
+    this._onVTimelineScroll = () => {
+      this._vTimelines.forEach((t) => {
+        if (t.revealing) return;
+        const items = t.container.querySelectorAll('.sc-timeline-item');
+        if (t.revealIndex >= items.length) return;
+        const rect = t.container.getBoundingClientRect();
+        if (rect.top > window.innerHeight - 120) return;
+        t.revealing = true;
+        revealNext(t);
+        setTimeout(() => { t.revealing = false; }, 150);
+      });
+    };
+    window.addEventListener('scroll', this._onVTimelineScroll, { passive: true });
+    this._onVTimelineScroll();
+  }
+
+  _setupHorizontalTimelines() {
+    const containers = Array.from(document.querySelectorAll('[data-sc-htimeline]'));
+    this._hTimelines = containers.map((container) => ({ container, revealed: false }));
+
+    const reveal = (t) => {
+      t.revealed = true;
+      const steps = t.container.querySelectorAll('.sc-h-timeline-step');
+      steps.forEach((el, i) => {
+        setTimeout(() => el.classList.add('sc-visible'), i * 150);
+      });
+      setTimeout(() => {
+        const line = t.container.querySelector('.sc-h-timeline-line');
+        const track = t.container.querySelector('.sc-h-timeline-track');
+        const dots = t.container.querySelectorAll('.sc-h-timeline-dot');
+        if (!line || !track || dots.length < 2) return;
+        const trackRect = track.getBoundingClientRect();
+        const firstRect = dots[0].getBoundingClientRect();
+        const lastRect = dots[dots.length - 1].getBoundingClientRect();
+        const first = (firstRect.left + firstRect.width / 2) - trackRect.left;
+        const last = (lastRect.left + lastRect.width / 2) - trackRect.left;
+        line.style.left = first + 'px';
+        line.style.width = Math.max(0, last - first) + 'px';
+      }, 200);
+    };
+
+    this._onHTimelineScroll = () => {
+      this._hTimelines.forEach((t) => {
+        if (t.revealed) return;
+        const rect = t.container.getBoundingClientRect();
+        if (rect.top > window.innerHeight - 100) return;
+        reveal(t);
+      });
+    };
+    window.addEventListener('scroll', this._onHTimelineScroll, { passive: true });
+    this._onHTimelineScroll();
+  }
+
+  _setupAccordionCards() {
+    this._onAccordionHeaderClick = (e) => {
+      const header = e.currentTarget;
+      const accordion = header.closest('.sc-accordion');
+      if (!accordion) return;
+      const panel = accordion.querySelector('.sc-accordion-panel');
+      const inner = accordion.querySelector('.sc-accordion-panel-inner');
+      if (!panel || !inner) return;
+      const isOpen = accordion.classList.toggle('open');
+      panel.style.maxHeight = isOpen ? inner.scrollHeight + 'px' : '0px';
+    };
+    this._accordionHeaders = Array.from(document.querySelectorAll('.sc-accordion-header'));
+    this._accordionHeaders.forEach((header) => header.addEventListener('click', this._onAccordionHeaderClick));
   }
 
   componentWillUnmount() {
@@ -466,44 +711,73 @@ class Component extends DCLogic {
     const gallery = document.getElementById('sc-gallery');
     if (gallery && this._onGalleryMouseMove) gallery.removeEventListener('mousemove', this._onGalleryMouseMove);
     if (gallery && this._onGalleryMouseLeave) gallery.removeEventListener('mouseleave', this._onGalleryMouseLeave);
+    this._teardownSectionWidgets();
   }
 
   renderVals() {
     const isDarkMode = this.state.isDarkMode;
+    const data = this.state.data;
+    const allSections = (data && data.sections) || this._fallbackSections;
+    const gallerySection = allSections[0] || { items: [] };
+    const galleryItems = gallerySection.items || [];
+    const contentSections = allSections.slice(1);
     return {
       isDarkMode,
+      pageTitle: (data && data.title) || this.pageTitle,
+      // 副標題／開場大圖：真的抓到 JSON 就用 JSON 的值（就算是空字串，代表
+      // 使用者主動清空，也要尊重）；沒抓到 JSON（data 是 null）才用這頁自己的
+      // 退回值，不是隨便一個「(data && data.subtitle) || 常數」就結束——那樣
+      // 會導致「JSON 已經抓到、但使用者刻意把副標題清空」時又跑回退回值。
+      pageSubtitle: data ? (data.subtitle || '') : this.pageSubtitleFallback,
+      hasSubtitle: !!(data ? data.subtitle : this.pageSubtitleFallback),
+      pageIntroImage: data ? (data.introImage || '') : this.pageIntroImageFallback,
+      hasIntroImage: !!(data ? data.introImage : this.pageIntroImageFallback),
+      h1Margin: (data ? data.subtitle : this.pageSubtitleFallback) ? '0 0 12px 0' : '0 0 40px 0',
       bgColor: isDarkMode ? '#0a0a0a' : '#ffffff',
       textColor: isDarkMode ? '#ffffff' : '#1a1a1a',
-      // 頁首 logo（2026-08-17 改成跟主網頁一樣的 uploads/favicon.png，白色線稿）：
-      // 濾鏡邏輯要跟主網頁的 logoFilter 一致（深色模式不轉、淺色模式反轉成黑），
-      // 不能直接沿用原本 logo_20210310101340.png（深色線稿）的反向濾鏡公式。
-      // 另外原本樣板裡是直接寫 `{{ isDarkMode ? 'invert(1)' : 'none' }}` 這種
-      // 三元運算，DC 樣板引擎的 {{ }} 不支援三元/邏輯運算子，會靜默失效（見
-      // 維護手冊「已知的資料相依細節」），實測這裡的 filter 屬性確實整個消失、
-      // 深淺模式切換都沒有真的套用濾鏡——改成跟主網頁一樣，在這裡算成一個
-      // 單純命名變數再回傳，樣板只寫 `{{ logoFilter }}`，才會真的生效。
       logoFilter: isDarkMode ? 'none' : 'invert(1)',
       showMaterialMenu: this.state.showMaterialMenu,
       toggleMaterialMenu: () => this.toggleMaterialMenu(),
       toggleDarkMode: () => this.toggleDarkMode(),
-      galleryItems: this.galleryItems.map((it, idx) => {
+      galleryItems: galleryItems.map((it) => {
         const lineColor = isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(136,136,136,0.8)';
         const hasPhoto = !!it.photo;
         return {
           ...it,
           bg: isDarkMode ? '#0a0a0a' : '#ffffff',
-          // 有照片的滑塊用固定文字色（不隨深/淺色模式變動，因為照片本身也不會變）；
-          // 沒照片的維持跟著 isDarkMode 走
           text: it.textOverride || (isDarkMode ? '#ffffff' : '#1a1a1a'),
           borderLeft: '0.5px solid ' + lineColor,
           goTo: () => this.scrollToSection(it.target),
           hasPhoto,
-          // 展開後面板約 360x340px，圖片固定用這個尺寸鋪滿、靠左定位，
-          // 收合/展開之間圖片本身完全不變，只是面板變寬露出更多，不是切換圖片
           bgImage: hasPhoto ? "url('" + it.photo + "')" : 'none',
           bgPosition: hasPhoto ? 'left center' : '0 0',
           bgSize: hasPhoto ? '328px 328px' : 'auto'
         };
+      }),
+      sections: contentSections.map((s, i) => {
+        const si = i + 1;
+        const instanceId = 'sec' + si;
+        const base = {
+          ...s,
+          instanceId,
+          isHeading: s.type === 'heading',
+          isBody: s.type === 'body',
+          isPhotosGrid: s.type === 'photos' && s.layout !== 'stack',
+          isPhotosStack: s.type === 'photos' && s.layout === 'stack',
+          isTimelineVertical: s.type === 'timeline-vertical',
+          isTimelineHorizontal: s.type === 'timeline-horizontal',
+          isCaseCard: s.type === 'case-card'
+        };
+        if (s.type === 'heading') return { ...base, text: s.text || '', isH3: s.level === 'h3' };
+        if (s.type === 'body') return { ...base, text: s.text || '', isEmphasis: s.style === 'emphasis' };
+        if (s.type === 'photos') return { ...base, images: s.images || [] };
+        if (s.type === 'timeline-vertical' || s.type === 'timeline-horizontal') return { ...base, items: s.items || [] };
+        if (s.type === 'case-card') {
+          const photos = s.photos || [];
+          const specEn = s.specEn || '';
+          return { ...base, title: s.title || '', photos, hasPhotos: photos.length > 0, specZh: s.specZh || '', specEn, hasSpecEn: !!specEn.trim() };
+        }
+        return base;
       })
     };
   }
