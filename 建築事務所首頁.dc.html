@@ -558,7 +558,7 @@ class Component extends DCLogic {
   // 裡（桌機 1、手機 2，跟改之前完全一樣，不受這個值影響）。這個數字是
   // 從「圓點位置編輯器.html」的「特殊連線粗細」滑塊同步過來的，同步流程
   // 見該檔案的 buildSyncParts()/buildFullSiteText()。
-  specialEdgeStrokeWidth = 2.8;
+  specialEdgeStrokeWidth = 1.7;
 
   // 手機版 3D 球體：球半徑（viewBox 單位）、節點文字基準字級、目前的旋轉角度
   // （yaw 繞垂直軸、pitch 繞水平軸，單位皆為弧度）跟拖曳/慣性狀態。這幾個是
@@ -625,7 +625,8 @@ class Component extends DCLogic {
   _globeFlyStartTime = 0;
   _globeFlyDuration = 700;
 
-  nodeData = [    { id: 'r1', name: "章 architecture design", href: "./原型方法.dc.html", radius: 15, translations: {"en":"Chapter · Architecture Design","zh-Hans":"章 architecture design","fr":"Chapitre · Architecture Design","ja":"章 アーキテクチャー・デザイン","ko":"장 건축 디자인","es":"Capítulo · Diseño Arquitectónico"} },
+  nodeData = [    { id: 'r113', name: "2025原型1號宅", href: "https://asstudio029.wixsite.com/ashouse1", radius: 4.95, translations: {"en":"2025 Prototype House No. 1","zh-Hans":"2025原型1号宅","fr":"2025 Prototype Maison N° 1","ja":"2025年 プロトタイプ1号邸","ko":"2025 프로토타입 1호 주택","es":"2025 Prototipo Casa N.º 1"} },
+    { id: 'r1', name: "章 architecture design", href: "./原型方法.dc.html", radius: 15, translations: {"en":"Chapter · Architecture Design","zh-Hans":"章 architecture design","fr":"Chapitre · Architecture Design","ja":"章 アーキテクチャー・デザイン","ko":"장 건축 디자인","es":"Capítulo · Diseño Arquitectónico"} },
     { id: 'r91', name: "2023 構竹林鐵Ⅱ", href: "https://astaiwan.wixsite.com/bamboo-newfield", radius: 4.95, translations: {"en":"2023 Bamboo Forest Railway II","zh-Hans":"2023 构竹林铁Ⅱ","fr":"2023 Bambou Forêt Chemin de fer II","ja":"2023年 構竹林鉄Ⅱ","ko":"2023 대나무 숲 철도 Ⅱ","es":"2023 Bambú Bosque Ferrocarril II"} },
     { id: 'r84', name: "2021構竹林鐵Ⅰ", href: "https://greenmedia.today/article_category.php?cid=54", translations: {"en":"2021 Bamboo Forest Railway I","zh-Hans":"2021构竹林铁Ⅰ","fr":"2021 Bambou Forêt Chemin de fer I","ja":"2021年 構竹林鉄Ⅰ","ko":"2021 대나무 숲 철도 Ⅰ","es":"2021 Bambú Bosque Ferrocarril I"} },
     { id: 'r104', name: "2024第七屆ADA新銳建築獎展覽", href: "https://as-studio001.github.io/asarch/", translations: {"en":"2024 7th ADA New Talent Award Exhibition","zh-Hans":"2024第七届ADA新锐建筑奖展览","fr":"2024 7e Exposition ADA New Talent Award","ja":"2024年 第7回ADA新鋭建築賞展","ko":"2024 제7회 ADA 신예건축상 전시","es":"2024 7ª Exposición ADA New Talent Award"} },
@@ -706,16 +707,17 @@ class Component extends DCLogic {
     { id: 'r133', name: "竹行動展覽館", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=498643", radius: 5.43, translations: {"zh-Hans":"竹行动展览馆","en":"Bamboo Mobile Pavilion","ja":"竹のモバイルパビリオン","ko":"대나무 이동식 전시장","es":"Pabellón móvil de bambú","fr":"Pavillon d'exposition mobile en bambou"} },
     { id: 'r98', name: "2024國立歷史博物館修復及再利用", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609197", radius: 4.95, translations: {"en":"2024 National Museum of History — Restoration & Adaptive Reuse","zh-Hans":"2024国立历史博物馆修复及再利用","fr":"2024 Restauration et Réutilisation du Musée National d’Histoire","ja":"2024年 国立歴史博物館 修復及び再利用","ko":"2024 국립역사박물관 수리 및 재활용","es":"2024 Restauración y Reutilización del Museo Nacional de Historia"} },
     { id: 'r99', name: "2024大巨蛋公共藝術「雨生光芽」", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609185", radius: 4.95, translations: {"en":"2024 Taipei Dome Public Art — \"Rain-Born Light Sprout\"","zh-Hans":"2024大巨蛋公共艺术「雨生光芽」","fr":"2024 Art Public du Taipei Dome — « Pousse de Lumière Née de la Pluie »","ja":"2024年 大巨蛋パブリックアート「雨生光芽」","ko":"2024 다쥐단 공공예술 '우생광아'","es":"2024 Arte Público del Taipei Dome — \"Brote de Luz Nacido de la Lluvia\""} },
-    { id: 'r109', name: "原型建築", href: "https://as-studio001.github.io/asarch/", radius: 10.19, translations: {"en":"Prototype Architecture","zh-Hans":"原型建筑","fr":"Prototype Architecture","ja":"プロトタイプ建築","ko":"프로토타입 건축","es":"Prototipo Arquitectura"} },
+    { id: 'r109', name: "原型建築", href: "https://as-studio001.github.io/asarch/", radius: 20, translations: {"en":"Prototype Architecture","zh-Hans":"原型建筑","fr":"Prototype Architecture","ja":"プロトタイプ建築","ko":"프로토타입 건축","es":"Prototipo Arquitectura"} },
     { id: 'r110', name: "2021嘉義實驗木場", href: "https://astaiwan.wixsite.com/website-1", translations: {"en":"2021 Chiayi Experimental Wood Workshop","zh-Hans":"2021嘉义实验木场","fr":"2021 Atelier Expérimental du Bois de Chiayi","ja":"2021年 嘉義実験木材工房","ko":"2021 자이 실험목재공방","es":"2021 Taller Experimental de Madera de Chiayi"} },
     { id: 'r130', name: "原型結構事務所", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=506003", radius: 6.38, translations: {"zh-Hans":"原型结构事务所","en":"AS studio (Archetype Structural Studio)","ja":"原型構造事務所（AS studio）","ko":"원형구조사무소 (AS studio)","es":"Estudio de Estructuras Arquetipo (AS studio)","fr":"Cabinet d'ingénierie des structures archétypes (AS studio)"} },
     { id: 'r114', name: "2025台南硓𥑮石．芳宅", href: "https://e64872170.wixsite.com/mysite", radius: 5.9, translations: {"en":"2025 Tainan Coral-Stone Fang House","zh-Hans":"2025台南咾咕石芳宅","fr":"2025 Maison Fang en Pierre de Corail, Tainan","ja":"2025年 台南咾咕石芳邸","ko":"2025 타이난 산호석 팡씨 주택","es":"2025 Casa Fang de Piedra Coralina, Tainan"} },
-    { id: 'r92', name: "2023億載金城入口意象", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609194", radius: 4.95, translations: {"en":"2023 Yizaijincheng Fort Entrance Landmark","zh-Hans":"2023亿载金城入口意象","fr":"2023 Portail d’Entrée du Fort Yizaijincheng","ja":"2023年 億載金城 入口イメージ","ko":"2023 이짜이진청 요새 입구 랜드마크","es":"2023 Entrada Emblemática del Fuerte Yizaijincheng"} },
-    { id: 'r113', name: "2025原型1號宅", href: "https://asstudio029.wixsite.com/ashouse1", radius: 4.95, translations: {"en":"2025 Prototype House No. 1","zh-Hans":"2025原型1号宅","fr":"2025 Prototype Maison N° 1","ja":"2025年 プロトタイプ1号邸","ko":"2025 프로토타입 1호 주택","es":"2025 Prototipo Casa N.º 1"} }];
+    { id: 'r92', name: "2023億載金城入口意象", href: "https://www.mashup.com.tw/as%20studio/?page=product_shop&p_id=609194", radius: 4.95, translations: {"en":"2023 Yizaijincheng Fort Entrance Landmark","zh-Hans":"2023亿载金城入口意象","fr":"2023 Portail d’Entrée du Fort Yizaijincheng","ja":"2023年 億載金城 入口イメージ","ko":"2023 이짜이진청 요새 입구 랜드마크","es":"2023 Entrada Emblemática del Fuerte Yizaijincheng"} }];
 
   // Relationships derived from columns C onward of the spreadsheet: each row's
   // column B node connects to whichever other rows' B-names appear across it.
-  edgeData = [    ['r1', 'r28'],
+  edgeData = [    ['r113', 'r101'],
+    ['r113', 'r109'],
+    ['r1', 'r28'],
     ['r1', 'r100'],
     ['r1', 'r59'],
     ['r91', 'r23'],
@@ -731,7 +733,6 @@ class Component extends DCLogic {
     ['r116', 'r101'],
     ['r116', 'r114'],
     ['r101', 'r118'],
-    ['r101', 'r113'],
     ['r101', 'r114'],
     ['r101', 'r133'],
     ['r101', 'r109'],
@@ -871,7 +872,6 @@ class Component extends DCLogic {
     ['r129', 'r109'],
     ['r125', 'r109'],
     ['r109', 'r110'],
-    ['r109', 'r113'],
     ['r109', 'r114'],
     ['r109', 'r130']];
 
