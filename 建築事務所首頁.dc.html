@@ -1659,6 +1659,11 @@ class Component extends DCLogic {
   // 依連線數算出的圓點半徑（viewBox 單位，未乘 dotScale），桌機 2D 圓環、
   // 手機 3D 球體都用同一份數字，而且 paintGlobe() 這種在 renderVals() 之外
   // 單獨跑的方法也需要用到，所以算過一次就記住，不用每次重算。
+  // 2026-08-26 新增：優先用 nodeData 裡該節點自己的 radius（「圓點位置
+  // 編輯器.html」的「大小」欄位手動調過才會有這個欄位，沒調過的節點沒有
+  // 這個欄位），沒有才照舊用連線數自動算——在此之前，編輯器裡調整過的
+  // 「大小」完全沒有同步機制，改了也不會反映到這裡，使用者實際回報過
+  // 「調整幾個圓點的大小，發布之後卻沒變」。
   computeNodeRadiusMap() {
     if (this._nodeRadiusMap) return this._nodeRadiusMap;
     const degree = this.computeDegree();
@@ -1666,7 +1671,7 @@ class Component extends DCLogic {
     const rMin = 4, rMax = 24;
     const map = {};
     this.nodeData.forEach(d => {
-      map[d.id] = rMin + (degree[d.id] / maxDegree) * (rMax - rMin);
+      map[d.id] = (typeof d.radius === 'number') ? d.radius : rMin + (degree[d.id] / maxDegree) * (rMax - rMin);
     });
     this._nodeRadiusMap = map;
     return map;
@@ -2061,7 +2066,7 @@ class Component extends DCLogic {
     const bgColor = isDarkMode ? 'oklch(0.15 0 0)' : 'oklch(0.99 0 0)';
     const textColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
     const lineColor = isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)';
-    const dotColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
+    const dotColor = isDarkMode ? 'oklch(0.95 0 0)' : '#9B9B9B';
     // Header logo (favicon.png, white line art by default): `{{ }}` doesn't
     // support ternaries (see the footer-contact note further down), so this
     // has to be a plain pre-computed variable rather than
@@ -2158,9 +2163,9 @@ class Component extends DCLogic {
         const isSpecial = this.specialIds.includes(d.id);
         const fontWeight = isSpecial ? 700 : 400;
         const isHoveredSelf = hoveredId === d.id;
-        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : '#9B9B9B');
+        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : 'oklch(0.16 0 0)');
         const dotFill = isSpecial ? specialColor : dotColor;
-        const labelColor = isSpecial ? specialColor : textColor;
+        const labelColor = isSpecial ? specialColor : dotColor;
         // 手機版球體用縮減過的 mobileName（有的話），桌機/搜尋結果一律維持
         // 原本完整的 name 不變（見 nodeData 宣告處 2026-07-31 新增的
         // mobileName 欄位）——目前語言若有這個節點的翻譯，翻譯優先於兩者
@@ -2307,9 +2312,9 @@ class Component extends DCLogic {
         const isSpecial = this.specialIds.includes(d.id);
         const fontWeight = isSpecial ? 700 : 400;
         const isHoveredSelf = hoveredId === d.id;
-        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : '#9B9B9B');
+        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : 'oklch(0.16 0 0)');
         const dotFill = isSpecial ? specialColor : dotColor;
-        const labelColor = isSpecial ? specialColor : textColor;
+        const labelColor = isSpecial ? specialColor : dotColor;
         // 目前語言若有這個節點的翻譯，翻譯優先於原文（見 getDisplayName()，
         // 桌機不用 mobileName 這個既有的手機縮寫機制，維持原樣）。
         const displayName = this.getDisplayName(d);
