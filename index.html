@@ -2061,7 +2061,7 @@ class Component extends DCLogic {
     const bgColor = isDarkMode ? 'oklch(0.15 0 0)' : 'oklch(0.99 0 0)';
     const textColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
     const lineColor = isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)';
-    const dotColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
+    const dotColor = isDarkMode ? 'oklch(0.95 0 0)' : '#9B9B9B';
     // Header logo (favicon.png, white line art by default): `{{ }}` doesn't
     // support ternaries (see the footer-contact note further down), so this
     // has to be a plain pre-computed variable rather than
@@ -2158,9 +2158,9 @@ class Component extends DCLogic {
         const isSpecial = this.specialIds.includes(d.id);
         const fontWeight = isSpecial ? 700 : 400;
         const isHoveredSelf = hoveredId === d.id;
-        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : '#9B9B9B');
+        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : 'oklch(0.16 0 0)');
         const dotFill = isSpecial ? specialColor : dotColor;
-        const labelColor = isSpecial ? specialColor : textColor;
+        const labelColor = isSpecial ? specialColor : dotColor;
         // 手機版球體用縮減過的 mobileName（有的話），桌機/搜尋結果一律維持
         // 原本完整的 name 不變（見 nodeData 宣告處 2026-07-31 新增的
         // mobileName 欄位）——目前語言若有這個節點的翻譯，翻譯優先於兩者
@@ -2307,9 +2307,9 @@ class Component extends DCLogic {
         const isSpecial = this.specialIds.includes(d.id);
         const fontWeight = isSpecial ? 700 : 400;
         const isHoveredSelf = hoveredId === d.id;
-        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : '#9B9B9B');
+        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : 'oklch(0.16 0 0)');
         const dotFill = isSpecial ? specialColor : dotColor;
-        const labelColor = isSpecial ? specialColor : textColor;
+        const labelColor = isSpecial ? specialColor : dotColor;
         // 目前語言若有這個節點的翻譯，翻譯優先於原文（見 getDisplayName()，
         // 桌機不用 mobileName 這個既有的手機縮寫機制，維持原樣）。
         const displayName = this.getDisplayName(d);
