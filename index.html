@@ -558,7 +558,7 @@ class Component extends DCLogic {
   // 裡（桌機 1、手機 2，跟改之前完全一樣，不受這個值影響）。這個數字是
   // 從「圓點位置編輯器.html」的「特殊連線粗細」滑塊同步過來的，同步流程
   // 見該檔案的 buildSyncParts()/buildFullSiteText()。
-  specialEdgeStrokeWidth = 3.9;
+  specialEdgeStrokeWidth = 2.8;
 
   // 手機版 3D 球體：球半徑（viewBox 單位）、節點文字基準字級、目前的旋轉角度
   // （yaw 繞垂直軸、pitch 繞水平軸，單位皆為弧度）跟拖曳/慣性狀態。這幾個是
@@ -2061,7 +2061,7 @@ class Component extends DCLogic {
     const bgColor = isDarkMode ? 'oklch(0.15 0 0)' : 'oklch(0.99 0 0)';
     const textColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
     const lineColor = isDarkMode ? 'oklch(0.25 0 0)' : 'oklch(0.85 0 0)';
-    const dotColor = isDarkMode ? 'oklch(0.95 0 0)' : '#9B9B9B';
+    const dotColor = isDarkMode ? 'oklch(0.95 0 0)' : 'oklch(0.16 0 0)';
     // Header logo (favicon.png, white line art by default): `{{ }}` doesn't
     // support ternaries (see the footer-contact note further down), so this
     // has to be a plain pre-computed variable rather than
@@ -2158,9 +2158,9 @@ class Component extends DCLogic {
         const isSpecial = this.specialIds.includes(d.id);
         const fontWeight = isSpecial ? 700 : 400;
         const isHoveredSelf = hoveredId === d.id;
-        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : 'oklch(0.16 0 0)');
+        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : '#9B9B9B');
         const dotFill = isSpecial ? specialColor : dotColor;
-        const labelColor = isSpecial ? specialColor : dotColor;
+        const labelColor = isSpecial ? specialColor : textColor;
         // 手機版球體用縮減過的 mobileName（有的話），桌機/搜尋結果一律維持
         // 原本完整的 name 不變（見 nodeData 宣告處 2026-07-31 新增的
         // mobileName 欄位）——目前語言若有這個節點的翻譯，翻譯優先於兩者
@@ -2307,9 +2307,9 @@ class Component extends DCLogic {
         const isSpecial = this.specialIds.includes(d.id);
         const fontWeight = isSpecial ? 700 : 400;
         const isHoveredSelf = hoveredId === d.id;
-        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : 'oklch(0.16 0 0)');
+        const specialColor = (!isDarkMode && isHoveredSelf) ? '#000000' : (isDarkMode ? '#BDA434' : '#9B9B9B');
         const dotFill = isSpecial ? specialColor : dotColor;
-        const labelColor = isSpecial ? specialColor : dotColor;
+        const labelColor = isSpecial ? specialColor : textColor;
         // 目前語言若有這個節點的翻譯，翻譯優先於原文（見 getDisplayName()，
         // 桌機不用 mobileName 這個既有的手機縮寫機制，維持原樣）。
         const displayName = this.getDisplayName(d);
