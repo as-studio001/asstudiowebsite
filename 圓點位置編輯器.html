@@ -10,8 +10,8 @@
     --bg-translucent: rgba(252, 252, 252, 0.88);
     --text: #1a1a1a;
     --line: #d9d9d9;
-    --dot: #1a1a1a;
-    --special: #808080;
+    --dot: #808080;
+    --special: #1a1a1a;
     --border: #e2e2e2;
   }
   @media (prefers-color-scheme: dark) {
@@ -34,8 +34,8 @@
     --bg-translucent: rgba(252, 252, 252, 0.88);
     --text: #1a1a1a;
     --line: #d9d9d9;
-    --dot: #1a1a1a;
-    --special: #808080;
+    --dot: #808080;
+    --special: #1a1a1a;
     --border: #e2e2e2;
   }
   :root[data-theme="dark"] {
@@ -1093,7 +1093,7 @@
     label.setAttribute('class', 'sc-label');
     label.setAttribute('font-size', '15');
     label.setAttribute('font-weight', isSpecial ? '700' : '400');
-    label.setAttribute('fill', isSpecial ? 'var(--special)' : 'var(--text)');
+    label.setAttribute('fill', isSpecial ? 'var(--special)' : 'var(--dot)');
     label.setAttribute('dominant-baseline', 'middle');
     label.textContent = d.name;
     g.appendChild(label);
@@ -2245,7 +2245,7 @@
   function setNodeColor(id, isSpecial) {
     if (isSpecial) SPECIAL_IDS.add(id); else SPECIAL_IDS.delete(id);
     nodeEls[id].dot.setAttribute('fill', isSpecial ? 'var(--special)' : 'var(--dot)');
-    nodeEls[id].label.setAttribute('fill', isSpecial ? 'var(--special)' : 'var(--text)');
+    nodeEls[id].label.setAttribute('fill', isSpecial ? 'var(--special)' : 'var(--dot)');
     nodeEls[id].label.setAttribute('font-weight', isSpecial ? '700' : '400');
     listBtnById[id].classList.toggle('special', isSpecial);
   }
