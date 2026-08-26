@@ -55,7 +55,7 @@
 
 **Layout**: 沿用首頁完全相同的頁首與頁尾設計與功能（僅移除搜尋框，因子頁無需要跨節點搜尋）；內容區 `max-width:900px`，`padding:220px 40px 160px`，含麵包屑導覽（首頁 / 原型教學）與大標題（Noto Serif TC, 48px, font-weight 600）。
 
-**Hover-Expand 圖片列（麵包屑上方）**：橫排的滑塊式圖片列（skiper35「Hover Expand」效果的替代實作，純 CSS/JS，無 React/Framer Motion 依賴），每個滑塊代表一個項目，資料來源為 `活頁簿1.xlsx`「原型教學」工作表（欄位：編號／大標／小標）。
+**Hover-Expand 圖片列（麵包屑上方）**：橫排的滑塊式圖片列（skiper35「Hover Expand」效果的替代實作，純 CSS/JS，無 React/Framer Motion 依賴），每個滑塊代表一個項目（欄位：編號／大標／小標），內容透過後台管理工具維護（見 [CLAUDE.md](./CLAUDE.md)）。
 
 - 版面：`display:flex`，各滑塊預設等寬（`flex:1`），滑塊之間以 0.5px 分隔線區隔（Light: `rgba(136,136,136,0.8)`；Dark: `rgba(255,255,255,0.8)`），第一個滑塊左側無分隔線。
 - 互動：滑鼠懸停的滑塊展開變寬（`flex:4`，`transition:flex 0.55s cubic-bezier(.16,1,.3,1)`），其餘滑塊維持等寬不變；收合時只顯示編號（如「01」），展開後才顯示完整圖說。
