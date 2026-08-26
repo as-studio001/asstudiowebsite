@@ -277,7 +277,7 @@
           <polygon points="{{ spotlight.points }}" fill="url(#spotlightGrad)" style="pointer-events:none;"></polygon>
         </sc-if>
         <sc-for list="{{ edges }}" as="edge" hint-placeholder-count="10">
-          <line data-edge="{{ edge.id }}" x1="{{ edge.x1 }}" y1="{{ edge.y1 }}" x2="{{ edge.x2 }}" y2="{{ edge.y2 }}" stroke="{{ lineColor }}" stroke-width="{{ edgeStrokeWidth }}" style="opacity: {{ edge.opacity }}; transition: {{ edgeTransition }};"></line>
+          <line data-edge="{{ edge.id }}" x1="{{ edge.x1 }}" y1="{{ edge.y1 }}" x2="{{ edge.x2 }}" y2="{{ edge.y2 }}" stroke="{{ lineColor }}" stroke-width="{{ edge.strokeWidth }}" style="opacity: {{ edge.opacity }}; transition: {{ edgeTransition }};"></line>
         </sc-for>
 
         <!-- 桌機 2D 圓環：單一層，跟改景深排序之前完全一樣，不受下面手機版
@@ -552,6 +552,13 @@ class Component extends DCLogic {
   // and buildGlobeGeometry()/paintGlobe() below) so a dot's "visual weight"
   // bump is defined in exactly one place.
   dotScale = 1.18;
+
+  // 2026-08-26 新增：兩個「分類/標題」大節點（specialIds）之間的連線，
+  // 線粗可以跟其他一般連線分開設定——一般連線的線粗維持寫死在 renderVals()
+  // 裡（桌機 1、手機 2，跟改之前完全一樣，不受這個值影響）。這個數字是
+  // 從「圓點位置編輯器.html」的「特殊連線粗細」滑塊同步過來的，同步流程
+  // 見該檔案的 buildSyncParts()/buildFullSiteText()。
+  specialEdgeStrokeWidth = 2;
 
   // 手機版 3D 球體：球半徑（viewBox 單位）、節點文字基準字級、目前的旋轉角度
   // （yaw 繞垂直軸、pitch 繞水平軸，單位皆為弧度）跟拖曳/慣性狀態。這幾個是
@@ -2219,9 +2226,11 @@ class Component extends DCLogic {
       edges = this.buildGlobeEdgeGeometry().map(e => {
         const dimmed = hoveredId && !(hoveredId === e.a || hoveredId === e.b);
         const depthOpacity = 0.04 + e.avgDepth * 0.5;
+        const bothSpecial = this.specialIds.includes(e.a) && this.specialIds.includes(e.b);
         return {
           id: e.id, x1: e.x1, y1: e.y1, x2: e.x2, y2: e.y2,
-          opacity: dimmed ? 0.1 : depthOpacity
+          opacity: dimmed ? 0.1 : depthOpacity,
+          strokeWidth: bothSpecial ? this.specialEdgeStrokeWidth : 2
         };
       });
 
@@ -2343,11 +2352,13 @@ class Component extends DCLogic {
         .map(([a, b], i) => {
           const pa = positions[a], pb = positions[b];
           const dimmed = hoveredId && !(hoveredId === a || hoveredId === b);
+          const bothSpecial = this.specialIds.includes(a) && this.specialIds.includes(b);
           return {
             id: 'e' + i,
             x1: pa.x, y1: pa.y,
             x2: pb.x, y2: pb.y,
-            opacity: dimmed ? 0.3 : 1
+            opacity: dimmed ? 0.3 : 1,
+            strokeWidth: bothSpecial ? this.specialEdgeStrokeWidth : 1
           };
         });
     }
@@ -2412,7 +2423,10 @@ class Component extends DCLogic {
       globeSurfaceDisplay: isMobile ? 'flex' : 'block',
       diagramContainerWidth: isMobile ? 'min(92vw, 88vh)' : 'min(90vw, 86vh)',
       globeOverflow: isMobile ? 'hidden' : 'visible',
-      edgeStrokeWidth: isMobile ? 2 : 1,
+      // 一般連線的線粗改成每條邊各自的 edge.strokeWidth（見上面兩個
+      // edges = ... 分支），不再是這裡統一的單一數字——只有「兩端都是
+      // specialIds」的連線才會套用 this.specialEdgeStrokeWidth，其餘一般
+      // 連線的粗細（桌機 1、手機 2）維持完全不變。
       // 3D 球體用 paintGlobe() 每影格直接寫 cx/cy/r/opacity 等屬性做旋轉動畫，
       // 如果 CSS transition 還留著，每一次直接寫入都會被拖著跑 0.25s 的緩動，
       // 反而讓拖曳跟手感變得黏滯、有延遲；手機版直接關掉這兩個 transition。
